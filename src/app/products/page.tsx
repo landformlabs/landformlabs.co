@@ -28,9 +28,9 @@ export default async function ProductsPage() {
   const categories = ['All', ...productCategories]
 
   return (
-    <div className="bg-gradient-to-b from-white to-accent-50 exploration-grid">
+    <div className="bg-gradient-to-b from-white to-accent-50 mountain-landscape">
       {/* Hero Section */}
-      <div className="relative angled-section bg-gradient-adventure text-white overflow-hidden topographic-pattern">
+      <div className="relative angled-section bg-gradient-adventure text-white overflow-hidden">
         <div className="absolute inset-0 opacity-15">
           <div className="absolute top-10 left-10 w-40 h-40 bg-white rounded-full blur-2xl"></div>
           <div className="absolute bottom-20 right-20 w-32 h-32 bg-white rounded-full blur-xl"></div>

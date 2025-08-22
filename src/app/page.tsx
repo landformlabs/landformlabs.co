@@ -1,8 +1,7 @@
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-secondary-50 relative overflow-hidden mountain-wireframe">
-      {/* Subtle Canyon Background */}
-      <div className="absolute inset-0 canyon-path"></div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-secondary-50 relative overflow-hidden mountain-landscape">
+      {/* Mountain landscape handles its own background layers */}
       
       {/* Subtle elevation accent elements */}
       <div className="absolute inset-0 opacity-20">
