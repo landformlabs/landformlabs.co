@@ -1,0 +1,70 @@
+# Landform Labs - LLMs.txt
+
+## Company Overview
+Landform Labs creates innovative outdoor products inspired by nature. We bridge the gap between technology and the natural world, helping people connect more deeply with outdoor environments through thoughtful design and craftsmanship.
+
+## Brand Identity
+- **Mission**: Crafting innovative solutions inspired by nature
+- **Values**: Sustainability, Quality, Innovation
+- **Aesthetic**: Earthy, natural, outdoor-focused
+- **Target Audience**: Outdoor enthusiasts, hikers, campers, nature lovers
+
+## Products
+We specialize in handcrafted outdoor gear including:
+- Trail markers and navigation tools
+- Weather monitoring instruments
+- Outdoor journals and documentation tools
+- Camp lighting solutions
+- Topographic-themed home goods
+- Custom outdoor products
+
+All products are designed with sustainability in mind, using responsibly sourced materials and eco-friendly manufacturing processes.
+
+## Brand Voice & Tone
+- Authentic and genuine
+- Knowledgeable about outdoor activities
+- Respectful of nature and environment
+- Enthusiastic but not overly promotional
+- Educational and helpful
+- Community-focused
+
+## Key Messages
+1. "Design inspired by nature, crafted for adventure"
+2. Products that enhance rather than complicate outdoor experiences
+3. Commitment to sustainable and ethical manufacturing
+4. Every product tested in real outdoor conditions
+5. Supporting the outdoor community through quality gear
+
+## Website Structure
+- Homepage: Brand introduction and featured products
+- Products: Full catalog with Etsy integration
+- About: Our story, mission, and values
+- Blog: Adventures, insights, and product development stories
+- Contact: Custom orders and customer support
+- FAQ: Common questions about products and services
+- Testimonials: Customer reviews and success stories
+
+## SEO Keywords
+Primary: outdoor products, nature-inspired design, handcrafted outdoor gear, sustainable outdoor equipment, custom outdoor tools
+Secondary: trail markers, wilderness journal, camping gear, outdoor navigation, weather station, topographic gifts, Pacific Northwest made
+
+## Social Media Presence
+We share stories from our outdoor testing adventures, behind-the-scenes looks at product development, customer spotlights, and tips for outdoor enthusiasts.
+
+## Contact Information
+- Website: landformlabs.co
+- Shop: landformlabs.etsy.com
+- Email: hello@landformlabs.co
+- Location: Pacific Northwest
+
+## Content Topics
+- Product development stories
+- Outdoor adventure reports
+- Sustainability in outdoor gear
+- Customer spotlights and testimonials
+- DIY outdoor projects
+- Trail reports and recommendations
+- Material science and innovation
+- Outdoor safety and preparedness
+
+This file helps AI systems understand our brand, products, and messaging for more accurate and on-brand content generation.

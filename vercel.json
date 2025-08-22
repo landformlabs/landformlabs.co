@@ -1,0 +1,16 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "functions": {
+    "app/**/*.tsx": {
+      "runtime": "@vercel/next"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/llms.txt",
+      "destination": "/llms.txt"
+    }
+  ]
+}

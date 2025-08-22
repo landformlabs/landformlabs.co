@@ -1,0 +1,463 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1.6;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  
+  h1 {
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+  }
+  
+  h2 {
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  
+  h3 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  /* Action-Oriented Buttons */
+  .btn-primary {
+    @apply relative bg-gradient-to-r from-secondary-600 to-secondary-700 hover:from-secondary-700 hover:to-secondary-800 text-white font-semibold py-4 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: 0.02em;
+  }
+  
+  .btn-primary::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-secondary-500 to-secondary-600 rounded-lg opacity-0 transition-opacity duration-300;
+  }
+  
+  .btn-primary:hover::before {
+    @apply opacity-100;
+  }
+  
+  .btn-secondary {
+    @apply relative border-2 border-secondary-600 text-secondary-700 hover:bg-secondary-600 hover:text-white font-semibold py-4 px-8 rounded-lg transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: 0.02em;
+  }
+  
+  .btn-adventure {
+    @apply bg-gradient-to-r from-accent-500 via-secondary-500 to-primary-500 hover:from-accent-600 hover:via-secondary-600 hover:to-primary-600 text-white font-bold py-5 px-10 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    font-size: 1.1rem;
+  }
+  
+  /* Dynamic Layout Classes */
+  .section-padding {
+    @apply py-20 md:py-32;
+  }
+  
+  .container-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+  
+  .diagonal-cut::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-full h-16 bg-white;
+    clip-path: polygon(0 100%, 100% 0%, 100% 100%);
+  }
+  
+  .angled-section {
+    @apply relative;
+    clip-path: polygon(0 8%, 100% 0%, 100% 92%, 0 100%);
+  }
+  
+  /* Enhanced Cards */
+  .adventure-card {
+    @apply bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 transform hover:-translate-y-2 hover:rotate-1;
+    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%);
+  }
+  
+  .adventure-card::before {
+    content: '';
+    @apply absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-500;
+    background: linear-gradient(135deg, rgba(70, 176, 112, 0.1) 0%, rgba(13, 145, 227, 0.1) 100%);
+  }
+  
+  .adventure-card:hover::before {
+    @apply opacity-100;
+  }
+  
+  /* Dynamic Gradients */
+  .gradient-adventure {
+    background: linear-gradient(135deg, #46b070 0%, #0d91e3 25%, #a3694a 50%, #46b070 75%, #0d91e3 100%);
+    background-size: 300% 300%;
+    animation: adventureGradient 8s ease infinite;
+  }
+  
+  .bg-gradient-adventure {
+    background: linear-gradient(135deg, #46b070 0%, #0d91e3 25%, #a3694a 50%, #46b070 75%, #0d91e3 100%);
+    background-size: 300% 300%;
+    animation: adventureGradient 8s ease infinite;
+  }
+  
+  .bg-gradient-dawn {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 25%, #d1d5db 50%, #f9fafb 75%, #ffffff 100%);
+  }
+  
+  .gradient-dawn {
+    background: linear-gradient(135deg, 
+      #faf8f5 0%, 
+      #e4f0e4 20%, 
+      #f0f8ff 40%, 
+      #f3ede6 60%, 
+      #e4f0e4 80%, 
+      #f8f5f0 100%);
+  }
+  
+  .gradient-topographic {
+    background: linear-gradient(135deg, 
+      rgba(250, 248, 245, 0.95) 0%, 
+      rgba(228, 240, 228, 0.9) 25%, 
+      rgba(240, 248, 255, 0.9) 50%, 
+      rgba(243, 237, 230, 0.95) 75%, 
+      rgba(228, 240, 228, 0.9) 100%);
+  }
+  
+  .gradient-elevation {
+    background: radial-gradient(ellipse at center, 
+      rgba(70, 176, 112, 0.15) 0%, 
+      rgba(13, 145, 227, 0.1) 35%, 
+      rgba(163, 105, 74, 0.12) 70%, 
+      rgba(70, 176, 112, 0.08) 100%);
+  }
+  
+  .gradient-terrain {
+    background: conic-gradient(from 45deg at center, 
+      rgba(70, 176, 112, 0.2) 0deg, 
+      rgba(13, 145, 227, 0.15) 90deg, 
+      rgba(163, 105, 74, 0.18) 180deg, 
+      rgba(176, 176, 112, 0.12) 270deg, 
+      rgba(70, 176, 112, 0.2) 360deg);
+  }
+  
+  /* Text Effects */
+  .text-adventure {
+    @apply bg-gradient-to-r from-secondary-600 via-primary-600 to-accent-600 bg-clip-text text-transparent;
+    background-size: 200% auto;
+    animation: adventureText 3s ease-in-out infinite alternate;
+  }
+  
+  .text-dynamic {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+  }
+  
+  /* Utility Classes */
+  .skew-element {
+    transform: skew(-2deg);
+  }
+  
+  .unskew-element {
+    transform: skew(2deg);
+  }
+  
+  /* Exploration Visual Elements */
+  .compass-accent {
+    position: relative;
+  }
+  
+  .compass-accent::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(70, 176, 112, 0.4);
+    border-radius: 50%;
+    transform: rotate(45deg);
+  }
+  
+  .compass-accent::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 12px;
+    height: 12px;
+    background: rgba(13, 145, 227, 0.3);
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    transform: rotate(45deg);
+  }
+  
+  .trail-marker {
+    position: relative;
+  }
+  
+  .trail-marker::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -15px;
+    width: 6px;
+    height: 6px;
+    background: rgba(163, 105, 74, 0.6);
+    border-radius: 50%;
+    transform: translateY(-50%);
+    box-shadow: 
+      0 0 0 3px rgba(163, 105, 74, 0.2),
+      0 0 0 6px rgba(163, 105, 74, 0.1);
+  }
+  
+  .elevation-badge {
+    position: relative;
+    overflow: visible;
+  }
+  
+  .elevation-badge::after {
+    content: attr(data-elevation);
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    background: rgba(70, 176, 112, 0.9);
+    color: white;
+    border-radius: 10px;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: 0.02em;
+  }
+  
+  .coordinate-grid {
+    background-image: 
+      linear-gradient(rgba(70, 176, 112, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(70, 176, 112, 0.1) 1px, transparent 1px);
+    background-size: 30px 30px;
+    position: relative;
+  }
+  
+  .coordinate-grid::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      linear-gradient(rgba(13, 145, 227, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(13, 145, 227, 0.08) 1px, transparent 1px);
+    background-size: 120px 120px;
+    background-position: 15px 15px;
+  }
+}
+
+@keyframes adventureGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes adventureText {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Hover Interactions */
+  .hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-8px) rotate(2deg);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Focus States */
+  .focus-adventure:focus {
+    outline: 3px solid #46b070;
+    outline-offset: 2px;
+  }
+  
+  /* Loading States */
+  .loading-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Subtle Wireframe Mountain Backgrounds */
+.mountain-wireframe {
+  position: relative;
+  overflow: hidden;
+}
+
+.mountain-wireframe::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image: 
+    /* Distant mountain ridges */
+    linear-gradient(120deg, transparent 45%, rgba(70, 176, 112, 0.3) 50%, transparent 55%),
+    linear-gradient(135deg, transparent 30%, rgba(13, 145, 227, 0.25) 35%, transparent 40%),
+    linear-gradient(90deg, transparent 20%, rgba(163, 105, 74, 0.2) 25%, transparent 30%);
+  background-size: 1200px 400px, 800px 600px, 1000px 300px;
+  background-position: 0% 100%, 50% 80%, 100% 90%;
+  animation: mountainDrift 60s ease-in-out infinite;
+}
+
+.topographic-pattern {
+  position: relative;
+  overflow: hidden;
+}
+
+.topographic-pattern::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  background-image: 
+    /* Subtle elevation lines */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 80px,
+      rgba(70, 176, 112, 0.2) 80px,
+      rgba(70, 176, 112, 0.2) 81px,
+      transparent 81px
+    ),
+    repeating-linear-gradient(
+      15deg,
+      transparent,
+      transparent 120px,
+      rgba(13, 145, 227, 0.15) 120px,
+      rgba(13, 145, 227, 0.15) 121px,
+      transparent 121px
+    );
+  background-size: 100% 100%, 100% 100%;
+  animation: gentleFlow 90s linear infinite;
+}
+
+.exploration-grid {
+  position: relative;
+}
+
+.exploration-grid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: 
+    linear-gradient(rgba(70, 176, 112, 0.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(70, 176, 112, 0.25) 1px, transparent 1px);
+  background-size: 100px 100px;
+  background-position: 0 0;
+}
+
+.canyon-path {
+  position: relative;
+  overflow: hidden;
+}
+
+.canyon-path::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image: 
+    /* Winding canyon walls */
+    radial-gradient(ellipse 600px 200px at 20% 100%, transparent 30%, rgba(163, 105, 74, 0.2) 35%, transparent 45%),
+    radial-gradient(ellipse 800px 300px at 80% 100%, transparent 25%, rgba(70, 176, 112, 0.15) 30%, transparent 40%),
+    radial-gradient(ellipse 400px 150px at 60% 100%, transparent 35%, rgba(13, 145, 227, 0.12) 40%, transparent 50%);
+  background-size: 100% 100%;
+  background-position: 0% 100%, 100% 100%, 50% 100%;
+  animation: canyonPath 120s ease-in-out infinite;
+}
+
+/* Subtle Mountain Animation Keyframes */
+@keyframes mountainDrift {
+  0%, 100% { 
+    background-position: 0% 100%, 50% 80%, 100% 90%;
+    transform: translateY(0);
+  }
+  50% { 
+    background-position: -5% 98%, 45% 85%, 105% 88%;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes gentleFlow {
+  0% { background-position: 0% 0%, 0% 0%; }
+  100% { background-position: 100% 100%, -100% -100%; }
+}
+
+@keyframes canyonPath {
+  0%, 100% {
+    background-position: 0% 100%, 100% 100%, 50% 100%;
+    opacity: 0.03;
+  }
+  50% {
+    background-position: -2% 98%, 102% 98%, 48% 98%;
+    opacity: 0.025;
+  }
+}
+
+/* Scroll-triggered animations (basic CSS implementation) */
+@media (prefers-reduced-motion: no-preference) {
+  .scroll-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  
+  .scroll-reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .mountain-wireframe::before,
+  .topographic-pattern::before,
+  .canyon-path::before {
+    animation: none;
+  }
+}
