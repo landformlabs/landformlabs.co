@@ -93,7 +93,7 @@ export default function FAQPage() {
   ]
 
   return (
-    <div className="bg-gradient-to-b from-white to-accent-50">
+    <div className="bg-white">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-secondary-700 to-primary-600 text-white">
         <div className="container mx-auto container-padding py-16">
