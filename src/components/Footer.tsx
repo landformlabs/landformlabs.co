@@ -1,127 +1,203 @@
-import Link from 'next/link'
+import Link from "next/link";
+import Image from "next/image";
+
+const navigation = {
+  main: [
+    { name: "Products", href: "/products" },
+    { name: "About", href: "/about" },
+    { name: "Contact", href: "/contact" },
+    { name: "FAQ", href: "/faq" },
+    { name: "Testimonials", href: "/testimonials" },
+  ],
+  products: [
+    { name: "Route Tiles", href: "/products#route-tiles" },
+    { name: "Route Ornaments", href: "/products#route-ornaments" },
+    { name: "State Ornaments", href: "/products#state-ornaments" },
+    { name: "Mountain Pen Holders", href: "/products#mountain-pen-holders" },
+    { name: "Custom Prints", href: "/products#custom-prints" },
+  ],
+  social: [
+    {
+      name: "Etsy",
+      href: "https://landformlabs.etsy.com",
+      icon: (
+        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M11.139 14.058c-.438 0-.693-.294-.693-1.058v-2.696l1.456.112.074-.694-1.496.074v-1.53h-.438c-.216 1.201-.759 1.638-1.488 1.712v.364h.869v3.062c0 .836.588 1.271 1.313 1.271.585 0 1.202-.255 1.418-.763l-.217-.255c-.108.18-.402.401-.798.401zm-3.494-.803c-.294.69-.767.729-1.24.729h-1.53c-.508 0-.729-.186-.729-.62v-2.258s1.092 0 1.457.039c.291.035.438.109.546.473l.108.511h.438l-.039-1.309.074-1.278h-.434l-.147.585c-.073.399-.147.438-.546.508-.508.038-1.457.038-1.457.038V7.979c0-.112 0-.147.185-.147h2.291c.402 0 .62.326.763.98l.147.512h.399c.039-1.457.074-2.074.074-2.074s-.981.105-1.562.105H3.53L2 7.324v.399l.508.107c.367.074.475.147.475.473 0 0 .039.984.039 2.619 0 1.639-.039 2.623-.039 2.623 0 .291-.108.399-.475.473L2 14.131v.396l1.565-.035h2.623c.581 0 1.965.035 1.965.035.034-.361.216-1.964.255-2.146H8.04l-.395.874zm6.04-2.622c0-.474.437-.655.875-.655.36 0 .653.147.729.325l.255.729.361-.035c0-.364.038-.838.111-1.201-.328-.147-.983-.221-1.421-.221-.984 0-1.747.441-1.747 1.387 0 1.674 2.44 1.31 2.44 2.549 0 .399-.256.729-.876.729-.581 0-.837-.294-.945-.585l-.29-.693h-.369c.04.476.074.948 0 1.382 0 0 .767.294 1.531.294 1.022 0 1.858-.507 1.858-1.457 0-1.674-2.512-1.421-2.512-2.548zm6.369-.945v.364l.259.074c.252.07.36.178.36.363 0 .108-.034.144-.073.291-.108.291-.802 2.003-1.162 2.767a75.566 75.566 0 0 1-1.093-2.949c-.035-.073-.035-.108-.035-.146 0-.148.105-.292.361-.326l.329-.074v-.364l-1.346.073-1.096-.039v.368l.187.069c.251.074.287.11.469.512.693 1.53 1.457 3.529 1.716 4.15-.584 1.019-1.204 1.309-1.677 1.309-.291 0-.399-.147-.435-.329l-.146-.763-.4.035c-.073.477-.147.984-.255 1.383.287.182.616.294 1.053.293.691 0 1.675-.182 2.623-2.332l1.601-3.747c.145-.293.182-.329.546-.476l.183-.144v-.362l-.945.034-1.024-.034z" />
+        </svg>
+      ),
+    },
+    {
+      name: "Email",
+      href: "mailto:hello@landformlabs.co",
+      icon: (
+        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M1.5 8.67v8.58a3 3 0 003 3h15a3 3 0 003-3V8.67l-8.928 5.493a3 3 0 01-3.144 0L1.5 8.67z" />
+          <path d="M22.5 6.908V6.75a3 3 0 00-3-3h-15a3 3 0 00-3 3v.158l9.714 5.978a1.5 1.5 0 001.572 0L22.5 6.908z" />
+        </svg>
+      ),
+    },
+  ],
+};
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear()
-
-  const footerLinks = {
-    'Company': [
-      { name: 'About Us', href: '/about' },
-      { name: 'Our Story', href: '/about#story' },
-      { name: 'FAQ', href: '/faq' },
-      { name: 'Testimonials', href: '/testimonials' },
-    ],
-    'Products': [
-      { name: 'All Products', href: '/products' },
-      { name: 'Shop on Etsy', href: 'https://landformlabs.etsy.com' },
-      { name: 'Custom Orders', href: '/contact' },
-    ],
-    'Resources': [
-      { name: 'Blog', href: '/blog' },
-      { name: 'Contact', href: '/contact' },
-      { name: 'Support', href: '/contact#support' },
-    ],
-  }
-
-  const socialLinks = [
-    {
-      name: 'Instagram',
-      href: '#',
-      icon: (
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987s11.987-5.367 11.987-11.987C24.004 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.448-.49-3.32-1.297L12.017 8.8l6.888 6.891c-.872.807-2.023 1.297-3.32 1.297H8.449z"/>
-        </svg>
-      ),
-    },
-    {
-      name: 'Facebook',
-      href: '#',
-      icon: (
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-        </svg>
-      ),
-    },
-    {
-      name: 'Twitter',
-      href: '#',
-      icon: (
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-        </svg>
-      ),
-    },
-  ]
-
   return (
-    <footer className="bg-secondary-800 text-white">
-      <div className="container mx-auto container-padding py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand */}
-          <div className="col-span-1 md:col-span-1">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-secondary-400 to-primary-400 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">LL</span>
+    <footer
+      className="bg-basalt text-alpine-mist"
+      aria-labelledby="footer-heading"
+    >
+      <h2 id="footer-heading" className="sr-only">
+        Footer
+      </h2>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        <div className="xl:grid xl:grid-cols-3 xl:gap-8">
+          {/* Brand Section */}
+          <div className="space-y-8 xl:col-span-1">
+            <Link href="/" className="flex items-center space-x-3">
+              <Image
+                src="/square-500.svg"
+                alt="Landform Labs"
+                width={40}
+                height={40}
+                className="w-10 h-10 invert"
+              />
+              <div className="flex flex-col">
+                <span className="font-headline font-bold text-xl">
+                  Landform Labs
+                </span>
+                <span className="get-out-there text-xs -mt-1 text-alpine-mist">
+                  Get Out There
+                </span>
               </div>
-              <span className="text-lg font-semibold">Landform Labs</span>
-            </div>
-            <p className="text-secondary-200 text-sm mb-6 max-w-sm">
-              Crafting innovative solutions inspired by nature. Bringing you closer to the outdoors through thoughtful design.
+            </Link>
+            <p className="text-sm text-alpine-mist/80 max-w-md">
+              Transform your favorite outdoor memories into beautiful,
+              personalized 3D printed mementos. Get Out There, Amaze Yourself,
+              Own It, Repeat.
             </p>
-            <div className="flex space-x-4">
-              {socialLinks.map((social) => (
+            <div className="flex space-x-6">
+              {navigation.social.map((item) => (
                 <a
-                  key={social.name}
-                  href={social.href}
-                  className="text-secondary-300 hover:text-accent-300 transition-colors duration-200"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  key={item.name}
+                  href={item.href}
+                  className="text-alpine-mist/60 hover:text-alpine-mist transition-colors duration-200"
+                  target={item.href.startsWith("http") ? "_blank" : undefined}
+                  rel={
+                    item.href.startsWith("http")
+                      ? "noopener noreferrer"
+                      : undefined
+                  }
                 >
-                  {social.icon}
+                  <span className="sr-only">{item.name}</span>
+                  {item.icon}
                 </a>
               ))}
             </div>
           </div>
 
-          {/* Footer Links */}
-          {Object.entries(footerLinks).map(([category, links]) => (
-            <div key={category} className="col-span-1">
-              <h3 className="font-semibold text-white mb-4">{category}</h3>
-              <ul className="space-y-2">
-                {links.map((link) => (
-                  <li key={link.name}>
-                    <Link
-                      href={link.href}
-                      className="text-secondary-200 hover:text-accent-300 text-sm transition-colors duration-200"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+          {/* Navigation Links */}
+          <div className="mt-12 grid grid-cols-2 gap-8 xl:mt-0 xl:col-span-2">
+            <div className="md:grid md:grid-cols-2 md:gap-8">
+              <div>
+                <h3 className="font-headline font-semibold text-sm uppercase tracking-wider">
+                  Navigation
+                </h3>
+                <ul role="list" className="mt-4 space-y-4">
+                  {navigation.main.map((item) => (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        className="text-sm text-alpine-mist/80 hover:text-alpine-mist transition-colors duration-200"
+                      >
+                        {item.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="mt-12 md:mt-0">
+                <h3 className="font-headline font-semibold text-sm uppercase tracking-wider">
+                  Products
+                </h3>
+                <ul role="list" className="mt-4 space-y-4">
+                  {navigation.products.map((item) => (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        className="text-sm text-alpine-mist/80 hover:text-alpine-mist transition-colors duration-200"
+                      >
+                        {item.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          ))}
+
+            {/* Contact Info */}
+            <div className="mt-12 md:mt-0">
+              <h3 className="font-headline font-semibold text-sm uppercase tracking-wider">
+                Get In Touch
+              </h3>
+              <div className="mt-4 space-y-4">
+                <p className="text-sm text-alpine-mist/80">
+                  <a
+                    href="mailto:hello@landformlabs.co"
+                    className="hover:text-alpine-mist transition-colors duration-200"
+                  >
+                    hello@landformlabs.co
+                  </a>
+                </p>
+                <p className="text-sm text-alpine-mist/80">
+                  Questions about custom orders?
+                  <br />
+                  <a
+                    href="mailto:sales@landformlabs.co"
+                    className="hover:text-alpine-mist transition-colors duration-200"
+                  >
+                    sales@landformlabs.co
+                  </a>
+                </p>
+                <p className="text-sm text-alpine-mist/80">
+                  Visit our Etsy store:
+                  <br />
+                  <a
+                    href="https://landformlabs.etsy.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-alpine-mist transition-colors duration-200"
+                  >
+                    landformlabs.etsy.com
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="border-t border-secondary-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <div className="text-secondary-300 text-sm">
-            © {currentYear} Landform Labs. All rights reserved.
-          </div>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link
-              href="/privacy"
-              className="text-secondary-300 hover:text-accent-300 text-sm transition-colors duration-200"
-            >
-              Privacy Policy
-            </Link>
-            <Link
-              href="/terms"
-              className="text-secondary-300 hover:text-accent-300 text-sm transition-colors duration-200"
-            >
-              Terms of Service
-            </Link>
+        {/* Bottom Section */}
+        <div className="mt-12 border-t border-alpine-mist/20 pt-8">
+          <div className="md:flex md:items-center md:justify-between">
+            <div className="flex space-x-6 md:order-2">
+              <Link
+                href="/privacy"
+                className="text-sm text-alpine-mist/60 hover:text-alpine-mist/80 transition-colors duration-200"
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                href="/terms"
+                className="text-sm text-alpine-mist/60 hover:text-alpine-mist/80 transition-colors duration-200"
+              >
+                Terms of Service
+              </Link>
+            </div>
+            <p className="mt-8 text-sm text-alpine-mist/60 md:mt-0 md:order-1">
+              &copy; {new Date().getFullYear()} Landform Labs. All rights
+              reserved.
+            </p>
           </div>
         </div>
       </div>
     </footer>
-  )
+  );
 }
