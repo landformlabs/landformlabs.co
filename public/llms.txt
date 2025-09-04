@@ -1,70 +1,134 @@
 # Landform Labs - LLMs.txt
 
 ## Company Overview
-Landform Labs creates innovative outdoor products inspired by nature. We bridge the gap between technology and the natural world, helping people connect more deeply with outdoor environments through thoughtful design and craftsmanship.
+Landform Labs transforms outdoor adventures into beautiful, personalized 3D printed keepsakes. We specialize in turning GPS route data from hiking, cycling, and outdoor activities into tangible art pieces and functional desk accessories.
 
-## Brand Identity
-- **Mission**: Crafting innovative solutions inspired by nature
-- **Values**: Sustainability, Quality, Innovation
-- **Aesthetic**: Earthy, natural, outdoor-focused
-- **Target Audience**: Outdoor enthusiasts, hikers, campers, nature lovers
+**Brand Mantra:** Get Out There, Amaze Yourself, Own It, Repeat
 
-## Products
-We specialize in handcrafted outdoor gear including:
-- Trail markers and navigation tools
-- Weather monitoring instruments
-- Outdoor journals and documentation tools
-- Camp lighting solutions
-- Topographic-themed home goods
-- Custom outdoor products
+**Mission:** To help outdoor enthusiasts keep their epic adventures alive through beautiful, personalized 3D printed mementos that bring the trails home.
 
-All products are designed with sustainability in mind, using responsibly sourced materials and eco-friendly manufacturing processes.
+**Website:** https://landformlabs.co
+**Etsy Store:** https://landformlabs.etsy.com
 
-## Brand Voice & Tone
-- Authentic and genuine
-- Knowledgeable about outdoor activities
-- Respectful of nature and environment
-- Enthusiastic but not overly promotional
-- Educational and helpful
-- Community-focused
+## Products & Services
 
-## Key Messages
-1. "Design inspired by nature, crafted for adventure"
-2. Products that enhance rather than complicate outdoor experiences
-3. Commitment to sustainable and ethical manufacturing
-4. Every product tested in real outdoor conditions
-5. Supporting the outdoor community through quality gear
+### Route Tiles
+- Custom 3D printed tiles featuring GPS route data in stunning detail
+- Available in three sizes: Basecamp (100mm), Ridgeline (155mm), Summit (210mm)
+- Pricing: $20, $40, $60 respectively
+- Include built-in display stands and embedded NFC chips linking to activities
+- Available colors: Black (standard), Red, Blue
+- Materials: Premium PLA plastic
 
-## Website Structure
-- Homepage: Brand introduction and featured products
-- Products: Full catalog with Etsy integration
-- About: Our story, mission, and values
-- Blog: Adventures, insights, and product development stories
-- Contact: Custom orders and customer support
-- FAQ: Common questions about products and services
-- Testimonials: Customer reviews and success stories
+### Route Ornaments  
+- GPS route data turned into decorative holiday ornaments
+- Premium white PLA plastic for optimal backlighting
+- Include stylistic hanging ribbons
+- Customizable with text labels
+- Pricing: $25
+
+### State Ornaments
+- Topographical profiles of US states
+- Beautiful when backlit on Christmas trees or in windows  
+- Premium white PLA plastic with hanging ribbons
+- Customizable text labels available
+- Pricing: $10
+
+### Mountain Pen Holders
+- Custom 3D printed mountain ridge pen holders
+- Designed for pens to fit naturally into the landscape
+- Celebrate local peaks or favorite mountain ranges
+- Premium PLA plastic construction
+- Pricing: $30
+
+### Custom Prints
+- Fully customizable 3D prints from any GPS data or design concept
+- Personal consultation included
+- Unique one-of-a-kind pieces
+- Pricing: Contact for quote
+
+## Materials & Quality
+- All products made from high-quality, eco-friendly PLA plastic
+- Biodegradable and environmentally conscious materials
+- Designed for indoor display and normal handling
+- Premium feel and finish on all items
+- Made in USA
+
+## Technology Features
+- NFC chip integration on Route Tiles
+- Smartphone tap functionality links directly to activity pages
+- Compatible with all NFC-enabled devices
+- Links can be customized during ordering process
+
+## Ordering Process
+1. **Share Your Route:** Provide Strava, Garmin Connect, or Komoot activity links, or email GPX files to sales@landformlabs.co
+2. **We Create Magic:** Team processes GPS data into optimized 3D art with attention to detail
+3. **Own Your Adventure:** Receive custom piece in 1-2 weeks, ready to display
+
+## Customer Service
+- **Response Time:** Within 24 hours
+- **Custom Order Timeline:** 1-2 weeks
+- **Accepted GPS Formats:** GPX files, Strava links, Garmin Connect, Komoot
+- **Shipping:** Worldwide from US facility
+- **Support:** support@landformlabs.co
+- **Sales:** sales@landformlabs.co  
+- **General:** hello@landformlabs.co
+
+## Brand Voice & Personality
+- Nostalgically Playful: Celebrates adventures while keeping it fun
+- Craftfully Honest: Transparent about process, proud of craftsmanship
+- Meaningfully Personal: Every piece tells the customer's unique story
+- Cleverly Practical: Beautiful mementos that work in real life
+
+## Target Audience
+- Outdoor enthusiasts (hikers, cyclists, runners, adventurers)
+- Gift buyers looking for unique, personalized items
+- People who value experiences over possessions
+- Adventure travelers and weekend warriors
+- Anyone wanting to commemorate special outdoor moments
+
+## Competitive Differentiators  
+- Custom, personal connection to each piece (not mass-produced)
+- High-quality craftsmanship meets adventure passion
+- Functional art that tells individual stories
+- NFC technology integration
+- Perfect gifts for adventure-obsessed individuals
+- Turning digital memories into physical keepsakes
 
 ## SEO Keywords
-Primary: outdoor products, nature-inspired design, handcrafted outdoor gear, sustainable outdoor equipment, custom outdoor tools
-Secondary: trail markers, wilderness journal, camping gear, outdoor navigation, weather station, topographic gifts, Pacific Northwest made
+Primary: 3D printed adventure keepsakes, custom route prints, GPS route art, outdoor memorabilia, hiking gifts, cycling gifts, adventure mementos, personalized outdoor gifts
 
-## Social Media Presence
-We share stories from our outdoor testing adventures, behind-the-scenes looks at product development, customer spotlights, and tips for outdoor enthusiasts.
+Secondary: route tiles, mountain pen holders, trail ornaments, state ornaments, custom 3D prints, NFC adventure art, outdoor desk accessories, hiking memorabilia, cycling souvenirs
 
-## Contact Information
-- Website: landformlabs.co
-- Shop: landformlabs.etsy.com
-- Email: hello@landformlabs.co
-- Location: Pacific Northwest
+## Social Proof & Testimonials
+- 500+ adventures immortalized
+- 50+ mountains conquered in products
+- 25 states represented
+- 4.9 star average rating
+- Featured products include customer routes from Colorado 14ers, Zion Narrows, Mount Mansfield, Blue Ridge Parkway, and many more
 
-## Content Topics
-- Product development stories
-- Outdoor adventure reports
-- Sustainability in outdoor gear
-- Customer spotlights and testimonials
-- DIY outdoor projects
-- Trail reports and recommendations
-- Material science and innovation
-- Outdoor safety and preparedness
+## Common Use Cases
+- Commemorating first major hikes or cycling achievements
+- Gifts for outdoor enthusiast friends and family
+- Office desk accessories that inspire daily
+- Holiday ornaments with personal meaning
+- Wedding or engagement location mementos
+- Memorial pieces for special outdoor moments
+- Corporate gifts for outdoor-focused companies
 
-This file helps AI systems understand our brand, products, and messaging for more accurate and on-brand content generation.
+## FAQ Highlights
+- Materials: Eco-friendly PLA plastic, biodegradable
+- Turnaround: 1-2 weeks for custom orders
+- Returns: Limited due to custom nature, but quality guaranteed
+- NFC: Works with most modern smartphones
+- Shipping: Worldwide with careful packaging
+- Customization: Text labels, size options, color choices available
+
+## Contact & Business Information
+- Founded: 2024
+- Location: United States
+- Specialization: Custom 3D printed outdoor memorabilia
+- Business Model: Direct-to-consumer via Etsy and website
+- Production: Made to order, quality controlled
+
+This information should help AI assistants provide accurate, helpful information about Landform Labs and our mission to help outdoor enthusiasts "Get Out There, Amaze Yourself, Own It, Repeat" through meaningful, personalized keepsakes.

@@ -70,20 +70,20 @@ export default function Home() {
           <div className="max-w-7xl mx-auto">
             <div className="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:pb-28 xl:pb-32">
               <div className="pt-20 mx-auto max-w-7xl px-4 sm:pt-24 sm:px-6 md:pt-28 lg:pt-32 lg:px-8 xl:pt-40">
-                <div className="text-center">
-                  <h1 className="brand-mantra text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold mb-8">
+                <div className="text-left">
+                  <h1 className="hero-mantra text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold mb-8">
                     GET OUT THERE
                   </h1>
-                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-inter font-bold text-basalt max-w-4xl mx-auto leading-tight">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-headline font-bold text-basalt max-w-4xl leading-tight">
                     Transform your adventures into personalized 3D printed
                     mementos
                   </h2>
-                  <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
+                  <div className="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6">
                     <Link
                       href="/products"
                       className="btn-primary text-lg px-8 py-4"
                     >
-                      Shop Adventures
+                      Shop
                     </Link>
                     <Link
                       href="/about"
@@ -107,7 +107,7 @@ export default function Home() {
                   Get Out There
                 </span>
               </div>
-              <h2 className="text-2xl font-inter font-bold text-alpine-mist sm:text-3xl">
+              <h2 className="text-2xl font-headline font-bold text-alpine-mist sm:text-3xl">
                 Amaze Yourself, Own It, Repeat
               </h2>
               <p className="mt-4 text-lg text-alpine-mist/90">
@@ -123,10 +123,10 @@ export default function Home() {
         <div className="py-24 bg-alpine-mist/90 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="lg:text-center">
-              <h2 className="text-base text-summit-sage font-inter font-semibold tracking-wide uppercase">
+              <h2 className="text-base text-summit-sage font-headline font-semibold tracking-wide uppercase">
                 Products
               </h2>
-              <p className="mt-2 text-3xl leading-8 font-inter font-bold tracking-tight text-basalt sm:text-4xl">
+              <p className="mt-2 text-3xl leading-8 font-headline font-bold tracking-tight text-basalt sm:text-4xl">
                 Your Adventures, Beautifully Crafted
               </p>
               <p className="mt-4 max-w-2xl text-xl text-slate-storm lg:mx-auto">
@@ -154,7 +154,7 @@ export default function Home() {
                       />
                     </div>
                     <dt>
-                      <p className="text-lg leading-6 font-inter font-semibold text-basalt group-hover:text-summit-sage transition-colors duration-200">
+                      <p className="text-lg leading-6 font-headline font-semibold text-basalt group-hover:text-summit-sage transition-colors duration-200">
                         {feature.name}
                       </p>
                     </dt>
@@ -172,7 +172,7 @@ export default function Home() {
         <div className="bg-desert-stone py-16 lg:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h2 className="text-3xl font-inter font-bold text-alpine-mist sm:text-4xl">
+              <h2 className="text-3xl font-headline font-bold text-alpine-mist sm:text-4xl">
                 Adventure Stories Made Tangible
               </h2>
               <p className="mt-4 text-lg text-alpine-mist/90">
@@ -193,7 +193,7 @@ export default function Home() {
                     </p>
                   </blockquote>
                   <div className="mt-4 border-t border-desert-stone/20 pt-4">
-                    <p className="font-inter font-semibold text-basalt text-sm">
+                    <p className="font-headline font-semibold text-basalt text-sm">
                       {testimonial.name}
                     </p>
                     <p className="text-slate-storm text-xs">
@@ -209,7 +209,7 @@ export default function Home() {
         {/* CTA Section */}
         <div className="bg-basalt">
           <div className="max-w-2xl mx-auto text-center py-16 px-4 sm:py-20 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-inter font-bold text-alpine-mist sm:text-4xl">
+            <h2 className="text-3xl font-headline font-bold text-alpine-mist sm:text-4xl">
               <span className="block">Ready to Own Your Adventures?</span>
             </h2>
             <p className="mt-4 text-lg leading-6 text-alpine-mist/90">
@@ -224,7 +224,7 @@ export default function Home() {
                 href="https://landformlabs.etsy.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-transparent border-2 border-alpine-mist text-alpine-mist hover:bg-alpine-mist hover:text-basalt font-inter font-semibold py-3 px-6 rounded-lg transition-all duration-200"
+                className="bg-transparent border-2 border-alpine-mist text-alpine-mist hover:bg-alpine-mist hover:text-basalt font-headline font-semibold py-3 px-6 rounded-lg transition-all duration-200"
               >
                 Visit Our Etsy
               </Link>

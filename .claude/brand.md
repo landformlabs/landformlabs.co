@@ -84,49 +84,48 @@ Landform Labs creates custom 3D printed mementos that celebrate outdoor adventur
 
 ## Typography
 
-### Primary Font Combination: Bold Adventurer
+### Streamlined Font System: Adventure Simplified
 
-#### Raleway (Headers & Product Names)
-- **Google Fonts:** Available in 9 weights with italics
-- **Personality:** Elegant, sophisticated, premium quality
-- **Usage:** Product names, website headlines, packaging headers, logo design
-- **Why it works:** Distinctive letterforms convey quality craftsmanship and premium custom products
+Our typography system has been simplified to two carefully chosen fonts that work together to create a cohesive, impactful brand experience while reducing complexity and improving performance.
 
-#### Libre Baskerville (Product Descriptions)
-- **Google Fonts:** Available in 3 styles (Regular, Italic, Bold)
-- **Personality:** Classic, reliable, trustworthy
-- **Usage:** Product descriptions, care instructions, website body text, customer testimonials
-- **Why it works:** Excellent readability for detailed product information and builds trust in custom manufacturing
+#### Poppins (Hero & Brand Elements)
+- **Google Fonts:** Full weight range (100-900, including italics)
+- **Personality:** Bold, modern, impactful, condensed adventure energy
+- **Usage:** Hero sections ("GET OUT THERE"), brand mantras, special callouts, condensed headlines
+- **Styling:** Applied with ultra-condensed transforms (scaleX 0.85) and tight letter-spacing (-0.08em) for maximum impact
+- **Why it works:** Creates powerful, mountain-peak-like vertical presence for key brand messaging while maintaining excellent readability
 
-### Accent Typography
-
-#### Six Caps (Special Product Lines)
-- **Google Fonts:** All-caps only
-- **Personality:** Bold, premium, commanding
-- **Usage:** Special collection names, limited edition products, gift packaging
-- **Example:** "SUMMIT SERIES" or "TRAIL LEGENDS"
-
-#### Teko (Call-to-Action)
-- **Google Fonts:** Available in 5 weights
-- **Personality:** Direct, action-oriented, modern
-- **Usage:** "Customize Now," "Shop Collection," website buttons
-- **Why it works:** Perfect for encouraging product customization and purchases
+#### Trispace (Everything Else)
+- **Google Fonts:** Available in 8 weights (100-800, including italics)
+- **Personality:** Technical precision meets outdoor gear reliability, modern monospace aesthetic
+- **Usage:** All headlines, body text, buttons, navigation, product descriptions, specifications
+- **Styling:** Headlines use bold weight (700), body text uses regular weight with clean line spacing
+- **Why it works:** Monospace character conveys precision and technical expertise perfect for GPS data and 3D printing, while providing distinctive character that sets us apart from typical outdoor brands
 
 ---
 
 ## Typography Usage Guidelines
 
 ### Product Applications
-1. **Product Names:** Raleway Semibold (24-36px web, 18-24pt print)
-2. **Product Categories:** Raleway Medium (20-28px web, 14-18pt print)
-3. **Descriptions:** Libre Baskerville Regular (16-18px web, 10-12pt print)
-4. **Care Instructions:** Libre Baskerville Regular (14px web, 9pt print)
+1. **Hero Messages:** Poppins 800 weight with condensed styling (64-144px web, hero sections only)
+2. **Product Names:** Trispace Bold 700 (24-36px web, 18-24pt print)
+3. **Product Categories:** Trispace Bold 700 (20-28px web, 14-18pt print)
+4. **Descriptions:** Trispace Regular 400 (16-18px web, 10-12pt print)
+5. **Care Instructions:** Trispace Regular 400 (14px web, 9pt print)
+6. **Brand Mantras:** Poppins 800 weight with condensed styling (24-48px web/print)
 
 ### Packaging Hierarchy
-- **Product Name:** Raleway Bold in Summit Sage
-- **Customization Details:** Raleway Medium in Slate Storm
-- **Care Instructions:** Libre Baskerville Regular in Basalt
-- **Website/Contact:** Libre Baskerville Regular in Desert Stone
+- **Hero Elements:** Poppins 800 with transform styling in Basalt (high contrast)
+- **Product Names:** Trispace Bold 700 in Summit Sage
+- **Customization Details:** Trispace Regular 400 in Slate Storm
+- **Care Instructions:** Trispace Regular 400 in Basalt
+- **Website/Contact:** Trispace Regular 400 in Desert Stone
+
+### Digital Applications
+- **Website Hero:** Poppins with ultra-condensed styling, black (Basalt) for maximum contrast
+- **Navigation:** Trispace Bold 700 in Basalt
+- **Buttons:** Trispace Bold 700 with dark backgrounds for strong contrast
+- **Body Text:** Trispace Regular 400 for optimal readability
 
 ---
 

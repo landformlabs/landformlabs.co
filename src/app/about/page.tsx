@@ -1,163 +1,258 @@
-import type { Metadata } from 'next'
+import { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: 'About Us - Our Story & Mission',
-  description: 'Learn about Landform Labs\' mission to create nature-inspired products that connect people with the outdoors through innovative design.',
-}
+  title: "About Us - The Story Behind Landform Labs",
+  description:
+    "Learn how Landform Labs transforms your outdoor adventures into beautiful 3D printed keepsakes. Discover our mission to help adventurers own their epic moments.",
+  keywords: [
+    "about landform labs",
+    "adventure keepsakes",
+    "3D printing story",
+    "outdoor gear company",
+    "custom memorabilia",
+  ],
+};
 
-export default function AboutPage() {
+export default function About() {
   return (
-    <div className="bg-white">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-secondary-800 to-primary-700 text-white">
-        <div className="container mx-auto container-padding py-16">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Our Story
-            </h1>
-            <p className="text-xl text-secondary-100">
-              Born from a love of the outdoors and a passion for thoughtful design
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto container-padding section-padding">
-        {/* Mission Section */}
-        <div className="max-w-4xl mx-auto mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-secondary-800 mb-6">
-              Our Mission
-            </h2>
-            <p className="text-xl text-gray-700 leading-relaxed">
-              To create innovative products that bridge the gap between technology and nature, 
-              helping people connect more deeply with the outdoor world around them.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <p className="text-lg text-gray-700 leading-relaxed mb-6">
-                At Landform Labs, we believe that the best innovations are inspired by nature itself. 
-                Every product we create starts with observing the natural world and understanding 
-                how we can enhance, rather than replace, our connection to it.
-              </p>
-              <p className="text-lg text-gray-700 leading-relaxed">
-                Whether it&apos;s a trail marker that helps you navigate like early explorers or a 
-                weather station that connects you to the rhythms of the earth, our products are 
-                designed to deepen your outdoor experience.
-              </p>
-            </div>
-            <div className="bg-gradient-to-br from-secondary-100 to-primary-100 rounded-2xl p-8 flex items-center justify-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-secondary-500 to-primary-500 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-white text-4xl font-bold">LL</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Values Section */}
-        <div className="mb-20">
-          <h2 className="text-3xl md:text-4xl font-bold text-secondary-800 text-center mb-12">
-            Our Values
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
+    <>
+      <Header />
+      <main>
+        {/* Hero Section */}
+        <div className="bg-alpine-mist py-16 lg:py-24">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <div className="w-20 h-20 bg-secondary-100 rounded-full mx-auto mb-6 flex items-center justify-center">
-                <svg className="w-10 h-10 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-secondary-800 mb-4">Sustainability</h3>
-              <p className="text-gray-600">
-                We use sustainable materials and ethical manufacturing processes, 
-                respecting the environment that inspires our work.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-20 h-20 bg-accent-100 rounded-full mx-auto mb-6 flex items-center justify-center">
-                <svg className="w-10 h-10 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-accent-800 mb-4">Quality</h3>
-              <p className="text-gray-600">
-                Every product is carefully crafted to last, designed to be your trusted 
-                companion on countless outdoor adventures.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-20 h-20 bg-primary-100 rounded-full mx-auto mb-6 flex items-center justify-center">
-                <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-primary-800 mb-4">Innovation</h3>
-              <p className="text-gray-600">
-                We constantly explore new ways to enhance outdoor experiences through 
-                thoughtful design and creative problem-solving.
+              <h1 className="text-4xl font-headline font-bold text-basalt sm:text-5xl lg:text-6xl">
+                We Turn Your{" "}
+                <span className="text-gradient-adventure">
+                  &ldquo;Remember That Epic Hike?&rdquo;
+                </span>{" "}
+                Into Something You Can Actually Hold
+              </h1>
+              <p className="mt-6 max-w-3xl mx-auto text-xl text-slate-storm">
+                As an avid cyclist, I was always frustrated that my most
+                memorable rides and races were just lines on a map or photos on
+                my phone. I wanted something more tangible, something that
+                captured the essence of those adventures.
               </p>
             </div>
           </div>
         </div>
 
         {/* Story Section */}
-        <div id="story" className="mb-20">
-          <div className="bg-white rounded-2xl p-8 md:p-12 shadow-lg border border-gray-200">
-            <h2 className="text-3xl md:text-4xl font-bold text-secondary-800 text-center mb-12">
-              How We Started
-            </h2>
-            <div className="max-w-3xl mx-auto">
-              <div className="space-y-6 text-lg text-gray-700 leading-relaxed">
-                <p>
-                  Landform Labs was born during a multi-day hiking trip in the Pacific Northwest. 
-                  As we navigated challenging terrain using traditional tools, we realized there 
-                  was an opportunity to create products that enhanced rather than complicated the 
-                  outdoor experience.
-                </p>
-                <p>
-                  What started as sketches around a campfire evolved into our first product: 
-                  handcrafted trail markers that helped fellow hikers while respecting the 
-                  natural environment. The positive response from the outdoor community 
-                  encouraged us to expand our vision.
-                </p>
-                <p>
-                  Today, we continue to draw inspiration from every outdoor adventure, whether 
-                  it&apos;s a weekend camping trip or a month-long wilderness expedition. Each 
-                  experience informs our design process and helps us create products that truly 
-                  serve the outdoor community.
-                </p>
-                <div className="text-center pt-8">
-                  <p className="text-secondary-800 font-semibold text-xl">
-                    &quot;Design inspired by nature, crafted for adventure.&quot;
+        <div className="py-16 lg:py-20">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="prose prose-lg max-w-none">
+              <h2 className="text-3xl font-headline font-bold text-basalt mb-6">
+                The Story Behind the Story
+              </h2>
+              <p className="text-slate-storm leading-relaxed mb-6">
+                Landform Labs was born from a simple realization: your most epic
+                adventures deserve better than being buried in your camera roll
+                or stuck in your Strava history.
+              </p>
+              <p className="text-slate-storm leading-relaxed mb-6">
+                We&rsquo;re that friend who actually <em>gets</em> why you spent
+                three hours describing a rock formation, and we figured out how
+                to turn those GPS breadcrumbs from your &ldquo;easy 5-mile
+                loop&rdquo; (that definitely wasn&rsquo;t 5 miles or easy) into
+                something awesome enough for your coffee table.
+              </p>
+
+              <h2 className="text-3xl font-headline font-bold text-basalt mt-16 mb-6">
+                What We Actually Do
+              </h2>
+              <p className="text-xl text-summit-sage font-headline font-semibold mb-6">
+                We transform your outdoor memories into tangible keepsakes that
+                don&rsquo;t suck.
+              </p>
+
+              <div className="grid gap-8 md:grid-cols-2 mt-8">
+                <div className="bg-summit-sage/5 rounded-lg p-6">
+                  <h3 className="font-headline font-bold text-basalt text-lg mb-3">
+                    Route Prints
+                  </h3>
+                  <p className="text-slate-storm text-sm">
+                    That time you got &ldquo;slightly&rdquo; lost and
+                    accidentally discovered the most beautiful trail ever? We
+                    turn that squiggly GPS line into stunning 3D art that makes
+                    you look like the adventure legend you are.
                   </p>
                 </div>
+
+                <div className="bg-desert-stone/5 rounded-lg p-6">
+                  <h3 className="font-headline font-bold text-basalt text-lg mb-3">
+                    Adventure Ornaments
+                  </h3>
+                  <p className="text-slate-storm text-sm">
+                    Because your Christmas tree deserves better than generic
+                    baubles. Your favorite peak as a holiday decoration?{" "}
+                    <em>Chef&rsquo;s kiss.</em>
+                  </p>
+                </div>
+
+                <div className="bg-slate-storm/5 rounded-lg p-6">
+                  <h3 className="font-headline font-bold text-basalt text-lg mb-3">
+                    Desk Accessories
+                  </h3>
+                  <p className="text-slate-storm text-sm">
+                    Mountain-shaped pen holders and trail-inspired organizers
+                    that make Monday meetings slightly less soul-crushing. Your
+                    coworkers will be jealous.
+                  </p>
+                </div>
+
+                <div className="bg-basalt/5 rounded-lg p-6">
+                  <h3 className="font-headline font-bold text-basalt text-lg mb-3">
+                    Custom Keepsakes
+                  </h3>
+                  <p className="text-slate-storm text-sm">
+                    That summit you thought would kill you but didn&rsquo;t?
+                    That trail where you had your biggest breakthrough? We make
+                    those moments into something you can actually hold.
+                  </p>
+                </div>
+              </div>
+
+              <h2 className="text-3xl font-headline font-bold text-basalt mt-16 mb-6">
+                Why We&rsquo;re Obsessed With This
+              </h2>
+              <p className="text-slate-storm leading-relaxed mb-4">
+                Here&rsquo;s the thing about adventures: they change you. That
+                random Tuesday hike where you finally felt like yourself again.
+                The trail that kicked your butt but gave you confidence you
+                never knew you had. The route you&rsquo;ve done a hundred times
+                that somehow still surprises you.
+              </p>
+              <p className="text-slate-storm leading-relaxed mb-4">
+                Those moments matter. They deserve more than a Strava post and a
+                fading memory.
+              </p>
+              <p className="text-slate-storm leading-relaxed mb-6">
+                We believe your adventures should live in your everyday life,
+                not just your photo albums. Because when you&rsquo;re having a
+                rough day and you see that impossible trail you conquered
+                sitting on your desk? That&rsquo;s not just décor. That&rsquo;s
+                proof you&rsquo;re way more badass than you remember.
+              </p>
+
+              <div className="bg-summit-sage p-8 rounded-lg text-center mt-12">
+                <h3 className="text-2xl font-headline font-bold text-alpine-mist mb-4">
+                  Our Brand Mantra
+                </h3>
+                <p className="text-3xl font-headline font-bold text-alpine-mist">
+                  Get Out There, Amaze Yourself, Own It, Repeat
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* CTA Section */}
-        <div className="bg-gradient-to-r from-secondary-50 to-primary-50 rounded-2xl p-8 md:p-12 text-center border border-secondary-200">
-          <h2 className="text-3xl font-bold text-secondary-800 mb-6">
-            Join Our Journey
-          </h2>
-          <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
-            We&apos;re always excited to connect with fellow outdoor enthusiasts. 
-            Follow our story, share your adventures, and be part of the Landform Labs community.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/contact" className="btn-primary">
-              Get In Touch
-            </a>
-            <a href="/blog" className="btn-secondary">
-              Read Our Blog
-            </a>
+        {/* Our Approach Section */}
+        <div className="bg-desert-stone py-16 lg:py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-headline font-bold text-alpine-mist sm:text-4xl">
+                Our Approach (AKA Why We&rsquo;re Not Like Everyone Else)
+              </h2>
+            </div>
+
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+              <div className="text-center">
+                <div className="bg-alpine-mist rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">🎨</span>
+                </div>
+                <h3 className="font-headline font-bold text-alpine-mist text-lg mb-2">
+                  Craftfully Honest
+                </h3>
+                <p className="text-alpine-mist/90 text-sm">
+                  Your GPS data might look like spaghetti, but our 3D print of
+                  it will be gorgeous. We don&rsquo;t just slap your route onto
+                  a generic base and call it a day.
+                </p>
+              </div>
+
+              <div className="text-center">
+                <div className="bg-alpine-mist rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">💝</span>
+                </div>
+                <h3 className="font-headline font-bold text-alpine-mist text-lg mb-2">
+                  Meaningfully Personal
+                </h3>
+                <p className="text-alpine-mist/90 text-sm">
+                  This isn&rsquo;t mass-produced adventure-themed stuff with
+                  mountains slapped on it. Every piece we create tells{" "}
+                  <em>your</em> story.
+                </p>
+              </div>
+
+              <div className="text-center">
+                <div className="bg-alpine-mist rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">⚡</span>
+                </div>
+                <h3 className="font-headline font-bold text-alpine-mist text-lg mb-2">
+                  Cleverly Practical
+                </h3>
+                <p className="text-alpine-mist/90 text-sm">
+                  Beautiful mementos that actually work in real life. Your pen
+                  holder happens to be shaped like your favorite peak?
+                  That&rsquo;s not weird, that&rsquo;s awesome.
+                </p>
+              </div>
+
+              <div className="text-center">
+                <div className="bg-alpine-mist rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">🎉</span>
+                </div>
+                <h3 className="font-headline font-bold text-alpine-mist text-lg mb-2">
+                  Nostalgically Playful
+                </h3>
+                <p className="text-alpine-mist/90 text-sm">
+                  We celebrate the adventures you&rsquo;ve conquered while
+                  keeping it fun. That brutal climb that almost killed you? Now
+                  it&rsquo;s a beautiful conversation piece.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  )
+
+        {/* Get Out There Section */}
+        <div className="bg-basalt py-16">
+          <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-headline font-bold text-alpine-mist sm:text-4xl mb-6">
+              Get Out There (Then Bring It Home)
+            </h2>
+            <p className="text-lg text-alpine-mist/90 leading-relaxed mb-6">
+              We&rsquo;re here for the &ldquo;Own It&rdquo; part. Because after
+              you&rsquo;ve gotten out there and amazed yourself, you deserve
+              something tangible to prove it happened. Something that reminds
+              you daily that you&rsquo;re the kind of person who does impossible
+              things for fun.
+            </p>
+            <p className="text-xl text-alpine-mist font-headline mb-8">
+              Your adventures shaped you. Now let us help you shape them back.
+            </p>
+
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Link href="/products" className="btn-primary">
+                See What We Make
+              </Link>
+              <Link
+                href="/contact"
+                className="bg-transparent border-2 border-alpine-mist text-alpine-mist hover:bg-alpine-mist hover:text-basalt font-headline font-semibold py-3 px-6 rounded-lg transition-all duration-200"
+              >
+                Let&rsquo;s Create Something Awesome
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </>
+  );
 }
