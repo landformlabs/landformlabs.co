@@ -1,35 +1,65 @@
 import type { Metadata } from 'next'
-import './globals.css'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
-import WireframeLandscape from '@/components/WireframeLandscape'
+import './globals.css'
 
 export const metadata: Metadata = {
   title: {
-    default: 'Landform Labs - Nature-Inspired Innovation',
-    template: '%s | Landform Labs'
+    template: '%s | Landform Labs',
+    default: 'Landform Labs - Turn Your Adventures Into Awesome Desk Décor'
   },
-  description: 'Crafting innovative solutions inspired by nature. Discover outdoor products that bridge technology and the natural world.',
-  keywords: ['outdoor products', 'nature-inspired', 'innovation', 'handcrafted', 'outdoor gear'],
+  description: 'Transform your favorite outdoor memories into beautiful, personalized 3D printed mementos. From custom route prints to mountain-shaped desk accessories, we help outdoor enthusiasts keep their epic adventures alive.',
+  keywords: [
+    '3D printing',
+    'outdoor gear',
+    'custom route prints',
+    'adventure memorabilia',
+    'GPS route art',
+    'hiking gifts',
+    'cycling gifts',
+    'mountain decor',
+    'trail ornaments',
+    'outdoor enthusiast gifts'
+  ],
   authors: [{ name: 'Landform Labs' }],
   creator: 'Landform Labs',
+  publisher: 'Landform Labs',
+  metadataBase: new URL('https://landformlabs.co'),
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: 'https://landformlabs.co',
     siteName: 'Landform Labs',
-    title: 'Landform Labs - Nature-Inspired Innovation',
-    description: 'Crafting innovative solutions inspired by nature. Discover outdoor products that bridge technology and the natural world.',
+    title: 'Landform Labs - Turn Your Adventures Into Awesome Desk Décor',
+    description: 'Transform your favorite outdoor memories into beautiful, personalized 3D printed mementos.',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Landform Labs - Adventure-inspired 3D printed keepsakes',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Landform Labs - Nature-Inspired Innovation',
-    description: 'Crafting innovative solutions inspired by nature. Discover outdoor products that bridge technology and the natural world.',
+    title: 'Landform Labs - Turn Your Adventures Into Awesome Desk Décor',
+    description: 'Transform your favorite outdoor memories into beautiful, personalized 3D printed mementos.',
+    images: ['/og-image.jpg'],
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    // Add Google Search Console verification when available
+    // google: 'your-google-verification-code',
   },
 }
 
@@ -38,18 +68,39 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
-
   return (
-    <html lang="en">
-      <body className="flex flex-col min-h-screen">
-        {GA_MEASUREMENT_ID && <GoogleAnalytics GA_MEASUREMENT_ID={GA_MEASUREMENT_ID} />}
-        <WireframeLandscape />
-        <Header />
-        <main className="flex-grow">
-          {children}
-        </main>
-        <Footer />
+    <html lang="en" className="scroll-smooth">
+      <body className="font-inter antialiased min-h-screen relative">
+        <GoogleAnalytics />
+        {children}
+        
+        {/* Structured Data for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "Landform Labs",
+              "url": "https://landformlabs.co",
+              "logo": "https://landformlabs.co/logo.png",
+              "description": "We create custom 3D printed mementos that celebrate outdoor adventures, from route prints to mountain-shaped desk accessories.",
+              "foundingDate": "2024",
+              "sameAs": [
+                "https://landformlabs.etsy.com"
+              ],
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "email": "hello@landformlabs.co",
+                "contactType": "Customer Service"
+              },
+              "address": {
+                "@type": "PostalAddress",
+                "addressCountry": "US"
+              }
+            })
+          }}
+        />
       </body>
     </html>
   )

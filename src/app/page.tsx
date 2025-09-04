@@ -1,106 +1,215 @@
+import Image from 'next/image'
+import Link from 'next/link'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import HeroWireframe from '@/components/HeroWireframe'
+
+const features = [
+  {
+    name: 'Route Tiles',
+    description: 'Transform your favorite GPS routes into stunning 3D printed art with NFC technology.',
+    href: '/products#route-tiles',
+  },
+  {
+    name: 'Adventure Ornaments',
+    description: 'Holiday decorations that celebrate your epic adventures, perfect for trees or windows.',
+    href: '/products#route-ornaments',
+  },
+  {
+    name: 'Custom Keepsakes',
+    description: 'Personalized mementos of your most meaningful outdoor moments and achievements.',
+    href: '/products#custom-prints',
+  },
+  {
+    name: 'Desk Accessories',
+    description: 'Mountain-shaped pen holders and organizers that bring adventure to your workspace.',
+    href: '/products#mountain-pen-holders',
+  },
+]
+
+const testimonials = [
+  {
+    quote: "My Route Tile from Landform Labs sits on my desk and reminds me daily that I'm capable of incredible things. It's not just decor—it's proof of my adventure.",
+    name: "Sarah M.",
+    location: "Colorado",
+    adventure: "14er Summit Series"
+  },
+  {
+    quote: "I gave my hiking buddy a custom route ornament of our first backpacking trip together. Every Christmas when she hangs it up, she texts me about that amazing adventure.",
+    name: "Mike T.",
+    location: "Utah",
+    adventure: "Zion Narrows"
+  },
+  {
+    quote: "The Mountain Pen Holder of my local peak makes even Monday morning meetings more bearable. It's a constant reminder of weekend adventures.",
+    name: "Jessica L.",
+    location: "Vermont",
+    adventure: "Mount Mansfield"
+  }
+]
+
 export default function Home() {
   return (
-    <div className="min-h-screen relative">
-      {/* Wireframe landscape background now active */}
-      
-      
-      {/* Hero Section */}
-      <div className="relative z-10">
-        <div className="container mx-auto container-padding section-padding">
-          <div className="text-center max-w-6xl mx-auto">
-            {/* Main Headline */}
-            <div className="mb-8">
-              <h1 className="text-6xl md:text-8xl lg:text-9xl font-display font-black text-dynamic mb-4">
-                <span className="text-adventure block transform -rotate-1">GET OUT</span>
-                <span className="text-secondary-800 block transform rotate-1">THERE</span>
-              </h1>
-            </div>
-            
-            {/* Brand Tagline */}
-            <div className="mb-12">
-              <p className="text-2xl md:text-3xl lg:text-4xl font-adventure font-semibold text-gray-700 mb-6 leading-tight">
-                <span className="text-accent-600">Amaze Yourself,</span>
-                <span className="text-secondary-600 mx-3">Own It,</span>
-                <span className="text-primary-600">Repeat.</span>
-              </p>
-              <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                We craft innovative outdoor solutions that push you beyond your comfort zone. 
-                Every product is designed to fuel your next adventure and help you discover what you&apos;re truly capable of.
-              </p>
-            </div>
-            
-            {/* Dynamic CTAs */}
-            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-20">
-              <button className="btn-adventure group">
-                <span className="relative z-10">Start Your Adventure</span>
-              </button>
-              <button className="btn-secondary group">
-                <span className="relative z-10">Discover Our Story</span>
-              </button>
-            </div>
-
-            {/* Adventure Philosophy Cards */}
-            <div className="grid md:grid-cols-3 gap-8 mt-20">
-              <div className="adventure-card relative p-10 skew-element compass-accent" data-elevation="2,847m">
-                <div className="unskew-element">
-                  <div className="w-20 h-20 bg-gradient-to-br from-secondary-400 to-secondary-600 rounded-2xl mb-8 mx-auto flex items-center justify-center transform rotate-12 elevation-badge coordinate-grid">
-                    <div className="w-10 h-10 bg-white rounded-lg transform -rotate-12"></div>
-                  </div>
-                  <h3 className="text-2xl font-display font-bold text-secondary-800 mb-6 trail-marker">Push Boundaries</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    Every product is engineered to challenge your limits and expand what you thought possible in the outdoors.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="adventure-card relative p-10 transform rotate-1 compass-accent" data-elevation="3,142m">
-                <div className="w-20 h-20 bg-gradient-to-br from-accent-400 to-accent-600 rounded-2xl mb-8 mx-auto flex items-center justify-center transform -rotate-6 elevation-badge">
-                  <div className="w-10 h-10 bg-white rounded-lg transform rotate-6"></div>
-                </div>
-                <h3 className="text-2xl font-display font-bold text-accent-800 mb-6 trail-marker">Own Your Journey</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Take control of your adventure with gear that adapts to your style and enhances your unique outdoor experience.
-                </p>
-              </div>
-              
-              <div className="adventure-card relative p-10 skew-element compass-accent" data-elevation="4,205m">
-                <div className="unskew-element">
-                  <div className="w-20 h-20 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl mb-8 mx-auto flex items-center justify-center transform rotate-12 elevation-badge">
-                    <div className="w-10 h-10 bg-white rounded-lg transform -rotate-12"></div>
-                  </div>
-                  <h3 className="text-2xl font-display font-bold text-primary-800 mb-6 trail-marker">Never Stop Exploring</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    Built for the relentless explorer who knows that every ending is just the beginning of the next adventure.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Coming Soon Section */}
-            <div className="mt-24 relative">
-              <div className="angled-section bg-gradient-adventure p-16 text-white text-center topographic-pattern">
-                <div className="max-w-4xl mx-auto relative z-10">
-                  <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">
-                    Your Next Adventure Starts Here
+    <>
+      <Header />
+      <main>
+        {/* Hero Section */}
+        <div className="relative overflow-hidden">
+          <HeroWireframe />
+          <div className="max-w-7xl mx-auto">
+            <div className="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:pb-28 xl:pb-32">
+              <div className="pt-20 mx-auto max-w-7xl px-4 sm:pt-24 sm:px-6 md:pt-28 lg:pt-32 lg:px-8 xl:pt-40">
+                <div className="text-center">
+                  <h1 className="brand-mantra text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold mb-8">
+                    GET OUT THERE
+                  </h1>
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-inter font-bold text-basalt max-w-4xl mx-auto leading-tight">
+                    Transform your adventures into personalized 3D printed mementos
                   </h2>
-                  <p className="text-xl md:text-2xl mb-8 opacity-90">
-                    We&apos;re crafting something extraordinary. Join the journey and be the first to experience 
-                    gear that will redefine how you explore the world.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button className="bg-white text-secondary-600 font-bold py-4 px-8 rounded-lg hover:bg-gray-100 transition-all duration-300 hover:shadow-lg">
-                      Get Early Access
-                    </button>
-                    <button className="border-2 border-white text-white font-bold py-4 px-8 rounded-lg hover:bg-white hover:text-secondary-600 transition-all duration-300 hover:shadow-lg">
-                      Follow Our Progress
-                    </button>
+                  <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
+                    <Link
+                      href="/products"
+                      className="btn-primary text-lg px-8 py-4"
+                    >
+                      Shop Adventures
+                    </Link>
+                    <Link
+                      href="/about"
+                      className="btn-secondary text-lg px-8 py-4"
+                    >
+                      Our Story
+                    </Link>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+
+        {/* Brand Mantra Section */}
+        <div className="py-16 bg-summit-sage">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <div className="mb-4">
+                <span className="brand-mantra text-3xl md:text-4xl text-alpine-mist">Get Out There</span>
+              </div>
+              <h2 className="text-2xl font-inter font-bold text-alpine-mist sm:text-3xl">
+                Amaze Yourself, Own It, Repeat
+              </h2>
+              <p className="mt-4 text-lg text-alpine-mist/90">
+                We&rsquo;re here for the &ldquo;Own It&rdquo; part. After you&rsquo;ve gotten out there and amazed yourself, 
+                you deserve something tangible to prove it happened.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Features Section */}
+        <div className="py-24 bg-alpine-mist/90 backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="lg:text-center">
+              <h2 className="text-base text-summit-sage font-inter font-semibold tracking-wide uppercase">
+                Products
+              </h2>
+              <p className="mt-2 text-3xl leading-8 font-inter font-bold tracking-tight text-basalt sm:text-4xl">
+                Your Adventures, Beautifully Crafted
+              </p>
+              <p className="mt-4 max-w-2xl text-xl text-slate-storm lg:mx-auto">
+                We don&rsquo;t just slap your route onto a generic base and call it a day. 
+                Every piece gets the attention your adventure deserves.
+              </p>
+            </div>
+
+            <div className="mt-20">
+              <dl className="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10 lg:grid-cols-4">
+                {features.map((feature) => (
+                  <Link
+                    key={feature.name}
+                    href={feature.href}
+                    className="relative group hover:bg-summit-sage/5 p-6 rounded-lg transition-colors duration-200"
+                  >
+                    <dt>
+                      <p className="text-lg leading-6 font-inter font-semibold text-basalt group-hover:text-summit-sage transition-colors duration-200">
+                        {feature.name}
+                      </p>
+                    </dt>
+                    <dd className="mt-2 text-base text-slate-storm">
+                      {feature.description}
+                    </dd>
+                  </Link>
+                ))}
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        {/* Testimonials Section */}
+        <div className="bg-desert-stone py-16 lg:py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-inter font-bold text-alpine-mist sm:text-4xl">
+                Adventure Stories Made Tangible
+              </h2>
+              <p className="mt-4 text-lg text-alpine-mist/90">
+                Real adventures from real people who turned their memories into meaningful mementos
+              </p>
+            </div>
+            
+            <div className="mt-16 grid gap-8 md:grid-cols-3">
+              {testimonials.map((testimonial, index) => (
+                <div
+                  key={index}
+                  className="bg-alpine-mist rounded-lg p-6 shadow-sm"
+                >
+                  <blockquote>
+                    <p className="text-slate-storm text-sm leading-relaxed">
+                      &ldquo;{testimonial.quote}&rdquo;
+                    </p>
+                  </blockquote>
+                  <div className="mt-4 border-t border-desert-stone/20 pt-4">
+                    <p className="font-inter font-semibold text-basalt text-sm">
+                      {testimonial.name}
+                    </p>
+                    <p className="text-slate-storm text-xs">
+                      {testimonial.location} • {testimonial.adventure}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* CTA Section */}
+        <div className="bg-basalt">
+          <div className="max-w-2xl mx-auto text-center py-16 px-4 sm:py-20 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-inter font-bold text-alpine-mist sm:text-4xl">
+              <span className="block">Ready to Own Your Adventures?</span>
+            </h2>
+            <p className="mt-4 text-lg leading-6 text-alpine-mist/90">
+              Your most epic moments deserve more than a fading memory. 
+              Let&rsquo;s turn those GPS breadcrumbs into something awesome for your desk.
+            </p>
+            <div className="mt-8 flex justify-center space-x-4">
+              <Link
+                href="/products"
+                className="btn-primary"
+              >
+                Start Creating
+              </Link>
+              <Link
+                href="https://landformlabs.etsy.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-transparent border-2 border-alpine-mist text-alpine-mist hover:bg-alpine-mist hover:text-basalt font-inter font-semibold py-3 px-6 rounded-lg transition-all duration-200"
+              >
+                Visit Our Etsy
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </>
   )
 }
