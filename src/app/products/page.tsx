@@ -53,7 +53,7 @@ export default async function ProductsPage() {
               >
                 Shop The Collection
               </a>
-              <button className="border-2 border-white text-white font-bold py-4 px-8 rounded-lg hover:bg-white hover:text-secondary-600 transition-all duration-300 transform hover:-translate-y-1">
+              <button className="border-2 border-white text-white font-bold py-4 px-8 rounded-lg hover:bg-white hover:text-secondary-600 transition-all duration-300 hover:shadow-lg">
                 Get Early Access
               </button>
             </div>

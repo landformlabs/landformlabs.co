@@ -1,7 +1,7 @@
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white relative">
-      {/* Clean, simple white background */}
+    <div className="min-h-screen relative">
+      {/* Wireframe landscape background now active */}
       
       
       {/* Hero Section */}
@@ -88,10 +88,10 @@ export default function Home() {
                     gear that will redefine how you explore the world.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button className="bg-white text-secondary-600 font-bold py-4 px-8 rounded-lg hover:bg-gray-100 transition-all duration-300 transform hover:-translate-y-1">
+                    <button className="bg-white text-secondary-600 font-bold py-4 px-8 rounded-lg hover:bg-gray-100 transition-all duration-300 hover:shadow-lg">
                       Get Early Access
                     </button>
-                    <button className="border-2 border-white text-white font-bold py-4 px-8 rounded-lg hover:bg-white hover:text-secondary-600 transition-all duration-300 transform hover:-translate-y-1">
+                    <button className="border-2 border-white text-white font-bold py-4 px-8 rounded-lg hover:bg-white hover:text-secondary-600 transition-all duration-300 hover:shadow-lg">
                       Follow Our Progress
                     </button>
                   </div>

@@ -77,7 +77,7 @@ export default function ProductsClient({ sanityProducts, categories }: ProductsC
           <button
             key={category}
             onClick={() => setSelectedCategory(category)}
-            className={`px-8 py-4 rounded-xl border-2 transition-all duration-300 font-adventure font-semibold transform hover:-translate-y-1 ${
+            className={`px-8 py-4 rounded-xl border-2 transition-all duration-300 font-adventure font-semibold ${
               selectedCategory === category
                 ? 'bg-secondary-600 text-white border-secondary-600 shadow-lg'
                 : 'border-secondary-300 text-secondary-700 hover:bg-secondary-600 hover:text-white hover:border-secondary-600 hover:shadow-lg'
@@ -138,10 +138,10 @@ export default function ProductsClient({ sanityProducts, categories }: ProductsC
                 href={product.etsyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`block w-full text-center transition-all duration-300 transform ${
+                className={`block w-full text-center transition-all duration-300 ${
                   product.inStock === false
                     ? 'btn-secondary opacity-50 cursor-not-allowed'
-                    : 'btn-primary group-hover:-translate-y-1'
+                    : 'btn-primary'
                 }`}
               >
                 {product.inStock === false ? 'Currently Unavailable' : 'Get Out There'}
