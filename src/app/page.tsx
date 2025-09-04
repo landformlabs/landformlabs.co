@@ -1,52 +1,63 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
-import HeroWireframe from '@/components/HeroWireframe'
+import Image from "next/image";
+import Link from "next/link";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import HeroWireframe from "@/components/HeroWireframe";
 
 const features = [
   {
-    name: 'Route Tiles',
-    description: 'Transform your favorite GPS routes into stunning 3D printed art with NFC technology.',
-    href: '/products#route-tiles',
+    name: "Route Tiles",
+    description:
+      "Transform your favorite GPS routes into stunning 3D printed art with NFC technology.",
+    href: "/products#route-tiles",
+    image: "/route-tiles.JPG",
   },
   {
-    name: 'Adventure Ornaments',
-    description: 'Holiday decorations that celebrate your epic adventures, perfect for trees or windows.',
-    href: '/products#route-ornaments',
+    name: "Adventure Ornaments",
+    description:
+      "Holiday decorations that celebrate your epic adventures, perfect for trees or windows.",
+    href: "/products#route-ornaments",
+    image: "/gpx-ornaments.jpeg",
   },
   {
-    name: 'Custom Keepsakes',
-    description: 'Personalized mementos of your most meaningful outdoor moments and achievements.',
-    href: '/products#custom-prints',
+    name: "Custom Keepsakes",
+    description:
+      "Personalized mementos of your most meaningful outdoor moments and achievements.",
+    href: "/products#custom-prints",
+    image: "/state-ornaments.jpeg",
   },
   {
-    name: 'Desk Accessories',
-    description: 'Mountain-shaped pen holders and organizers that bring adventure to your workspace.',
-    href: '/products#mountain-pen-holders',
+    name: "Desk Accessories",
+    description:
+      "Mountain-shaped pen holders and organizers that bring adventure to your workspace.",
+    href: "/products#mountain-pen-holders",
+    image: "/pen-holder.jpg",
   },
-]
+];
 
 const testimonials = [
   {
-    quote: "My Route Tile from Landform Labs sits on my desk and reminds me daily that I'm capable of incredible things. It's not just decor—it's proof of my adventure.",
+    quote:
+      "My Route Tile from Landform Labs sits on my desk and reminds me daily that I'm capable of incredible things. It's not just decor—it's proof of my adventure.",
     name: "Sarah M.",
     location: "Colorado",
-    adventure: "14er Summit Series"
+    adventure: "14er Summit Series",
   },
   {
-    quote: "I gave my hiking buddy a custom route ornament of our first backpacking trip together. Every Christmas when she hangs it up, she texts me about that amazing adventure.",
+    quote:
+      "I gave my hiking buddy a custom route ornament of our first backpacking trip together. Every Christmas when she hangs it up, she texts me about that amazing adventure.",
     name: "Mike T.",
     location: "Utah",
-    adventure: "Zion Narrows"
+    adventure: "Zion Narrows",
   },
   {
-    quote: "The Mountain Pen Holder of my local peak makes even Monday morning meetings more bearable. It's a constant reminder of weekend adventures.",
+    quote:
+      "The Mountain Pen Holder of my local peak makes even Monday morning meetings more bearable. It's a constant reminder of weekend adventures.",
     name: "Jessica L.",
     location: "Vermont",
-    adventure: "Mount Mansfield"
-  }
-]
+    adventure: "Mount Mansfield",
+  },
+];
 
 export default function Home() {
   return (
@@ -64,7 +75,8 @@ export default function Home() {
                     GET OUT THERE
                   </h1>
                   <h2 className="text-2xl md:text-3xl lg:text-4xl font-inter font-bold text-basalt max-w-4xl mx-auto leading-tight">
-                    Transform your adventures into personalized 3D printed mementos
+                    Transform your adventures into personalized 3D printed
+                    mementos
                   </h2>
                   <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
                     <Link
@@ -91,14 +103,17 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <div className="mb-4">
-                <span className="brand-mantra text-3xl md:text-4xl text-alpine-mist">Get Out There</span>
+                <span className="brand-mantra text-3xl md:text-4xl text-alpine-mist">
+                  Get Out There
+                </span>
               </div>
               <h2 className="text-2xl font-inter font-bold text-alpine-mist sm:text-3xl">
                 Amaze Yourself, Own It, Repeat
               </h2>
               <p className="mt-4 text-lg text-alpine-mist/90">
-                We&rsquo;re here for the &ldquo;Own It&rdquo; part. After you&rsquo;ve gotten out there and amazed yourself, 
-                you deserve something tangible to prove it happened.
+                We&rsquo;re here for the &ldquo;Own It&rdquo; part. After
+                you&rsquo;ve gotten out there and amazed yourself, you deserve
+                something tangible to prove it happened.
               </p>
             </div>
           </div>
@@ -115,8 +130,9 @@ export default function Home() {
                 Your Adventures, Beautifully Crafted
               </p>
               <p className="mt-4 max-w-2xl text-xl text-slate-storm lg:mx-auto">
-                We don&rsquo;t just slap your route onto a generic base and call it a day. 
-                Every piece gets the attention your adventure deserves.
+                We don&rsquo;t just slap your route onto a generic base and call
+                it a day. Every piece gets the attention your adventure
+                deserves.
               </p>
             </div>
 
@@ -128,6 +144,15 @@ export default function Home() {
                     href={feature.href}
                     className="relative group hover:bg-summit-sage/5 p-6 rounded-lg transition-colors duration-200"
                   >
+                    <div className="mb-4 aspect-square overflow-hidden rounded-lg bg-summit-sage/5">
+                      <Image
+                        src={feature.image}
+                        alt={feature.name}
+                        width={400}
+                        height={400}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      />
+                    </div>
                     <dt>
                       <p className="text-lg leading-6 font-inter font-semibold text-basalt group-hover:text-summit-sage transition-colors duration-200">
                         {feature.name}
@@ -151,10 +176,11 @@ export default function Home() {
                 Adventure Stories Made Tangible
               </h2>
               <p className="mt-4 text-lg text-alpine-mist/90">
-                Real adventures from real people who turned their memories into meaningful mementos
+                Real adventures from real people who turned their memories into
+                meaningful mementos
               </p>
             </div>
-            
+
             <div className="mt-16 grid gap-8 md:grid-cols-3">
               {testimonials.map((testimonial, index) => (
                 <div
@@ -187,14 +213,11 @@ export default function Home() {
               <span className="block">Ready to Own Your Adventures?</span>
             </h2>
             <p className="mt-4 text-lg leading-6 text-alpine-mist/90">
-              Your most epic moments deserve more than a fading memory. 
-              Let&rsquo;s turn those GPS breadcrumbs into something awesome for your desk.
+              Your most epic moments deserve more than a fading memory.
+              Let&rsquo;s turn those GPS breadcrumbs into something awesome.
             </p>
             <div className="mt-8 flex justify-center space-x-4">
-              <Link
-                href="/products"
-                className="btn-primary"
-              >
+              <Link href="/products" className="btn-primary">
                 Start Creating
               </Link>
               <Link
@@ -211,5 +234,5 @@ export default function Home() {
       </main>
       <Footer />
     </>
-  )
+  );
 }
