@@ -103,9 +103,8 @@ export default function Home() {
                 Your Adventures, Beautifully Crafted
               </p>
               <p className="mt-4 max-w-2xl text-xl text-slate-storm lg:mx-auto">
-                We don&rsquo;t just slap your route onto a generic base and call
-                it a day. Every piece gets the attention your adventure
-                deserves.
+                You took the time to train and prepare. We take the time to make
+                sure you have unique proof of your accomplishments.
               </p>
             </div>
 
@@ -152,9 +151,6 @@ export default function Home() {
               Let&rsquo;s turn those GPS breadcrumbs into something awesome.
             </p>
             <div className="mt-8 flex justify-center space-x-4">
-              <Link href="/products" className="btn-primary">
-                Start Creating
-              </Link>
               <Link
                 href="https://landformlabs.etsy.com"
                 target="_blank"

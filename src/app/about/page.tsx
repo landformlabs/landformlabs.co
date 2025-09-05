@@ -25,20 +25,40 @@ export default function About() {
         {/* Hero Section */}
         <div className="bg-alpine-mist py-16 lg:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h1 className="text-4xl font-headline font-bold text-basalt sm:text-5xl lg:text-6xl">
-                We Turn Your{" "}
-                <span className="text-gradient-adventure">
-                  &ldquo;Remember That Epic Hike?&rdquo;
-                </span>{" "}
-                Into Something You Can Actually Hold
-              </h1>
-              <p className="mt-6 max-w-3xl mx-auto text-xl text-slate-storm">
-                As an avid cyclist, I was always frustrated that my most
-                memorable rides and races were just lines on a map or photos on
-                my phone. I wanted something more tangible, something that
-                captured the essence of those adventures.
-              </p>
+            <div className="lg:grid lg:grid-cols-3 lg:gap-12 lg:items-center">
+              <div className="lg:col-span-2">
+                <h1 className="text-4xl font-headline font-bold text-basalt sm:text-5xl lg:text-6xl text-left">
+                  We Turn{" "}
+                  <span className="text-gradient-adventure">
+                    &ldquo;Remember How Hard That Was?&rdquo;
+                  </span>{" "}
+                  Into Something You Can Actually Hold
+                </h1>
+                <p className="mt-6 text-xl text-slate-storm text-left">
+                  As an avid cyclist, I was always frustrated that my most
+                  memorable rides and races were just lines on a map or photos
+                  on my phone. I wanted something more tangible, something that
+                  captured the thrill of those adventures and served as proof of
+                  what I&rsquo;ve accomplished and motivation to keep pushing my
+                  limits. Landform Labs was born from that desire to create
+                  meaningful, personalized keepsakes that celebrate the spirit
+                  of adventure.
+                </p>
+              </div>
+
+              <div className="mt-10 lg:mt-0">
+                <div className="relative">
+                  <Image
+                    src="/me.jpeg"
+                    alt="Founder of Landform Labs on an outdoor adventure"
+                    width={400}
+                    height={500}
+                    className="rounded-lg shadow-xl object-cover w-full h-96 lg:h-[28rem]"
+                    priority
+                  />
+                  <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-basalt/30 to-transparent"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -50,6 +70,7 @@ export default function About() {
               <h2 className="text-3xl font-headline font-bold text-basalt mb-6">
                 The Story Behind the Story
               </h2>
+
               <p className="text-slate-storm leading-relaxed mb-6">
                 Landform Labs was born from a simple realization: your most epic
                 adventures deserve better than being buried in your camera roll
@@ -68,7 +89,7 @@ export default function About() {
               </h2>
               <p className="text-xl text-summit-sage font-headline font-semibold mb-6">
                 We transform your outdoor memories into tangible keepsakes that
-                don&rsquo;t suck.
+                actually matter.
               </p>
 
               <div className="grid gap-8 md:grid-cols-2 mt-8">
@@ -111,9 +132,9 @@ export default function About() {
                     Custom Keepsakes
                   </h3>
                   <p className="text-slate-storm text-sm">
-                    That summit you thought would kill you but didn&rsquo;t?
-                    That trail where you had your biggest breakthrough? We make
-                    those moments into something you can actually hold.
+                    That summit you thought was impossible but conquered? That
+                    trail where you had your biggest breakthrough? We make those
+                    moments into something you can actually hold.
                   </p>
                 </div>
               </div>
@@ -124,9 +145,9 @@ export default function About() {
               <p className="text-slate-storm leading-relaxed mb-4">
                 Here&rsquo;s the thing about adventures: they change you. That
                 random Tuesday hike where you finally felt like yourself again.
-                The trail that kicked your butt but gave you confidence you
-                never knew you had. The route you&rsquo;ve done a hundred times
-                that somehow still surprises you.
+                The trail that challenged you but gave you confidence you never
+                knew you had. The route you&rsquo;ve done a hundred times that
+                somehow still surprises you.
               </p>
               <p className="text-slate-storm leading-relaxed mb-4">
                 Those moments matter. They deserve more than a Strava post and a
@@ -137,7 +158,7 @@ export default function About() {
                 not just your photo albums. Because when you&rsquo;re having a
                 rough day and you see that impossible trail you conquered
                 sitting on your desk? That&rsquo;s not just décor. That&rsquo;s
-                proof you&rsquo;re way more badass than you remember.
+                proof you&rsquo;re way stronger than you remember.
               </p>
 
               <div className="bg-summit-sage p-8 rounded-lg text-center mt-12">

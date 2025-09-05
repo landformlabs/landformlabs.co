@@ -23,12 +23,13 @@ const products = [
     id: "route-tiles",
     name: "Route Tiles",
     description:
-      "Customized square tiles featuring your unique GPS route in stunning 3D detail. Perfect for displaying your favorite hikes, bike rides, or runs.",
+      "Customized square tiles featuring your unique GPS route in stunning 3D detail. Perfect for displaying your favorite hikes, bike rides, runs or even long scenic drives.",
     features: [
       "Premium PLA plastic construction",
       "Built-in stand for easy display",
       "Embedded NFC chip links to your activity",
       "Available in multiple sizes",
+      "Proof that you don't just talk the talk, you walk the walk",
     ],
     sizes: [
       { name: "Basecamp", size: "100mm x 100mm", price: "$20" },
@@ -49,6 +50,7 @@ const products = [
       "Stylistic ribbon for hanging",
       "Engraved route allows backlight to shine through",
       "Customizable with text labels",
+      "Let your tree show off a bit for you",
     ],
     pricing: "$25",
     etsy: "https://landformlabs.etsy.com/listing/1813900470",
@@ -64,6 +66,7 @@ const products = [
       "Stylistic ribbon for hanging",
       "Beautiful when backlit",
       "Customizable with text labels",
+      "More than an outline, see every ridge and valley",
     ],
     pricing: "$10",
     etsy: null,
@@ -79,6 +82,7 @@ const products = [
       "Designed for pens to fit naturally into landscape",
       "Custom mountain profiles available",
       "Perfect desk accessory",
+      "A tangible reminder to get away from your desk and Get Out There",
     ],
     pricing: "$30",
     etsy: "https://landformlabs.etsy.com/listing/1786366140",
@@ -94,6 +98,7 @@ const products = [
       "Work with any GPS data format",
       "Personal consultation included",
       "Unique one-of-a-kind pieces",
+      "Say goodbye to boring walls and generic wallpaper",
     ],
     pricing: "Contact for Quote",
     etsy: "https://landformlabs.etsy.com/listing/1819645585",
@@ -268,7 +273,7 @@ export default function Products() {
               </h2>
               <p className="mt-4 text-lg text-alpine-mist/90 max-w-2xl mx-auto">
                 Turning your epic adventures into tangible proof is easier than
-                that last summit push.
+                that last climb.
               </p>
             </div>
 
@@ -296,7 +301,8 @@ export default function Products() {
                 </h3>
                 <p className="mt-2 text-alpine-mist/90">
                   Our team transforms your GPS data into beautiful 3D art.
-                  We&rsquo;ll work with you to perfect every detail.
+                  We&rsquo;ll work with you to perfect every detail. It&rsquo;s
+                  your adventure, we&rsquo;ll tell the whole story.
                 </p>
               </div>
 
@@ -308,8 +314,9 @@ export default function Products() {
                   Own Your Adventure
                 </h3>
                 <p className="mt-2 text-alpine-mist/90">
-                  Receive your custom piece in 1-2 weeks. Display it proudly and
-                  remember: you&rsquo;re stronger than you think.
+                  Receive your custom piece in the mail. Display it proudly and
+                  remember: you&rsquo;re stronger than you think. Now Get Out
+                  There and do it again.
                 </p>
               </div>
             </div>
