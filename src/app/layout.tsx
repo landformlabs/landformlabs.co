@@ -5,7 +5,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: {
     template: "%s | Landform Labs",
-    default: "Landform Labs - Turn Your Adventures Into Awesome Desk Décor",
+    default: "Landform Labs - Turn Your Adventures Into Tangible Proof",
   },
   icons: {
     icon: "/square-500.svg",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://landformlabs.co",
     siteName: "Landform Labs",
-    title: "Landform Labs - Turn Your Adventures Into Awesome Desk Décor",
+    title: "Landform Labs - Turn Your Adventures Into Tangible Proof",
     description:
       "Transform your favorite outdoor memories into beautiful, personalized proof of your epic adventures.",
     images: [
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Landform Labs - Turn Your Adventures Into Awesome Desk Décor",
+    title: "Landform Labs - Turn Your Adventures Into Tangible Proof",
     description:
       "Transform your favorite outdoor memories into beautiful, personalized proof of your epic adventures.",
     images: ["/og-image.jpg"],

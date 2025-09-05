@@ -175,7 +175,7 @@ Beautiful mementos that actually work in real life. Your pen holder happens to b
 
 #### Website Headlines
 - ❌ Corporate: "Professional 3D Printing Services for Outdoor Enthusiasts"
-- ✅ Landform: "Turn Your Adventures Into Awesome Desk Décor"
+- ✅ Landform: "Turn Your Adventures Into Awesome Proof of your Accomplishments"
 
 #### Product Descriptions
 - ❌ Technical: "Precision 3D printed topographic representation of user-supplied GPS data"

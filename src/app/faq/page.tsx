@@ -38,20 +38,19 @@ const faqs = [
           "The easiest way to share is to provide a link to your activity on platforms like Strava, Garmin Connect, or Komoot. If you prefer, you can also email the .gpx file directly to sales@landformlabs.co",
       },
       {
-        question:
-          "I don&rsquo;t have GPS data. Can I still order a custom print?",
+        question: "I don't have GPS data. Can I still order a custom print?",
         answer:
-          "Absolutely! If you have a specific route in mind but don&rsquo;t have the GPS data, we can help you recreate it. Just provide us with the details of the route, and we&rsquo;ll work with you to create a custom print.",
+          "Absolutely! If you have a specific route in mind but don't have the GPS data, we can help you recreate it. Just provide us with the details of the route, and we&rsquo;ll work with you to create a custom print.",
       },
       {
-        question: "Can I customize the text on ornaments?",
+        question: "Can I customize the text on prints?",
         answer:
-          "Yes! Both Route Ornaments and State Ornaments can be customized with text labels. This could be the trail name, date of your adventure, location, or any meaningful text you&rsquo;d like to include.",
+          "Yes! Prints can be customized with text labels. This could be the trail name, date of your adventure, location, or any meaningful text you'd like to include.",
       },
       {
         question: "What if my route is too complex or detailed?",
         answer:
-          "Don&rsquo;t worry! Part of our process involves optimizing your route data to create the most beautiful and printable version. We&rsquo;ll clean up any GPS noise while preserving the character and key features of your adventure.",
+          "Don't worry! Part of our process involves optimizing your route data to create the most beautiful and printable version. We'll clean up any GPS noise while preserving the character and key features of your adventure.",
       },
     ],
   },
@@ -71,7 +70,7 @@ const faqs = [
       {
         question: "Can I change what the NFC chip links to?",
         answer:
-          "The NFC chip is programmed during manufacturing with the link you specify. While the chip itself can&rsquo;t be reprogrammed easily, we can set it to link to any URL you provide during the ordering process.",
+          "The NFC chip is programmed during manufacturing with the link you specify. While the chip itself can't be reprogrammed easily, we can set it to link to any URL you provide during the ordering process.",
       },
     ],
   },
@@ -91,7 +90,7 @@ const faqs = [
       {
         question: "How is my order packaged?",
         answer:
-          "We take great care in packaging your custom pieces. Each item is wrapped in protective materials and shipped in sturdy boxes to ensure they arrive safely. Ornaments include their hanging ribbons, and Route Tiles include their display stands.",
+          "We take great care in packaging your custom pieces. Each item is wrapped in protective materials and shipped in padded envelopes to ensure safe arrival. Ornaments include their hanging ribbons, and Route Tiles include their display stands.",
       },
     ],
   },
@@ -104,20 +103,25 @@ const faqs = [
           "Due to the custom nature of our products, we do not accept returns or exchanges. However, if there is an issue with your order, please contact us at support@landformlabs.co and we will do our best to resolve it.",
       },
       {
-        question: "What if there&rsquo;s a problem with my order?",
+        question: "What if there's a problem with my order?",
         answer:
-          "We stand behind our work! If there&rsquo;s any issue with the quality, accuracy, or condition of your order, contact us immediately at support@landformlabs.co. We&rsquo;ll work with you to make it right.",
+          "We stand behind our work! If there's any issue with the quality, accuracy, or condition of your order, contact us immediately at support@landformlabs.co. We'll work with you to make it right.",
       },
       {
-        question: "My NFC chip isn&rsquo;t working. What should I do?",
+        question: "My NFC chip isn't working. What should I do?",
         answer:
-          "First, make sure NFC is enabled on your phone and try tapping different spots on the tile. If it still doesn&rsquo;t work, contact us at support@landformlabs.co with your order details and we&rsquo;ll help troubleshoot or arrange a replacement.",
+          "First, make sure NFC is enabled on your phone and try tapping different spots on the tile. If it still doesn't work, contact us at support@landformlabs.co with your order details and we'll help troubleshoot or arrange a replacement.",
       },
     ],
   },
   {
     category: "Pricing & Payment",
     questions: [
+      {
+        question: "How do I place an order?",
+        answer:
+          "You can place an order through our Etsy store at landformlabs.etsy.com or by contacting us directly at sales@landformlabs.co.",
+      },
       {
         question:
           "Why are custom pieces more expensive than mass-produced items?",
@@ -161,7 +165,8 @@ export default function FAQ() {
               </h1>
               <p className="mt-6 max-w-2xl mx-auto text-xl text-slate-storm">
                 Everything you need to know about turning your epic adventures
-                into awesome desk décor. Don&rsquo;t see your question?{" "}
+                into proof you're anything but normal. Don&rsquo;t see your
+                question?{" "}
                 <a
                   href="/contact"
                   className="text-summit-sage font-headline font-semibold hover:text-summit-sage/80"

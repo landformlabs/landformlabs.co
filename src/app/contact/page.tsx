@@ -17,7 +17,8 @@ const contactInfo = [
   {
     title: "Sales & Custom Orders",
     email: "sales@landformlabs.co",
-    description: "Ready to turn your epic adventure into awesome desk décor?",
+    description:
+      "Ready to turn your epic adventure into jaw dropping proof of what you've done?",
   },
   {
     title: "Support",
@@ -81,9 +82,9 @@ export default function Contact() {
                 <span className="text-gradient-adventure">Epic Together</span>
               </h1>
               <p className="mt-6 max-w-2xl mx-auto text-xl text-slate-storm">
-                Got questions about turning your adventure into awesome desk
-                décor? Want to start a custom project? We&rsquo;d love to hear
-                from you.
+                Got questions about turning your adventure into proof that
+                you're awesome? Want to start a custom project? We&rsquo;d love
+                to hear from you.
               </p>
             </div>
           </div>

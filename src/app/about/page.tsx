@@ -89,7 +89,7 @@ export default function About() {
               </h2>
               <p className="text-xl text-summit-sage font-headline font-semibold mb-6">
                 We transform your outdoor memories into tangible keepsakes that
-                actually matter.
+                matter.
               </p>
 
               <div className="grid gap-8 md:grid-cols-2 mt-8">
@@ -99,9 +99,10 @@ export default function About() {
                   </h3>
                   <p className="text-slate-storm text-sm">
                     That time you got &ldquo;slightly&rdquo; lost and
-                    accidentally discovered the most beautiful trail ever? We
-                    turn that squiggly GPS line into stunning 3D art that makes
-                    you look like the adventure legend you are.
+                    accidentally discovered the most beautiful trail ever? The
+                    ridgeline that was equal parts terrifying and breathtaking?
+                    We turn that squiggly GPS line into stunning 3D art that
+                    makes you look like the adventure legend you are.
                   </p>
                 </div>
 
@@ -111,8 +112,10 @@ export default function About() {
                   </h3>
                   <p className="text-slate-storm text-sm">
                     Because your Christmas tree deserves better than generic
-                    baubles. Your favorite peak as a holiday decoration?{" "}
-                    <em>Chef&rsquo;s kiss.</em>
+                    baubles. Your tree, your story. Don't let generic ornaments
+                    ruin the opportunity to tell the story of your epic
+                    adventures. Want to be the real MVP? These make fantastic
+                    gifts!
                   </p>
                 </div>
 
@@ -122,8 +125,9 @@ export default function About() {
                   </h3>
                   <p className="text-slate-storm text-sm">
                     Mountain-shaped pen holders and trail-inspired organizers
-                    that make Monday meetings slightly less soul-crushing. Your
-                    coworkers will be jealous.
+                    that make Zoom meetings slightly less soul-crushing. Grab a
+                    pen, remember the earth is beatiful, finish work early, and
+                    Get Out There.
                   </p>
                 </div>
 
@@ -134,7 +138,8 @@ export default function About() {
                   <p className="text-slate-storm text-sm">
                     That summit you thought was impossible but conquered? That
                     trail where you had your biggest breakthrough? We make those
-                    moments into something you can actually hold.
+                    moments into something you can appreciate day after day.
+                    Wake up, see it, remember you were made to explore.
                   </p>
                 </div>
               </div>
@@ -147,7 +152,8 @@ export default function About() {
                 random Tuesday hike where you finally felt like yourself again.
                 The trail that challenged you but gave you confidence you never
                 knew you had. The route you&rsquo;ve done a hundred times that
-                somehow still surprises you.
+                somehow still surprises you. The race that made you cry because
+                it was the hardest and most beautiful thing you've ever done.
               </p>
               <p className="text-slate-storm leading-relaxed mb-4">
                 Those moments matter. They deserve more than a Strava post and a
@@ -157,8 +163,9 @@ export default function About() {
                 We believe your adventures should live in your everyday life,
                 not just your photo albums. Because when you&rsquo;re having a
                 rough day and you see that impossible trail you conquered
-                sitting on your desk? That&rsquo;s not just décor. That&rsquo;s
-                proof you&rsquo;re way stronger than you remember.
+                sitting on your desk or hanging on your wall? That&rsquo;s not
+                just décor. That&rsquo;s proof you&rsquo;re way stronger than
+                you remember and a reminder to Get Out There and do it again.
               </p>
 
               <div className="bg-summit-sage p-8 rounded-lg text-center mt-12">
@@ -186,7 +193,7 @@ export default function About() {
                 </h3>
                 <p className="text-alpine-mist/90 text-sm">
                   Your GPS data might look like spaghetti, but our 3D print of
-                  it will be gorgeous. Work with you every step of the way to
+                  it will be gorgeous. We work with you every step of the way to
                   ensure the final result is exactly what you want.
                 </p>
               </div>
@@ -207,9 +214,8 @@ export default function About() {
                   Cleverly Practical
                 </h3>
                 <p className="text-alpine-mist/90 text-sm">
-                  Beautiful proof that actually reminds you that hard work pays
-                  off. Tap your phone and instantly relive your most epic
-                  adventures.
+                  Beautiful proof to remind you that hard work pays off. Tap
+                  your phone and instantly relive your most epic adventures.
                 </p>
               </div>
             </div>

@@ -50,4 +50,4 @@ Your adventures shaped you. Now let us help you shape them back.
 
 ---
 
-*Ready to turn your epic memories into epic desk décor? Let's make something awesome together.*
+*Ready to turn your epic memories into tangible proof that you're amazing? Let's make something awesome together.*
