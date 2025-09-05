@@ -266,39 +266,6 @@ export default function FAQ() {
             </div>
           </div>
         </div>
-
-        {/* Quick Links */}
-        <div className="bg-basalt py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <h3 className="text-xl font-headline font-bold text-alpine-mist">
-                Quick Links
-              </h3>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-center">
-              <a
-                href="/products"
-                className="bg-alpine-mist/10 hover:bg-alpine-mist/20 text-alpine-mist py-3 px-4 rounded-lg transition-colors duration-200"
-              >
-                View Products
-              </a>
-              <a
-                href="https://landformlabs.etsy.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-alpine-mist/10 hover:bg-alpine-mist/20 text-alpine-mist py-3 px-4 rounded-lg transition-colors duration-200"
-              >
-                Browse Etsy Store
-              </a>
-              <a
-                href="/about"
-                className="bg-alpine-mist/10 hover:bg-alpine-mist/20 text-alpine-mist py-3 px-4 rounded-lg transition-colors duration-200"
-              >
-                Our Story
-              </a>
-            </div>
-          </div>
-        </div>
       </main>
       <Footer />
     </>

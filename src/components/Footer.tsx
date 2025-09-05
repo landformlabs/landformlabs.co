@@ -19,11 +19,11 @@ export default function Footer() {
       <h2 id="footer-heading" className="sr-only">
         Footer
       </h2>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div className="xl:grid xl:grid-cols-3 xl:gap-8">
-          {/* Brand Section */}
-          <div className="space-y-8 xl:col-span-1">
-            <Link href="/" className="flex items-center space-x-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+        <div className="lg:flex lg:items-start lg:justify-between lg:space-x-12">
+          {/* Brand Section - Left Justified */}
+          <div className="lg:flex-shrink-0 lg:max-w-md">
+            <Link href="/" className="flex items-center space-x-3 mb-4">
               <Image
                 src="/square-500.svg"
                 alt="Landform Labs"
@@ -40,61 +40,52 @@ export default function Footer() {
                 </span>
               </div>
             </Link>
-            <p className="text-sm text-alpine-mist/80 max-w-md">
+
+            <p className="text-sm text-alpine-mist/80 mb-4">
               Transform your favorite outdoor memories into beautiful,
               personalized proof of your epic adventures. Get Out There, Amaze
               Yourself, Own It, Repeat.
             </p>
+
+            {/* Consolidated Contact Info */}
+            <div className="space-y-2">
+              <p className="text-sm text-alpine-mist/80">
+                <a
+                  href="mailto:hello@landformlabs.co"
+                  className="hover:text-alpine-mist transition-colors duration-200"
+                >
+                  hello@landformlabs.co
+                </a>
+              </p>
+              <p className="text-sm text-alpine-mist/80">
+                <a
+                  href="https://landformlabs.etsy.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-alpine-mist transition-colors duration-200"
+                >
+                  Visit our Etsy store: landformlabs.etsy.com
+                </a>
+              </p>
+            </div>
           </div>
 
-          {/* Navigation Links */}
-          <div className="mt-12 grid grid-cols-2 gap-8 xl:mt-0 xl:col-span-2">
-            <div>
-              <h3 className="font-headline font-semibold text-sm uppercase tracking-wider">
-                Navigation
-              </h3>
-              <ul role="list" className="mt-4 space-y-4">
+          {/* Horizontal Navigation Links - Aligned Right */}
+          <div className="mt-8 lg:mt-0 lg:flex-shrink-0">
+            <nav>
+              <ul className="flex flex-wrap gap-6 lg:gap-8 justify-start lg:justify-end">
                 {navigation.main.map((item) => (
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="text-sm text-alpine-mist/80 hover:text-alpine-mist transition-colors duration-200"
+                      className="text-sm text-alpine-mist/80 hover:text-alpine-mist transition-colors duration-200 font-medium"
                     >
                       {item.name}
                     </Link>
                   </li>
                 ))}
               </ul>
-            </div>
-
-            {/* Contact Info */}
-            <div className="mt-12 md:mt-0">
-              <h3 className="font-headline font-semibold text-sm uppercase tracking-wider">
-                Get In Touch
-              </h3>
-              <div className="mt-4 space-y-4">
-                <p className="text-sm text-alpine-mist/80">
-                  <a
-                    href="mailto:hello@landformlabs.co"
-                    className="hover:text-alpine-mist transition-colors duration-200"
-                  >
-                    hello@landformlabs.co
-                  </a>
-                </p>
-                <p className="text-sm text-alpine-mist/80">
-                  Visit our Etsy store:
-                  <br />
-                  <a
-                    href="https://landformlabs.etsy.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-alpine-mist transition-colors duration-200"
-                  >
-                    landformlabs.etsy.com
-                  </a>
-                </p>
-              </div>
-            </div>
+            </nav>
           </div>
         </div>
 
