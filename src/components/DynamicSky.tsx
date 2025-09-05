@@ -106,11 +106,6 @@ export default function DynamicSky() {
           background: `linear-gradient(135deg, ${textOverlays[skyState]} 0%, ${textOverlays[skyState]} 50%, transparent 100%)`,
         }}
       />
-
-      {/* Sky State Indicator (for testing - remove in production) */}
-      <div className="fixed bottom-4 right-4 bg-black/20 text-white px-3 py-1 rounded text-sm font-body backdrop-blur-sm z-50">
-        Sky: {skyState} ({new Date().getHours()}:00)
-      </div>
     </>
   );
 }

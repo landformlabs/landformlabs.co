@@ -20,7 +20,7 @@ const faqs = [
       {
         question: "How durable are the prints?",
         answer:
-          "Our PLA prints are designed for indoor use and normal handling. They&rsquo;re quite durable for desk display, but we don&rsquo;t recommend leaving them in direct sunlight for extended periods or exposing them to extreme temperatures.",
+          "Our PLA prints are designed for indoor use and normal handling. They're quite durable for desk display, but we don't recommend leaving them in direct sunlight for extended periods or exposing them to extreme temperatures.",
       },
       {
         question: "What colors are available?",
@@ -40,7 +40,7 @@ const faqs = [
       {
         question: "I don't have GPS data. Can I still order a custom print?",
         answer:
-          "Absolutely! If you have a specific route in mind but don't have the GPS data, we can help you recreate it. Just provide us with the details of the route, and we&rsquo;ll work with you to create a custom print.",
+          "Absolutely! If you have a specific route in mind but don't have the GPS data, we can help you recreate it. Just provide us with the details of the route, and we'll work with you to create a custom print.",
       },
       {
         question: "Can I customize the text on prints?",
@@ -65,7 +65,7 @@ const faqs = [
       {
         question: "What phones support NFC?",
         answer:
-          "Most modern smartphones support NFC, including recent iPhones and Android devices. The NFC feature is optional and doesn&rsquo;t affect the display or durability of your route tile if you don&rsquo;t use it.",
+          "Most modern smartphones support NFC, including recent iPhones and Android devices. The NFC feature is optional and doesn't affect the display or durability of your route tile if you don't use it.",
       },
       {
         question: "Can I change what the NFC chip links to?",
@@ -126,7 +126,7 @@ const faqs = [
         question:
           "Why are custom pieces more expensive than mass-produced items?",
         answer:
-          "Each piece is individually crafted based on your unique GPS data. This involves data processing, custom design work, individual 3D printing, quality control, and hand-finishing. You&rsquo;re not just buying a product - you&rsquo;re getting a personalized work of art that celebrates your specific adventure.",
+          "Each piece is individually crafted based on your unique GPS data. This involves data processing, custom design work, individual 3D printing, quality control, and hand-finishing. You're not just buying a product - you're getting a personalized work of art that celebrates your specific adventure.",
       },
       {
         question: "Do you offer discounts for multiple items?",
@@ -165,8 +165,8 @@ export default function FAQ() {
               </h1>
               <p className="mt-6 max-w-2xl mx-auto text-xl text-slate-storm">
                 Everything you need to know about turning your epic adventures
-                into proof you're anything but normal. Don&rsquo;t see your
-                question?{" "}
+                into proof you&rsquo;re anything but normal. Don&rsquo;t see
+                your question?{" "}
                 <a
                   href="/contact"
                   className="text-summit-sage font-headline font-semibold hover:text-summit-sage/80"

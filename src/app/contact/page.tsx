@@ -18,7 +18,7 @@ const contactInfo = [
     title: "Sales & Custom Orders",
     email: "sales@landformlabs.co",
     description:
-      "Ready to turn your epic adventure into jaw dropping proof of what you've done?",
+      "Ready to turn your epic adventure into jaw dropping proof of what you&rsquo;ve done?",
   },
   {
     title: "Support",
@@ -83,8 +83,8 @@ export default function Contact() {
               </h1>
               <p className="mt-6 max-w-2xl mx-auto text-xl text-slate-storm">
                 Got questions about turning your adventure into proof that
-                you're awesome? Want to start a custom project? We&rsquo;d love
-                to hear from you.
+                you&rsquo;re awesome? Want to start a custom project? We&rsquo;d
+                love to hear from you.
               </p>
             </div>
           </div>
@@ -190,7 +190,7 @@ export default function Contact() {
                       value={formData.subject}
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-slate-storm/20 rounded-lg focus-ring focus:border-summit-sage text-basalt"
-                      placeholder="What's this about?"
+                      placeholder="What&rsquo;s this about?"
                     />
                   </div>
 

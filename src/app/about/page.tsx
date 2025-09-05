@@ -112,10 +112,10 @@ export default function About() {
                   </h3>
                   <p className="text-slate-storm text-sm">
                     Because your Christmas tree deserves better than generic
-                    baubles. Your tree, your story. Don't let generic ornaments
-                    ruin the opportunity to tell the story of your epic
-                    adventures. Want to be the real MVP? These make fantastic
-                    gifts!
+                    baubles. Your tree, your story. Don&rsquo;t let generic
+                    ornaments ruin the opportunity to tell the story of your
+                    epic adventures. Want to be the real MVP? These make
+                    fantastic gifts!
                   </p>
                 </div>
 
@@ -153,7 +153,8 @@ export default function About() {
                 The trail that challenged you but gave you confidence you never
                 knew you had. The route you&rsquo;ve done a hundred times that
                 somehow still surprises you. The race that made you cry because
-                it was the hardest and most beautiful thing you've ever done.
+                it was the hardest and most beautiful thing you&rsquo;ve ever
+                done.
               </p>
               <p className="text-slate-storm leading-relaxed mb-4">
                 Those moments matter. They deserve more than a Strava post and a

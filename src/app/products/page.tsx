@@ -29,7 +29,7 @@ const products = [
       "Built-in stand for easy display",
       "Embedded NFC chip links to your activity",
       "Available in multiple sizes",
-      "Proof that you don't just talk the talk, you walk the walk",
+      "Proof that you don&rsquo;t just talk the talk, you walk the walk",
     ],
     sizes: [
       { name: "Basecamp", size: "100mm x 100mm", price: "$20" },
