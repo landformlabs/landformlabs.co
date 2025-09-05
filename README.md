@@ -1,204 +1,343 @@
 # Landform Labs Website
 
-A modern, nature-inspired website for Landform Labs built with Next.js, TypeScript, and Tailwind CSS.
+A production-ready e-commerce website for Landform Labs - creators of custom 3D-printed adventure keepsakes from GPS data. Built with Next.js 14, TypeScript, and Tailwind CSS.
 
-## 🌲 Features
+## Overview
 
-- **Modern Design**: Earthy color palette with Poppins font reflecting outdoor brand identity
-- **Responsive**: Mobile-first design optimized for all devices
-- **SEO Optimized**: Built-in SEO with meta tags, structured data, and LLMs.txt
-- **CMS Ready**: Sanity.io integration for blog and content management
-- **E-commerce Integration**: Seamless Etsy store integration
-- **Analytics**: Google Analytics 4 integration
-- **Performance**: Optimized for Core Web Vitals and fast loading
+Landform Labs transforms outdoor memories into tangible keepsakes by creating custom 3D prints from GPS route data. This website showcases products, tells the brand story, and integrates with Etsy for e-commerce functionality.
 
-## 🚀 Tech Stack
+## Features
+
+**Core Functionality**
+- Responsive design optimized for all devices
+- Product showcase with detailed specifications and pricing
+- Integrated contact forms with validation
+- Comprehensive FAQ system
+- Privacy policy and legal compliance
+- SEO optimization with proper meta tags
+
+**Technical Features**
+- Next.js 14 with App Router for optimal performance
+- Static site generation for fast loading
+- Image optimization and compression
+- Google Analytics integration ready
+- Professional error handling and validation
+- Production-ready build optimization
+
+**Brand Experience**
+- Adventure-focused design with custom color palette
+- Dynamic sky backgrounds that change with time of day
+- Professional typography using custom font combinations
+- Optimized images showcasing product quality
+
+## Technology Stack
 
 - **Framework**: Next.js 14 with App Router
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS with custom design system
-- **CMS**: Sanity.io (optional)
-- **Analytics**: Google Analytics 4
-- **Deployment**: Vercel (recommended)
+- **Forms**: React Hook Form with Zod validation
+- **Image Optimization**: Next.js built-in optimization
+- **Analytics**: Google Analytics 4 (configurable)
+- **Deployment**: Vercel recommended
 
-## 📦 Getting Started
+## Prerequisites
 
-### Prerequisites
+- Node.js 18 or later
+- npm or yarn package manager
+- Git for version control
 
-- Node.js 18+ 
-- npm or yarn
-- Git
+## Quick Start
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd landformlabs.co
-   ```
+1. Clone the repository
+```bash
+git clone [repository-url]
+cd landformlabs.co
+```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+2. Install dependencies
+```bash
+npm install
+```
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.local.example .env.local
-   ```
-   
-   Update the environment variables:
-   - `NEXT_PUBLIC_GA_MEASUREMENT_ID`: Your Google Analytics 4 measurement ID
-   - `NEXT_PUBLIC_SANITY_PROJECT_ID`: Your Sanity project ID (optional)
-   - `NEXT_PUBLIC_SANITY_DATASET`: Your Sanity dataset (usually 'production')
+3. Set up environment variables
+```bash
+cp .env.local.example .env.local
+```
 
-4. **Run the development server**
-   ```bash
-   npm run dev
-   ```
+4. Configure environment variables in `.env.local`:
+```env
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+NEXT_PUBLIC_SITE_URL=https://landformlabs.co
+```
 
-5. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+5. Start development server
+```bash
+npm run dev
+```
 
-## 🎨 Design System
+6. Open browser to `http://localhost:3000`
 
-### Colors
-- **Primary (Sky Blue)**: #0174c2 to #0d426c
-- **Secondary (Forest Green)**: #367936 to #214121  
-- **Accent (Earth Tones)**: #a3694a to #5a3b30
+## Project Structure
+
+```
+landformlabs.co/
+├── src/
+│   ├── app/                    # Next.js App Router pages
+│   │   ├── about/             # Company story and mission
+│   │   ├── contact/           # Contact forms and information
+│   │   ├── faq/               # Frequently asked questions
+│   │   ├── privacy/           # Privacy policy
+│   │   ├── products/          # Product catalog and details
+│   │   ├── globals.css        # Global styles and Tailwind imports
+│   │   ├── layout.tsx         # Root layout with SEO and analytics
+│   │   └── page.tsx           # Homepage with hero and features
+│   └── components/            # Reusable React components
+│       ├── DynamicSky.tsx     # Time-based background component
+│       ├── Footer.tsx         # Site footer with navigation
+│       ├── GoogleAnalytics.tsx # GA4 integration component
+│       ├── Header.tsx         # Site header and navigation
+│       └── HeroWireframe.tsx   # Hero section wireframe graphic
+├── public/                    # Static assets
+│   ├── [product-images]/     # Optimized product photography
+│   ├── llms.txt              # AI assistant optimization
+│   └── robots.txt            # Search engine directives
+├── .env.local.example        # Environment variables template
+└── [config files]           # Next.js, TypeScript, Tailwind config
+```
+
+## Configuration
+
+### Environment Variables
+
+Create `.env.local` with the following variables:
+
+```env
+# Google Analytics (optional)
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+
+# Site Configuration
+NEXT_PUBLIC_SITE_URL=https://landformlabs.co
+
+# Contact Form (for production form handling)
+NEXT_PUBLIC_FORM_ENDPOINT=your-form-handler-url
+```
+
+### Google Analytics Setup
+
+1. Create a Google Analytics 4 property
+2. Copy the Measurement ID (starts with G-)
+3. Add to environment variables
+4. The GoogleAnalytics component will automatically initialize tracking
+
+### Contact Form Configuration
+
+The contact form currently displays a demo message. For production:
+
+1. Choose a form handling service (Formspree, Netlify Forms, etc.)
+2. Update the form endpoint in environment variables
+3. Modify form submission logic in `src/app/contact/page.tsx`
+
+## Design System
+
+### Color Palette
+
+The site uses a custom adventure-inspired color palette:
+
+- **Alpine Mist** (#f7f9f7): Primary background and light elements
+- **Summit Sage** (#6b8e6b): Primary brand color for buttons and accents
+- **Basalt** (#2c3e50): Primary text and dark elements
+- **Desert Stone** (#d4a574): Secondary accent color
+- **Slate Storm** (#64748b): Secondary text and subtle elements
 
 ### Typography
-- **Font**: Poppins (Google Fonts)
-- **Headings**: Bold weights for impact
-- **Body**: Regular weights for readability
 
-### Components
-- Reusable button styles (`.btn-primary`, `.btn-secondary`, `.btn-accent`)
-- Consistent spacing with utility classes
-- Responsive grid layouts
+- **Headlines**: Custom font stack emphasizing impact and readability
+- **Body Text**: Optimized for reading comfort across devices
+- **UI Elements**: Consistent sizing and spacing throughout
 
-## 📁 Project Structure
+### Responsive Design
 
+- Mobile-first approach with progressive enhancement
+- Optimized for devices from 320px to 4K displays
+- Touch-friendly interface elements
+- Accessible navigation and interaction patterns
+
+## Content Management
+
+### Static Content Updates
+
+Most content is managed through TypeScript files for type safety and performance:
+
+- **Homepage**: `src/app/page.tsx`
+- **Product Information**: `src/app/products/page.tsx`
+- **Company Story**: `src/app/about/page.tsx`
+- **FAQ Content**: `src/app/faq/page.tsx`
+
+### Image Management
+
+Product images are optimized for web delivery:
+
+- Compressed to under 300KB each while maintaining quality
+- Multiple formats supported (JPEG, PNG, WebP)
+- Responsive sizing through Next.js Image component
+- Lazy loading for improved performance
+
+## Development Workflow
+
+### Available Scripts
+
+```bash
+npm run dev      # Start development server with hot reload
+npm run build    # Create production build
+npm run start    # Run production server locally
+npm run lint     # Check code quality with ESLint
 ```
-src/
-├── app/                    # Next.js App Router pages
-│   ├── about/             # About page
-│   ├── blog/              # Blog listing page
-│   ├── contact/           # Contact form page
-│   ├── faq/               # FAQ page
-│   ├── products/          # Products showcase page
-│   ├── testimonials/      # Customer testimonials
-│   ├── globals.css        # Global styles
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx           # Homepage
-├── components/            # Reusable React components
-│   ├── Header.tsx         # Site header with navigation
-│   ├── Footer.tsx         # Site footer
-│   └── GoogleAnalytics.tsx # GA4 integration
-├── lib/                   # Utility functions
-│   └── sanity.ts          # Sanity CMS client
-public/
-├── llms.txt              # AI optimization file
-└── [static assets]       # Images, icons, etc.
-```
 
-## 🔧 Configuration
+### Code Quality
 
-### Google Analytics
-Add your GA4 measurement ID to `.env.local`:
-```
-NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
-```
+The project maintains high code quality through:
 
-### Sanity CMS (Optional)
-1. Create a Sanity project at [sanity.io](https://sanity.io)
-2. Add your project details to `.env.local`:
-   ```
-   NEXT_PUBLIC_SANITY_PROJECT_ID=your-project-id
-   NEXT_PUBLIC_SANITY_DATASET=production
-   ```
-3. Uncomment Sanity queries in blog pages to enable dynamic content
+- TypeScript for type safety
+- ESLint for code consistency
+- Proper HTML entity escaping for security
+- Responsive design testing
+- Performance optimization
 
-### Contact Form
-The contact form currently shows a demo. To enable real form submission:
-1. Set up a form handling service (Netlify Forms, Formspree, etc.)
-2. Update the form action in `src/app/contact/page.tsx`
-3. Add form endpoint to environment variables
+### Performance Optimizations
 
-## 🚀 Deployment
+- Static site generation for fast loading
+- Image optimization reducing payload by 80%
+- Code splitting and tree shaking
+- Efficient CSS delivery
+- Minimal JavaScript bundle size
+
+## Deployment
 
 ### Vercel (Recommended)
-1. Push code to GitHub/GitLab/Bitbucket
-2. Connect repository to Vercel
-3. Add environment variables in Vercel dashboard
-4. Deploy automatically on every push
 
-### Other Platforms
-The site can be deployed to any platform that supports Node.js:
+Vercel provides optimal hosting for Next.js applications:
+
+1. Connect your GitHub repository to Vercel
+2. Add environment variables in Vercel dashboard
+3. Deploy automatically on every git push
+4. Configure custom domain (landformlabs.co)
+
+### Alternative Platforms
+
+The site can be deployed to any Node.js hosting platform:
+
 - Netlify
 - Railway
 - DigitalOcean App Platform
 - AWS Amplify
 
-## 🔍 SEO Features
+### Custom Domain Setup
 
-- **Meta Tags**: Comprehensive meta tags for all pages
-- **Structured Data**: JSON-LD for better search engine understanding
-- **Sitemap**: Auto-generated sitemap.xml
-- **LLMs.txt**: AI optimization file for better AI assistant responses
-- **Performance**: Optimized images and Core Web Vitals
+1. Configure DNS records to point to hosting provider
+2. Add domain in hosting platform dashboard
+3. Enable HTTPS (automatic with most providers)
+4. Test all functionality on live domain
 
-## 🎯 Content Management
+## SEO and Analytics
 
-### Static Content
-Most content is currently static and can be updated by editing the TypeScript files in the `src/app` directory.
+### Search Engine Optimization
 
-### Dynamic Content (Sanity CMS)
-Blog posts and other dynamic content can be managed through Sanity Studio:
-1. Set up Sanity project
-2. Configure schemas for posts, products, testimonials
-3. Enable dynamic content in the relevant pages
+- Comprehensive meta tags for all pages
+- Structured data for product information
+- XML sitemap generation
+- Optimized page loading speeds
+- Mobile-friendly design certification
 
-## 🛠 Available Scripts
+### Analytics Integration
 
-```bash
-npm run dev      # Start development server
-npm run build    # Build for production
-npm run start    # Start production server
-npm run lint     # Run ESLint
-```
+- Google Analytics 4 ready for detailed tracking
+- Privacy-compliant implementation
+- Custom event tracking capabilities
+- E-commerce integration preparation
 
-## 📧 Support
+### AI Assistant Optimization
 
-For questions or issues with this website:
-- Email: hello@landformlabs.co
-- Create an issue in the repository
+- LLMs.txt file for improved AI assistant responses
+- Structured content for better AI understanding
+- Clear navigation and content hierarchy
 
-## 🌟 Features Implemented
+## Business Integration
 
-✅ Responsive design with mobile-first approach
-✅ Custom color palette reflecting outdoor brand
-✅ Comprehensive page structure (Home, Products, About, Contact, Blog, FAQ, Testimonials)
-✅ Etsy integration for e-commerce
-✅ SEO optimization with meta tags and structured data
-✅ Google Analytics 4 integration
-✅ Contact form with validation
-✅ FAQ with collapsible sections
-✅ Customer testimonials with ratings
-✅ Blog structure ready for CMS
-✅ LLMs.txt for AI optimization
-✅ Environment configuration
-✅ Deployment ready
+### Etsy Store Integration
 
-## 🎨 Brand Guidelines
+- Direct links to Etsy product listings
+- Consistent branding between website and store
+- Clear call-to-action buttons for purchasing
+- Product information synchronized
 
-The website reflects Landform Labs' connection to the outdoors through:
-- Earthy color palette (greens, blues, tans)
-- Natural imagery and iconography
-- Outdoor-focused content and messaging
-- Sustainable and eco-friendly brand values
-- Community-centered approach
+### Contact and Support
+
+- Professional contact forms with validation
+- Multiple contact methods clearly displayed
+- FAQ system addressing common questions
+- Privacy policy and terms compliance
+
+## Maintenance and Updates
+
+### Regular Maintenance Tasks
+
+- Monitor site performance and loading speeds
+- Update product information and pricing
+- Review and respond to contact form submissions
+- Update FAQ content based on customer questions
+
+### Content Updates
+
+- Product images and descriptions
+- Company story and mission updates
+- New FAQ entries
+- Blog posts (structure ready for implementation)
+
+## Security and Privacy
+
+### Data Protection
+
+- No sensitive data stored in client-side code
+- Environment variables for configuration
+- Privacy policy compliance
+- Secure form handling practices
+
+### Performance Monitoring
+
+- Core Web Vitals optimization
+- Image loading performance
+- JavaScript bundle analysis
+- Mobile performance testing
+
+## Support and Documentation
+
+### Getting Help
+
+For technical issues or questions:
+
+- Check the FAQ section for common questions
+- Review this documentation for setup guidance
+- Contact: hello@landformlabs.co for business inquiries
+
+### Contributing
+
+When making changes to the codebase:
+
+1. Test thoroughly on multiple devices
+2. Run the build process to check for errors
+3. Ensure all images are optimized
+4. Update this documentation if needed
+
+## License and Usage
+
+This website is proprietary software for Landform Labs. All rights reserved.
 
 ---
 
-Built with ❤️ for outdoor enthusiasts by the Landform Labs team.
+**About Landform Labs**
+
+Landform Labs creates custom 3D-printed keepsakes from GPS route data, turning your outdoor adventures into beautiful, tangible memories. From route tiles to ornaments to desk accessories, we help outdoor enthusiasts own their epic moments.
+
+**Get Out There, Amaze Yourself, Own It, Repeat.**
