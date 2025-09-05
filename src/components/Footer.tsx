@@ -7,7 +7,6 @@ const navigation = {
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
     { name: "FAQ", href: "/faq" },
-    { name: "Testimonials", href: "/testimonials" },
   ],
   products: [
     { name: "Route Tiles", href: "/products#route-tiles" },
@@ -71,8 +70,8 @@ export default function Footer() {
             </Link>
             <p className="text-sm text-alpine-mist/80 max-w-md">
               Transform your favorite outdoor memories into beautiful,
-              personalized 3D printed mementos. Get Out There, Amaze Yourself,
-              Own It, Repeat.
+              personalized proof of your epic adventures. Get Out There, Amaze
+              Yourself, Own It, Repeat.
             </p>
             <div className="flex space-x-6">
               {navigation.social.map((item) => (

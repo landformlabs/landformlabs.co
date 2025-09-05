@@ -141,9 +141,6 @@ export default function About() {
               </p>
 
               <div className="bg-summit-sage p-8 rounded-lg text-center mt-12">
-                <h3 className="text-2xl font-headline font-bold text-alpine-mist mb-4">
-                  Our Brand Mantra
-                </h3>
                 <p className="text-3xl font-headline font-bold text-alpine-mist">
                   Get Out There, Amaze Yourself, Own It, Repeat
                 </p>
@@ -157,29 +154,23 @@ export default function About() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-3xl font-headline font-bold text-alpine-mist sm:text-4xl">
-                Our Approach (AKA Why We&rsquo;re Not Like Everyone Else)
+                Built Different
               </h2>
             </div>
 
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-              <div className="text-center">
-                <div className="bg-alpine-mist rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🎨</span>
-                </div>
+            <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto">
+              <div className="text-center border-2 border-alpine-mist p-6 rounded-lg">
                 <h3 className="font-headline font-bold text-alpine-mist text-lg mb-2">
                   Craftfully Honest
                 </h3>
                 <p className="text-alpine-mist/90 text-sm">
                   Your GPS data might look like spaghetti, but our 3D print of
-                  it will be gorgeous. We don&rsquo;t just slap your route onto
-                  a generic base and call it a day.
+                  it will be gorgeous. Work with you every step of the way to
+                  ensure the final result is exactly what you want.
                 </p>
               </div>
 
-              <div className="text-center">
-                <div className="bg-alpine-mist rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">💝</span>
-                </div>
+              <div className="text-center border-2 border-alpine-mist p-6 rounded-lg">
                 <h3 className="font-headline font-bold text-alpine-mist text-lg mb-2">
                   Meaningfully Personal
                 </h3>
@@ -190,31 +181,14 @@ export default function About() {
                 </p>
               </div>
 
-              <div className="text-center">
-                <div className="bg-alpine-mist rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">⚡</span>
-                </div>
+              <div className="text-center border-2 border-alpine-mist p-6 rounded-lg">
                 <h3 className="font-headline font-bold text-alpine-mist text-lg mb-2">
                   Cleverly Practical
                 </h3>
                 <p className="text-alpine-mist/90 text-sm">
-                  Beautiful mementos that actually work in real life. Your pen
-                  holder happens to be shaped like your favorite peak?
-                  That&rsquo;s not weird, that&rsquo;s awesome.
-                </p>
-              </div>
-
-              <div className="text-center">
-                <div className="bg-alpine-mist rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🎉</span>
-                </div>
-                <h3 className="font-headline font-bold text-alpine-mist text-lg mb-2">
-                  Nostalgically Playful
-                </h3>
-                <p className="text-alpine-mist/90 text-sm">
-                  We celebrate the adventures you&rsquo;ve conquered while
-                  keeping it fun. That brutal climb that almost killed you? Now
-                  it&rsquo;s a beautiful conversation piece.
+                  Beautiful proof that actually reminds you that hard work pays
+                  off. Tap your phone and instantly relive your most epic
+                  adventures.
                 </p>
               </div>
             </div>

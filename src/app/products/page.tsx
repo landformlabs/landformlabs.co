@@ -97,7 +97,7 @@ const products = [
     ],
     pricing: "Contact for Quote",
     etsy: "https://landformlabs.etsy.com/listing/1819645585",
-    image: "/route-tiles.JPG",
+    image: "/custom-print.jpeg",
   },
 ];
 
@@ -267,15 +267,15 @@ export default function Products() {
                 How It Works
               </h2>
               <p className="mt-4 text-lg text-alpine-mist/90 max-w-2xl mx-auto">
-                Getting your adventure turned into awesome desk décor is easier
-                than that last summit push.
+                Turning your epic adventures into tangible proof is easier than
+                that last summit push.
               </p>
             </div>
 
             <div className="mt-16 grid gap-8 md:grid-cols-3">
               <div className="text-center">
                 <div className="flex items-center justify-center w-16 h-16 bg-alpine-mist rounded-full mx-auto">
-                  <span className="text-2xl">📍</span>
+                  <span className="text-2xl font-bold text-basalt">1</span>
                 </div>
                 <h3 className="mt-4 text-xl font-headline font-semibold text-alpine-mist">
                   Share Your Route
@@ -289,7 +289,7 @@ export default function Products() {
 
               <div className="text-center">
                 <div className="flex items-center justify-center w-16 h-16 bg-alpine-mist rounded-full mx-auto">
-                  <span className="text-2xl">🎨</span>
+                  <span className="text-2xl font-bold text-basalt">2</span>
                 </div>
                 <h3 className="mt-4 text-xl font-headline font-semibold text-alpine-mist">
                   We Create Magic
@@ -302,14 +302,14 @@ export default function Products() {
 
               <div className="text-center">
                 <div className="flex items-center justify-center w-16 h-16 bg-alpine-mist rounded-full mx-auto">
-                  <span className="text-2xl">🎁</span>
+                  <span className="text-2xl font-bold text-basalt">3</span>
                 </div>
                 <h3 className="mt-4 text-xl font-headline font-semibold text-alpine-mist">
                   Own Your Adventure
                 </h3>
                 <p className="mt-2 text-alpine-mist/90">
                   Receive your custom piece in 1-2 weeks. Display it proudly and
-                  remember: you&rsquo;re more badass than you think.
+                  remember: you&rsquo;re stronger than you think.
                 </p>
               </div>
             </div>

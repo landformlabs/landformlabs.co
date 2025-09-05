@@ -10,7 +10,6 @@ const navigation = [
   { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
   { name: "FAQ", href: "/faq" },
-  { name: "Testimonials", href: "/testimonials" },
 ];
 
 export default function Header() {
@@ -56,7 +55,7 @@ export default function Header() {
 
               {/* CTA Button */}
               <Link href="/products" className="btn-primary">
-                Shop Now
+                Shop
               </Link>
             </div>
           </div>
@@ -112,7 +111,7 @@ export default function Header() {
                   className="btn-primary w-full text-center block"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Shop Now
+                  Shop
                 </Link>
               </div>
             </div>

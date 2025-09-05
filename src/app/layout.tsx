@@ -7,8 +7,13 @@ export const metadata: Metadata = {
     template: "%s | Landform Labs",
     default: "Landform Labs - Turn Your Adventures Into Awesome Desk Décor",
   },
+  icons: {
+    icon: "/square-500.svg",
+    shortcut: "/square-500.svg",
+    apple: "/square-500.svg",
+  },
   description:
-    "Transform your favorite outdoor memories into beautiful, personalized 3D printed mementos. From custom route prints to mountain-shaped desk accessories, we help outdoor enthusiasts keep their epic adventures alive.",
+    "Transform your favorite outdoor memories into beautiful, personalized proof of your epic adventures. From custom route prints to mountain-shaped desk accessories, we help outdoor enthusiasts keep their achievements alive.",
   keywords: [
     "3D printing",
     "outdoor gear",
@@ -32,7 +37,7 @@ export const metadata: Metadata = {
     siteName: "Landform Labs",
     title: "Landform Labs - Turn Your Adventures Into Awesome Desk Décor",
     description:
-      "Transform your favorite outdoor memories into beautiful, personalized 3D printed mementos.",
+      "Transform your favorite outdoor memories into beautiful, personalized proof of your epic adventures.",
     images: [
       {
         url: "/og-image.jpg",
@@ -46,7 +51,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Landform Labs - Turn Your Adventures Into Awesome Desk Décor",
     description:
-      "Transform your favorite outdoor memories into beautiful, personalized 3D printed mementos.",
+      "Transform your favorite outdoor memories into beautiful, personalized proof of your epic adventures.",
     images: ["/og-image.jpg"],
   },
   robots: {
@@ -88,7 +93,7 @@ export default function RootLayout({
               url: "https://landformlabs.co",
               logo: "https://landformlabs.co/logo.png",
               description:
-                "We create custom 3D printed mementos that celebrate outdoor adventures, from route prints to mountain-shaped desk accessories.",
+                "We create custom 3D printed proof that celebrates outdoor adventures, from route prints to mountain-shaped desk accessories.",
               foundingDate: "2024",
               sameAs: ["https://landformlabs.etsy.com"],
               contactPoint: {

@@ -22,9 +22,9 @@ const features = [
   {
     name: "Custom Keepsakes",
     description:
-      "Personalized mementos of your most meaningful outdoor moments and achievements.",
+      "Personalized proof of your most meaningful outdoor moments and achievements.",
     href: "/products#custom-prints",
-    image: "/state-ornaments.jpeg",
+    image: "/custom-print.jpeg",
   },
   {
     name: "Desk Accessories",
@@ -32,30 +32,6 @@ const features = [
       "Mountain-shaped pen holders and organizers that bring adventure to your workspace.",
     href: "/products#mountain-pen-holders",
     image: "/pen-holder.jpg",
-  },
-];
-
-const testimonials = [
-  {
-    quote:
-      "My Route Tile from Landform Labs sits on my desk and reminds me daily that I'm capable of incredible things. It's not just decor—it's proof of my adventure.",
-    name: "Sarah M.",
-    location: "Colorado",
-    adventure: "14er Summit Series",
-  },
-  {
-    quote:
-      "I gave my hiking buddy a custom route ornament of our first backpacking trip together. Every Christmas when she hangs it up, she texts me about that amazing adventure.",
-    name: "Mike T.",
-    location: "Utah",
-    adventure: "Zion Narrows",
-  },
-  {
-    quote:
-      "The Mountain Pen Holder of my local peak makes even Monday morning meetings more bearable. It's a constant reminder of weekend adventures.",
-    name: "Jessica L.",
-    location: "Vermont",
-    adventure: "Mount Mansfield",
   },
 ];
 
@@ -75,8 +51,8 @@ export default function Home() {
                     GET OUT THERE
                   </h1>
                   <h2 className="text-2xl md:text-3xl lg:text-4xl font-headline font-bold text-basalt max-w-4xl leading-tight">
-                    Transform your adventures into personalized 3D printed
-                    mementos
+                    Transform your adventures into personalized proof of your
+                    epic achievements
                   </h2>
                   <div className="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6">
                     <Link
@@ -99,7 +75,7 @@ export default function Home() {
         </div>
 
         {/* Brand Mantra Section */}
-        <div className="py-16 bg-summit-sage">
+        <div className="min-h-[300px] bg-summit-sage flex items-center justify-center py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <div className="mb-4">
@@ -123,9 +99,6 @@ export default function Home() {
         <div className="py-24 bg-alpine-mist/90 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="lg:text-center">
-              <h2 className="text-base text-summit-sage font-headline font-semibold tracking-wide uppercase">
-                Products
-              </h2>
               <p className="mt-2 text-3xl leading-8 font-headline font-bold tracking-tight text-basalt sm:text-4xl">
                 Your Adventures, Beautifully Crafted
               </p>
@@ -164,44 +137,6 @@ export default function Home() {
                   </Link>
                 ))}
               </dl>
-            </div>
-          </div>
-        </div>
-
-        {/* Testimonials Section */}
-        <div className="bg-desert-stone py-16 lg:py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-headline font-bold text-alpine-mist sm:text-4xl">
-                Adventure Stories Made Tangible
-              </h2>
-              <p className="mt-4 text-lg text-alpine-mist/90">
-                Real adventures from real people who turned their memories into
-                meaningful mementos
-              </p>
-            </div>
-
-            <div className="mt-16 grid gap-8 md:grid-cols-3">
-              {testimonials.map((testimonial, index) => (
-                <div
-                  key={index}
-                  className="bg-alpine-mist rounded-lg p-6 shadow-sm"
-                >
-                  <blockquote>
-                    <p className="text-slate-storm text-sm leading-relaxed">
-                      &ldquo;{testimonial.quote}&rdquo;
-                    </p>
-                  </blockquote>
-                  <div className="mt-4 border-t border-desert-stone/20 pt-4">
-                    <p className="font-headline font-semibold text-basalt text-sm">
-                      {testimonial.name}
-                    </p>
-                    <p className="text-slate-storm text-xs">
-                      {testimonial.location} • {testimonial.adventure}
-                    </p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>

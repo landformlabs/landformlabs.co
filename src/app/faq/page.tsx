@@ -291,12 +291,6 @@ export default function FAQ() {
               >
                 Our Story
               </a>
-              <a
-                href="/testimonials"
-                className="bg-alpine-mist/10 hover:bg-alpine-mist/20 text-alpine-mist py-3 px-4 rounded-lg transition-colors duration-200"
-              >
-                Customer Reviews
-              </a>
             </div>
           </div>
         </div>
