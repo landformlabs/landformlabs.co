@@ -30,13 +30,13 @@ export default function Contact() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h1 className="text-4xl font-headline font-bold text-basalt sm:text-5xl lg:text-6xl">
-                Let's Create Something{" "}
+                Let&apos;s Create Something{" "}
                 <span className="text-gradient-adventure">Epic Together</span>
               </h1>
               <p className="mt-6 max-w-2xl mx-auto text-xl text-slate-storm">
                 Got questions about turning your adventure into proof that
-                you're awesome? Want to start a custom project? We'd love to
-                hear from you.
+                you&apos;re awesome? Want to start a custom project? We&apos;d
+                love to hear from you.
               </p>
             </div>
           </div>
