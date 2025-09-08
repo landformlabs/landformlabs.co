@@ -13,9 +13,7 @@ export default function AppAuth({ children }: AppAuthProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-
-  // Get password from environment variable with fallback
-  const APP_PASSWORD = process.env.LANDFORM_APP_PASSWORD || "landform2024";
+  const [isValidating, setIsValidating] = useState(false);
 
   useEffect(() => {
     // Check if user is already authenticated
@@ -26,24 +24,36 @@ export default function AppAuth({ children }: AppAuthProps) {
     setIsLoading(false);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsValidating(true);
 
-    // Check if environment variable is properly configured
-    if (!APP_PASSWORD) {
+    try {
+      const response = await fetch("/api/auth/validate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setIsAuthenticated(true);
+        sessionStorage.setItem("landform-app-auth", "authenticated");
+      } else {
+        setError(result.error || "Incorrect password. Please try again.");
+        setPassword("");
+      }
+    } catch (error) {
       setError(
-        "Authentication is not properly configured. Please contact support.",
+        "Authentication failed. Please check your connection and try again.",
       );
-      return;
-    }
-
-    if (password === APP_PASSWORD) {
-      setIsAuthenticated(true);
-      sessionStorage.setItem("landform-app-auth", "authenticated");
-    } else {
-      setError("Incorrect password. Please try again.");
       setPassword("");
+    } finally {
+      setIsValidating(false);
     }
   };
 
@@ -96,7 +106,8 @@ export default function AppAuth({ children }: AppAuthProps) {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="w-full px-4 py-3 border border-slate-storm/20 rounded-lg focus-ring focus:border-summit-sage text-basalt"
+                      disabled={isValidating}
+                      className="w-full px-4 py-3 border border-slate-storm/20 rounded-lg focus-ring focus:border-summit-sage text-basalt disabled:opacity-50"
                       placeholder="Enter password"
                       autoComplete="off"
                     />
@@ -108,19 +119,25 @@ export default function AppAuth({ children }: AppAuthProps) {
                     </div>
                   )}
 
-                  <button type="submit" className="btn-primary w-full">
-                    Access Application
+                  <button
+                    type="submit"
+                    disabled={isValidating}
+                    className={`btn-primary w-full ${
+                      isValidating ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    {isValidating ? "Validating..." : "Access Application"}
                   </button>
                 </form>
 
                 <div className="mt-8 p-4 bg-summit-sage/5 rounded-lg">
                   <h3 className="font-headline font-semibold text-basalt text-sm mb-2">
-                    Development Access
+                    Secure Development Access
                   </h3>
                   <p className="text-xs text-slate-storm">
-                    This authentication is temporary and only for development
-                    purposes. The tool will be publicly available once
-                    development is complete.
+                    This tool is protected by server-side authentication during
+                    development. Access credentials are managed securely and
+                    will be removed when the tool goes public.
                   </p>
                 </div>
               </div>
