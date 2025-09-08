@@ -14,8 +14,8 @@ export default function AppAuth({ children }: AppAuthProps) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simple password - in production, this would be environment-based
-  const DEMO_PASSWORD = "landform2024";
+  // Get password from environment variable with fallback
+  const APP_PASSWORD = process.env.LANDFORM_APP_PASSWORD || "landform2024";
 
   useEffect(() => {
     // Check if user is already authenticated
@@ -30,7 +30,15 @@ export default function AppAuth({ children }: AppAuthProps) {
     e.preventDefault();
     setError("");
 
-    if (password === DEMO_PASSWORD) {
+    // Check if environment variable is properly configured
+    if (!APP_PASSWORD) {
+      setError(
+        "Authentication is not properly configured. Please contact support.",
+      );
+      return;
+    }
+
+    if (password === APP_PASSWORD) {
       setIsAuthenticated(true);
       sessionStorage.setItem("landform-app-auth", "authenticated");
     } else {
@@ -69,13 +77,17 @@ export default function AppAuth({ children }: AppAuthProps) {
                     Route Design Tool
                   </h1>
                   <p className="text-slate-storm">
-                    This application is currently in development. Please enter the access password to continue.
+                    This application is currently in development. Please enter
+                    the access password to continue.
                   </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
-                    <label htmlFor="password" className="block text-sm font-headline font-semibold text-basalt mb-2">
+                    <label
+                      htmlFor="password"
+                      className="block text-sm font-headline font-semibold text-basalt mb-2"
+                    >
                       Access Password
                     </label>
                     <input
@@ -96,10 +108,7 @@ export default function AppAuth({ children }: AppAuthProps) {
                     </div>
                   )}
 
-                  <button
-                    type="submit"
-                    className="btn-primary w-full"
-                  >
+                  <button type="submit" className="btn-primary w-full">
                     Access Application
                   </button>
                 </form>
@@ -109,8 +118,9 @@ export default function AppAuth({ children }: AppAuthProps) {
                     Development Access
                   </h3>
                   <p className="text-xs text-slate-storm">
-                    This authentication is temporary and only for development purposes.
-                    The tool will be publicly available once development is complete.
+                    This authentication is temporary and only for development
+                    purposes. The tool will be publicly available once
+                    development is complete.
                   </p>
                 </div>
               </div>
