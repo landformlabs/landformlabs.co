@@ -129,17 +129,6 @@ export default function AppAuth({ children }: AppAuthProps) {
                     {isValidating ? "Validating..." : "Access Application"}
                   </button>
                 </form>
-
-                <div className="mt-8 p-4 bg-summit-sage/5 rounded-lg">
-                  <h3 className="font-headline font-semibold text-basalt text-sm mb-2">
-                    Secure Development Access
-                  </h3>
-                  <p className="text-xs text-slate-storm">
-                    This tool is protected by server-side authentication during
-                    development. Access credentials are managed securely and
-                    will be removed when the tool goes public.
-                  </p>
-                </div>
               </div>
             </div>
           </div>
