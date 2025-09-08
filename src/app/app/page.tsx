@@ -5,8 +5,9 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GPXUploader from "@/components/GPXUploader";
 import MapViewer from "@/components/MapViewer";
+import AppAuth from "@/components/AppAuth";
 
-export default function AppPage() {
+function GPXDesignApp() {
   const [gpxData, setGpxData] = useState<any>(null);
   const [boundingBox, setBoundingBox] = useState<string>("");
 
@@ -43,7 +44,8 @@ export default function AppPage() {
                 <span className="text-gradient-adventure">Route Print</span>
               </h1>
               <p className="mt-6 max-w-2xl mx-auto text-xl text-slate-storm">
-                Upload your GPX file, visualize your route on the map, and select the perfect area for your custom 3D print.
+                Upload your GPX file, visualize your route on the map, and
+                select the perfect area for your custom 3D print.
               </p>
             </div>
           </div>
@@ -111,7 +113,8 @@ export default function AppPage() {
                         Upload GPX File
                       </h3>
                       <p className="text-slate-storm text-sm">
-                        Upload your GPX file from Strava, Garmin Connect, or any GPS device.
+                        Upload your GPX file from Strava, Garmin Connect, or any
+                        GPS device.
                       </p>
                     </div>
                     <div className="text-center">
@@ -122,7 +125,8 @@ export default function AppPage() {
                         Select Print Area
                       </h3>
                       <p className="text-slate-storm text-sm">
-                        Draw a square on the map to choose which part of your route to print.
+                        Draw a square on the map to choose which part of your
+                        route to print.
                       </p>
                     </div>
                     <div className="text-center">
@@ -133,7 +137,8 @@ export default function AppPage() {
                         Copy Coordinates
                       </h3>
                       <p className="text-slate-storm text-sm">
-                        Copy the coordinates and include them with your custom order.
+                        Copy the coordinates and include them with your custom
+                        order.
                       </p>
                     </div>
                   </div>
@@ -145,5 +150,13 @@ export default function AppPage() {
       </main>
       <Footer />
     </>
+  );
+}
+
+export default function AppPage() {
+  return (
+    <AppAuth>
+      <GPXDesignApp />
+    </AppAuth>
   );
 }
