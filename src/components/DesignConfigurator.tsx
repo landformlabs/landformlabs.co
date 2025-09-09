@@ -2,6 +2,24 @@
 
 import { useState, useEffect, useRef } from "react";
 
+interface TopographyResponse {
+  success: boolean;
+  elevationData: number[][];
+  stats: {
+    minElevation: number;
+    maxElevation: number;
+    avgElevation: number;
+    resolution: number;
+    width: number;
+    height: number;
+  };
+  headers: {
+    ncols: number;
+    nrows: number;
+    cellsize: number;
+  };
+}
+
 interface DesignConfiguratorProps {
   gpxData: any;
   boundingBox: string;
@@ -19,7 +37,8 @@ export default function DesignConfigurator({
   designConfig,
   onConfigChange,
 }: DesignConfiguratorProps) {
-  const [topographyData, setTopographyData] = useState<string | null>(null);
+  const [topographyData, setTopographyData] =
+    useState<TopographyResponse | null>(null);
   const [isLoadingTopo, setIsLoadingTopo] = useState(true);
   const [topoError, setTopoError] = useState<string>("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -47,8 +66,7 @@ export default function DesignConfigurator({
       setTopoError("");
 
       try {
-        // For now, we'll use a placeholder. In production, this would call the OpenTopography API
-        // through a Next.js API route to avoid exposing the API key
+        // Call our OpenTopography API route to get real elevation data
         const response = await fetch("/api/topography", {
           method: "POST",
           headers: {
@@ -61,7 +79,12 @@ export default function DesignConfigurator({
           throw new Error("Failed to load topography data");
         }
 
-        const data = await response.text();
+        const data: TopographyResponse = await response.json();
+
+        if (!data.success) {
+          throw new Error("Failed to retrieve elevation data");
+        }
+
         setTopographyData(data);
       } catch (error) {
         console.error("Error loading topography:", error);
