@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-// @ts-ignore - gpxparser doesn't have proper TypeScript definitions
-import gpxParser from "gpxparser";
 
 interface GPXUploaderProps {
   onGPXUpload: (parsedGPX: any) => void;
@@ -14,12 +12,98 @@ export default function GPXUploader({ onGPXUpload }: GPXUploaderProps) {
   const [uploadedFile, setUploadedFile] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const parseGPX = (gpxContent: string) => {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(gpxContent, "text/xml");
+
+    // Check for parsing errors
+    const parseError = xmlDoc.querySelector("parsererror");
+    if (parseError) {
+      throw new Error("Invalid GPX file format");
+    }
+
+    // Extract track points
+    const trackPoints: Array<{ lat: number; lon: number; ele?: number }> = [];
+    const tracks = xmlDoc.querySelectorAll("trk");
+
+    tracks.forEach((track) => {
+      const segments = track.querySelectorAll("trkseg");
+      segments.forEach((segment) => {
+        const points = segment.querySelectorAll("trkpt");
+        points.forEach((point) => {
+          const lat = parseFloat(point.getAttribute("lat") || "0");
+          const lon = parseFloat(point.getAttribute("lon") || "0");
+          const eleElement = point.querySelector("ele");
+          const ele = eleElement
+            ? parseFloat(eleElement.textContent || "0")
+            : undefined;
+
+          if (lat && lon) {
+            trackPoints.push({ lat, lon, ele });
+          }
+        });
+      });
+    });
+
+    // Extract route points if no tracks found
+    if (trackPoints.length === 0) {
+      const routes = xmlDoc.querySelectorAll("rte");
+      routes.forEach((route) => {
+        const points = route.querySelectorAll("rtept");
+        points.forEach((point) => {
+          const lat = parseFloat(point.getAttribute("lat") || "0");
+          const lon = parseFloat(point.getAttribute("lon") || "0");
+
+          if (lat && lon) {
+            trackPoints.push({ lat, lon });
+          }
+        });
+      });
+    }
+
+    // Extract waypoints if no tracks or routes found
+    if (trackPoints.length === 0) {
+      const waypoints = xmlDoc.querySelectorAll("wpt");
+      waypoints.forEach((point) => {
+        const lat = parseFloat(point.getAttribute("lat") || "0");
+        const lon = parseFloat(point.getAttribute("lon") || "0");
+
+        if (lat && lon) {
+          trackPoints.push({ lat, lon });
+        }
+      });
+    }
+
+    if (trackPoints.length === 0) {
+      throw new Error("No GPS track data found in this GPX file");
+    }
+
+    // Calculate bounds
+    const lats = trackPoints.map((p) => p.lat);
+    const lons = trackPoints.map((p) => p.lon);
+
+    const bounds = {
+      minLat: Math.min(...lats),
+      maxLat: Math.max(...lats),
+      minLon: Math.min(...lons),
+      maxLon: Math.max(...lons),
+    };
+
+    return {
+      points: trackPoints,
+      bounds,
+      totalPoints: trackPoints.length,
+    };
+  };
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type
-    if (!file.name.toLowerCase().endsWith('.gpx')) {
+    if (!file.name.toLowerCase().endsWith(".gpx")) {
       setUploadError("Please select a valid GPX file.");
       return;
     }
@@ -38,65 +122,24 @@ export default function GPXUploader({ onGPXUpload }: GPXUploaderProps) {
       });
 
       // Parse the GPX data
-      const gpx = new gpxParser();
-      gpx.parse(fileContent);
+      const parsedData = parseGPX(fileContent);
 
-      // Validate that we have track or waypoint data
-      if (!gpx.tracks.length && !gpx.waypoints.length && !gpx.routes.length) {
-        throw new Error("No track, route, or waypoint data found in the GPX file.");
-      }
-
-      // Extract coordinates for map bounds
-      let allPoints: Array<{ lat: number; lon: number }> = [];
-
-      // Get points from tracks
-      gpx.tracks.forEach((track: any) => {
-        track.points.forEach((point: any) => {
-          allPoints.push({ lat: point.lat, lon: point.lon });
-        });
-      });
-
-      // Get points from routes
-      gpx.routes.forEach((route: any) => {
-        route.points.forEach((point: any) => {
-          allPoints.push({ lat: point.lat, lon: point.lon });
-        });
-      });
-
-      // Get waypoints
-      gpx.waypoints.forEach((waypoint: any) => {
-        allPoints.push({ lat: waypoint.lat, lon: waypoint.lon });
-      });
-
-      // Calculate bounds
-      const lats = allPoints.map(p => p.lat);
-      const lons = allPoints.map(p => p.lon);
-
-      const bounds = {
-        minLat: Math.min(...lats),
-        maxLat: Math.max(...lats),
-        minLon: Math.min(...lons),
-        maxLon: Math.max(...lons),
-      };
-
-      const parsedData = {
-        gpx,
-        points: allPoints,
-        bounds,
+      const gpxData = {
+        ...parsedData,
         fileName: file.name,
         fileSize: file.size,
       };
 
-      onGPXUpload(parsedData);
-
+      onGPXUpload(gpxData);
     } catch (error) {
       console.error("Error parsing GPX file:", error);
       setUploadError(
         error instanceof Error
           ? error.message
-          : "Failed to parse GPX file. Please ensure it&apos;s a valid GPX file."
+          : "Failed to parse GPX file. Please ensure it's a valid GPX file.",
       );
       setUploadedFile("");
+      onGPXUpload(null);
     } finally {
       setIsUploading(false);
     }
@@ -112,21 +155,30 @@ export default function GPXUploader({ onGPXUpload }: GPXUploaderProps) {
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-headline font-semibold text-basalt mb-2">
-          Upload GPX File
-        </label>
-        <div className="border-2 border-dashed border-slate-storm/20 rounded-lg p-6 text-center hover:border-summit-sage/50 transition-colors">
+    <div className="bg-white rounded-lg shadow-lg p-8">
+      <h2 className="text-2xl font-headline font-bold text-basalt mb-6">
+        Upload Your GPX File
+      </h2>
+
+      <div className="space-y-6">
+        <div className="border-2 border-dashed border-slate-storm/20 rounded-lg p-8 text-center hover:border-summit-sage/50 transition-colors">
           {!uploadedFile ? (
             <div>
-              <div className="w-12 h-12 mx-auto mb-4 text-slate-storm/50">
+              <div className="w-16 h-16 mx-auto mb-4 text-slate-storm/50">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                  />
                 </svg>
               </div>
-              <p className="text-sm text-slate-storm mb-3">
-                Drag and drop your GPX file here, or click to browse
+              <p className="text-lg text-slate-storm mb-2">
+                Drag and drop your GPX file here
+              </p>
+              <p className="text-sm text-slate-storm/70 mb-4">
+                or click to browse your files
               </p>
               <input
                 ref={fileInputRef}
@@ -139,45 +191,114 @@ export default function GPXUploader({ onGPXUpload }: GPXUploaderProps) {
               />
               <label
                 htmlFor="gpx-upload"
-                className={`btn-secondary cursor-pointer ${isUploading ? 'opacity-50' : ''}`}
+                className={`btn-primary cursor-pointer ${isUploading ? "opacity-50 pointer-events-none" : ""}`}
               >
                 {isUploading ? "Processing..." : "Choose GPX File"}
               </label>
             </div>
           ) : (
             <div>
-              <div className="w-12 h-12 mx-auto mb-4 text-summit-sage">
+              <div className="w-16 h-16 mx-auto mb-4 text-summit-sage">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
-              <p className="text-sm font-semibold text-basalt mb-1">{uploadedFile}</p>
-              <p className="text-xs text-slate-storm mb-3">GPX file uploaded successfully</p>
-              <button
-                onClick={resetUpload}
-                className="text-sm text-summit-sage hover:text-summit-sage/80 font-semibold"
-              >
+              <p className="text-lg font-semibold text-basalt mb-1">
+                {uploadedFile}
+              </p>
+              <p className="text-sm text-slate-storm mb-4">
+                GPX file uploaded successfully
+              </p>
+              <button onClick={resetUpload} className="btn-secondary">
                 Upload Different File
               </button>
             </div>
           )}
         </div>
-      </div>
 
-      {uploadError && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-600 font-semibold">Upload Error</p>
-          <p className="text-sm text-red-600">{uploadError}</p>
+        {uploadError && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-red-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-semibold text-red-800">
+                  Upload Error
+                </h3>
+                <p className="text-sm text-red-700">{uploadError}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-summit-sage/5 rounded-lg p-4">
+          <h3 className="font-headline font-semibold text-basalt text-sm mb-2">
+            Supported GPX Sources
+          </h3>
+          <div className="text-xs text-slate-storm space-y-1">
+            <p>✓ Strava (export your activity as GPX)</p>
+            <p>✓ Garmin Connect</p>
+            <p>✓ Komoot</p>
+            <p>✓ AllTrails</p>
+            <p>✓ Most GPS devices and fitness apps</p>
+          </div>
         </div>
-      )}
 
-      <div className="text-xs text-slate-storm">
-        <p className="mb-1">
-          <strong>Supported sources:</strong> Strava, Garmin Connect, Komoot, and most GPS devices
-        </p>
-        <p>
-          <strong>File format:</strong> .gpx files only
-        </p>
+        {/* Instructions */}
+        <div className="bg-white rounded-lg border border-slate-storm/10 p-6">
+          <h3 className="font-headline font-semibold text-basalt mb-4">
+            How It Works
+          </h3>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="w-10 h-10 bg-summit-sage rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-white font-bold text-sm">1</span>
+              </div>
+              <p className="text-sm font-semibold text-basalt mb-1">
+                Upload GPX
+              </p>
+              <p className="text-xs text-slate-storm">
+                Choose your adventure file
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-10 h-10 bg-summit-sage rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-white font-bold text-sm">2</span>
+              </div>
+              <p className="text-sm font-semibold text-basalt mb-1">
+                Select Area
+              </p>
+              <p className="text-xs text-slate-storm">Draw your print region</p>
+            </div>
+            <div className="text-center">
+              <div className="w-10 h-10 bg-summit-sage rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-white font-bold text-sm">3</span>
+              </div>
+              <p className="text-sm font-semibold text-basalt mb-1">
+                Customize
+              </p>
+              <p className="text-xs text-slate-storm">
+                Design your perfect print
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

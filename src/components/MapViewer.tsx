@@ -3,9 +3,17 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
-// Create a dynamic component that includes all the map functionality
+// Dynamically import the map component to avoid SSR issues
 const MapWithInteraction = dynamic(() => import("./MapWithInteraction"), {
   ssr: false,
+  loading: () => (
+    <div className="w-full h-96 bg-slate-100 flex items-center justify-center rounded-lg">
+      <div className="text-center">
+        <div className="w-8 h-8 border-2 border-summit-sage border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+        <p className="text-slate-500 text-sm">Loading map...</p>
+      </div>
+    </div>
+  ),
 });
 
 interface MapViewerProps {
@@ -26,49 +34,66 @@ export default function MapViewer({
   if (!isClient) {
     return (
       <div className="w-full h-96 bg-slate-100 flex items-center justify-center rounded-lg">
-        <p className="text-slate-500">Loading map...</p>
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-summit-sage border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+          <p className="text-slate-500 text-sm">Loading map...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="relative">
-      <div className="h-96 md:h-[500px] lg:h-[600px] w-full">
-        <MapWithInteraction
-          gpxData={gpxData}
-          onBoundingBoxChange={onBoundingBoxChange}
-        />
-      </div>
+    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="relative">
+        <div className="h-96 md:h-[500px] lg:h-[600px] w-full">
+          <MapWithInteraction
+            gpxData={gpxData}
+            onBoundingBoxChange={onBoundingBoxChange}
+          />
+        </div>
 
-      {/* Instructions overlay */}
-      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 max-w-sm shadow-lg z-[1000]">
-        {!gpxData ? (
-          <div>
-            <h3 className="font-headline font-semibold text-basalt text-sm mb-2">
-              Ready to Design
-            </h3>
-            <p className="text-xs text-slate-storm">
-              Upload a GPX file to see your route on the map and start designing
-              your print area.
-            </p>
+        {/* Instructions overlay */}
+        <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-4 max-w-sm shadow-lg z-[1000]">
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-2 bg-summit-sage rounded-sm"></div>
+              <span className="text-xs text-slate-storm font-medium">
+                Your route
+              </span>
+            </div>
+
+            <div className="text-xs text-slate-storm space-y-1">
+              <p className="font-medium">Draw print area:</p>
+              <div className="flex items-center space-x-1">
+                <kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-xs font-mono">
+                  Ctrl
+                </kbd>
+                <span>+ drag to draw</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-xs font-mono">
+                  ⌘
+                </kbd>
+                <span>+ drag on Mac</span>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-storm/10">
+              <p className="text-xs text-slate-storm/70">
+                The area will be automatically adjusted to form a perfect square
+                for printing.
+              </p>
+            </div>
           </div>
-        ) : (
-          <div>
-            <h3 className="font-headline font-semibold text-basalt text-sm mb-2">
-              Draw Print Area
-            </h3>
-            <p className="text-xs text-slate-storm mb-2">
-              Hold{" "}
-              <kbd className="px-1 py-0.5 bg-slate-200 rounded text-xs">
-                Ctrl
-              </kbd>{" "}
-              (or{" "}
-              <kbd className="px-1 py-0.5 bg-slate-200 rounded text-xs">⌘</kbd>{" "}
-              on Mac) and click-drag to draw a square print area.
-            </p>
-            <div className="flex items-center gap-2 text-xs">
-              <div className="w-3 h-1 bg-summit-sage rounded"></div>
-              <span className="text-slate-storm">Your route</span>
+        </div>
+
+        {/* Route info overlay */}
+        {gpxData && (
+          <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg z-[1000]">
+            <div className="text-xs text-slate-storm space-y-1">
+              <p className="font-medium text-basalt">{gpxData.fileName}</p>
+              <p>{gpxData.totalPoints.toLocaleString()} GPS points</p>
+              <p>{(gpxData.fileSize / 1024).toFixed(1)} KB</p>
             </div>
           </div>
         )}
