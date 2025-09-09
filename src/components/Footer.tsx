@@ -64,7 +64,7 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   className="hover:text-alpine-mist transition-colors duration-200"
                 >
-                  Visit our Etsy store: landformlabs.etsy.com
+                  landformlabs.etsy.com
                 </a>
               </p>
             </div>
