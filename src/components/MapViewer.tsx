@@ -43,60 +43,58 @@ export default function MapViewer({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      <div className="relative">
+    <div className="space-y-4">
+      {/* Instructions above map */}
+      <div className="bg-white rounded-lg shadow-lg p-4">
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-2 bg-blue-600 rounded-sm"></div>
+              <span className="text-sm text-slate-storm font-medium">
+                Your route
+              </span>
+            </div>
+
+            <div className="text-sm text-slate-storm space-y-1">
+              <p className="font-medium">Draw print area:</p>
+              <div className="flex items-center space-x-1">
+                <kbd className="px-2 py-1 bg-slate-200 rounded text-xs font-mono">
+                  Ctrl
+                </kbd>
+                <span>+ drag to draw</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <kbd className="px-2 py-1 bg-slate-200 rounded text-xs font-mono">
+                  ⌘
+                </kbd>
+                <span>+ drag on Mac</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Route info */}
+          {gpxData && (
+            <div className="text-sm text-slate-storm space-y-1">
+              <p className="font-medium text-basalt">{gpxData.fileName}</p>
+              <p>{gpxData.totalPoints.toLocaleString()} GPS points</p>
+              <p>{(gpxData.fileSize / 1024).toFixed(1)} KB</p>
+              <p className="text-xs text-slate-storm/70 mt-2">
+                The area will be automatically adjusted to form a perfect square
+                for printing.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Map container - now with full space */}
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="h-96 md:h-[500px] lg:h-[600px] w-full">
           <MapWithInteraction
             gpxData={gpxData}
             onBoundingBoxChange={onBoundingBoxChange}
           />
         </div>
-
-        {/* Instructions overlay */}
-        <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-4 max-w-sm shadow-lg z-[1000]">
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-2 bg-summit-sage rounded-sm"></div>
-              <span className="text-xs text-slate-storm font-medium">
-                Your route
-              </span>
-            </div>
-
-            <div className="text-xs text-slate-storm space-y-1">
-              <p className="font-medium">Draw print area:</p>
-              <div className="flex items-center space-x-1">
-                <kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-xs font-mono">
-                  Ctrl
-                </kbd>
-                <span>+ drag to draw</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-xs font-mono">
-                  ⌘
-                </kbd>
-                <span>+ drag on Mac</span>
-              </div>
-            </div>
-
-            <div className="pt-2 border-t border-slate-storm/10">
-              <p className="text-xs text-slate-storm/70">
-                The area will be automatically adjusted to form a perfect square
-                for printing.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Route info overlay */}
-        {gpxData && (
-          <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg z-[1000]">
-            <div className="text-xs text-slate-storm space-y-1">
-              <p className="font-medium text-basalt">{gpxData.fileName}</p>
-              <p>{gpxData.totalPoints.toLocaleString()} GPS points</p>
-              <p>{(gpxData.fileSize / 1024).toFixed(1)} KB</p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

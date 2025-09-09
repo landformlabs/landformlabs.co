@@ -169,9 +169,9 @@ function MapController({
         <Polyline
           positions={gpxData.points.map((point: any) => [point.lat, point.lon])}
           pathOptions={{
-            color: "#10b981",
-            weight: 3,
-            opacity: 0.8,
+            color: "#2563eb",
+            weight: 4,
+            opacity: 0.9,
           }}
         />
       )}

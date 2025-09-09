@@ -14,7 +14,7 @@ export default function GPXDesignApp() {
   const [gpxData, setGpxData] = useState<any>(null);
   const [boundingBox, setBoundingBox] = useState<string>("");
   const [designConfig, setDesignConfig] = useState({
-    routeColor: "#10b981",
+    routeColor: "#2563eb",
     printType: "tile" as "tile" | "ornament",
     labels: [] as Array<{ text: string; x: number; y: number; size: number }>,
   });
@@ -38,7 +38,7 @@ export default function GPXDesignApp() {
     setGpxData(null);
     setBoundingBox("");
     setDesignConfig({
-      routeColor: "#10b981",
+      routeColor: "#2563eb",
       printType: "tile",
       labels: [],
     });
