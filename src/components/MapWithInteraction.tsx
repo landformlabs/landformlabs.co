@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import {
+  Marker,
   MapContainer,
   TileLayer,
   Polyline,
@@ -30,6 +31,13 @@ interface BoundingBoxState {
   resizeHandle?: string;
 }
 
+interface InteractionState {
+  type: "drag" | "resize" | null;
+  startBounds?: [[number, number], [number, number]];
+  startLatLng?: L.LatLng;
+  handle?: string;
+}
+
 // Component to handle map interactions
 function MapController({
   gpxData,
@@ -39,11 +47,13 @@ function MapController({
   const [isDrawing, setIsDrawing] = useState(false);
   const [boundingBox, setBoundingBox] = useState<BoundingBoxState | null>(null);
   const [startPoint, setStartPoint] = useState<[number, number] | null>(null);
+  const [interactionState, setInteractionState] = useState<InteractionState>({
+    type: null,
+  });
 
   // Fit map to GPX data on load
   useEffect(() => {
     if (!gpxData || !map) return;
-
     const { bounds } = gpxData;
     map.fitBounds(
       [
@@ -54,36 +64,41 @@ function MapController({
     );
   }, [gpxData, map]);
 
-  // Create square bounding box from two points
+  // Create square bounding box
   const createSquareBounds = useCallback(
     (
-      point1: [number, number],
-      point2: [number, number],
+      p1: [number, number],
+      p2: [number, number],
     ): [[number, number], [number, number]] => {
-      const centerLat = (point1[0] + point2[0]) / 2;
-      const centerLng = (point1[1] + point2[1]) / 2;
-
-      // Calculate the maximum distance to ensure square proportions
-      // Account for Mercator projection distortion
-      const latDiff = Math.abs(point2[0] - point1[0]);
+      const centerLat = (p1[0] + p2[0]) / 2;
+      const centerLng = (p1[1] + p2[1]) / 2;
+      const latDiff = Math.abs(p1[0] - p2[0]);
       const lngDiff =
-        Math.abs(point2[1] - point1[1]) * Math.cos((centerLat * Math.PI) / 180);
-
-      const maxDiff = Math.max(latDiff, lngDiff);
+        Math.abs(p1[1] - p2[1]) * Math.cos((centerLat * Math.PI) / 180);
+      const maxDiff = Math.max(latDiff, lngDiff) / 2;
       const adjustedLngDiff = maxDiff / Math.cos((centerLat * Math.PI) / 180);
-
       return [
-        [centerLat - maxDiff / 2, centerLng - adjustedLngDiff / 2],
-        [centerLat + maxDiff / 2, centerLng + adjustedLngDiff / 2],
+        [centerLat - maxDiff, centerLng - adjustedLngDiff],
+        [centerLat + maxDiff, centerLng + adjustedLngDiff],
       ];
     },
     [],
   );
 
-  // Handle mouse events for drawing
-  useEffect(() => {
-    if (!map) return;
+  // Handle finishing an interaction
+  const endInteraction = useCallback(() => {
+    setIsDrawing(false);
+    setInteractionState({ type: null });
+    map.dragging.enable();
+    if (boundingBox) {
+      const [sw, ne] = boundingBox.bounds;
+      const coordString = `${sw[1].toFixed(5)},${sw[0].toFixed(5)},${ne[1].toFixed(5)},${ne[0].toFixed(5)}`;
+      onBoundingBoxChange(coordString);
+    }
+  }, [map, boundingBox, onBoundingBoxChange]);
 
+  // Main mouse event handler effect
+  useEffect(() => {
     const handleMouseDown = (e: L.LeafletMouseEvent) => {
       if (e.originalEvent.ctrlKey || e.originalEvent.metaKey) {
         e.originalEvent.preventDefault();
@@ -97,39 +112,68 @@ function MapController({
     const handleMouseMove = (e: L.LeafletMouseEvent) => {
       if (isDrawing && startPoint) {
         const currentPoint: [number, number] = [e.latlng.lat, e.latlng.lng];
-        const squareBounds = createSquareBounds(startPoint, currentPoint);
-
         setBoundingBox({
-          bounds: squareBounds,
+          bounds: createSquareBounds(startPoint, currentPoint),
           isDragging: false,
           isResizing: false,
         });
-      }
-    };
+      } else if (interactionState.type && interactionState.startBounds) {
+        const { type, startBounds, startLatLng, handle } = interactionState;
+        const latDiff = e.latlng.lat - (startLatLng?.lat ?? 0);
+        const lngDiff = e.latlng.lng - (startLatLng?.lng ?? 0);
 
-    const handleMouseUp = (e: L.LeafletMouseEvent) => {
-      if (isDrawing) {
-        setIsDrawing(false);
-        setStartPoint(null);
-        map.dragging.enable();
+        let newBounds = L.latLngBounds(startBounds);
 
-        if (boundingBox) {
-          // Format coordinates as comma-separated string: minLng,minLat,maxLng,maxLat
-          const [sw, ne] = boundingBox.bounds;
-          const coordString = `${sw[1].toFixed(5)},${sw[0].toFixed(5)},${ne[1].toFixed(5)},${ne[0].toFixed(5)}`;
-          onBoundingBoxChange(coordString);
+        if (type === "drag") {
+          newBounds = L.latLngBounds(
+            [startBounds[0][0] + latDiff, startBounds[0][1] + lngDiff],
+            [startBounds[1][0] + latDiff, startBounds[1][1] + lngDiff],
+          );
+        } else if (type === "resize" && handle) {
+          const [[swLat, swLng], [neLat, neLng]] = startBounds;
+          let newSw: L.LatLngTuple = [swLat, swLng];
+          let newNe: L.LatLngTuple = [neLat, neLng];
+
+          if (handle.includes("n")) newNe = [neLat + latDiff, newNe[1]];
+          if (handle.includes("s")) newSw = [swLat + latDiff, newSw[1]];
+          if (handle.includes("e")) newNe = [newNe[0], neLng + lngDiff];
+          if (handle.includes("w")) newSw = [newSw[0], swLng + lngDiff];
+
+          const center = new L.LatLngBounds(newSw, newNe).getCenter();
+          const size = Math.max(
+            Math.abs(newNe[0] - newSw[0]),
+            Math.abs(newNe[1] - newSw[1]) *
+              Math.cos((center.lat * Math.PI) / 180),
+          );
+          const adjustedLng = size / 2 / Math.cos((center.lat * Math.PI) / 180);
+
+          newBounds = L.latLngBounds(
+            [center.lat - size / 2, center.lng - adjustedLng],
+            [center.lat + size / 2, center.lng + adjustedLng],
+          );
         }
+
+        const newBoundsArray: [[number, number], [number, number]] = [
+          [newBounds.getSouthWest().lat, newBounds.getSouthWest().lng],
+          [newBounds.getNorthEast().lat, newBounds.getNorthEast().lng],
+        ];
+
+        setBoundingBox((bb) => (bb ? { ...bb, bounds: newBoundsArray } : null));
       }
     };
 
-    // Handle keyboard events
+    const handleMouseUp = () => {
+      if (isDrawing || interactionState.type) {
+        endInteraction();
+      }
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && (isDrawing || boundingBox)) {
+      if (e.key === "Escape") {
         setIsDrawing(false);
-        setStartPoint(null);
         setBoundingBox(null);
-        map.dragging.enable();
         onBoundingBoxChange("");
+        endInteraction();
       }
     };
 
@@ -148,34 +192,56 @@ function MapController({
     map,
     isDrawing,
     startPoint,
-    boundingBox,
-    onBoundingBoxChange,
+    interactionState,
     createSquareBounds,
+    endInteraction,
+    onBoundingBoxChange,
   ]);
 
-  // Clear bounding box function (exposed via map instance)
-  useEffect(() => {
-    if (map) {
-      (map as any).clearBoundingBox = () => {
-        setBoundingBox(null);
-        onBoundingBoxChange("");
-      };
-    }
-  }, [map, onBoundingBoxChange]);
+  const handleInteractionStart = (
+    e: L.LeafletMouseEvent,
+    type: "drag" | "resize",
+    handle?: string,
+  ) => {
+    e.originalEvent.stopPropagation();
+    if (!boundingBox) return;
+    map.dragging.disable();
+    setInteractionState({
+      type,
+      startBounds: boundingBox.bounds,
+      startLatLng: e.latlng,
+      handle,
+    });
+  };
+
+  // Custom resize handle component
+  const ResizeHandle = ({ position, handle }: any) => {
+    const handleIcon = L.divIcon({
+      className: `leaflet-resize-handle-${handle}`,
+      html: `<div class="resize-handle-inner"></div>`,
+      iconSize: [12, 12],
+    });
+
+    return (
+      <Marker
+        position={position}
+        icon={handleIcon}
+        draggable={false}
+        eventHandlers={{
+          mousedown: (e) => handleInteractionStart(e, "resize", handle),
+        }}
+      />
+    );
+  };
 
   return (
     <>
       {gpxData && (
         <Polyline
-          positions={gpxData.points.map((point: any) => [point.lat, point.lon])}
-          pathOptions={{
-            color: "#2563eb",
-            weight: 4,
-            opacity: 0.9,
-          }}
+          positions={gpxData.points.map((p: any) => [p.lat, p.lon])}
+          pathOptions={{ color: "#2563eb", weight: 4, opacity: 0.9 }}
         />
       )}
-
       {boundingBox && (
         <>
           <Rectangle
@@ -186,15 +252,27 @@ function MapController({
               opacity: 0.8,
               fillColor: "#ef4444",
               fillOpacity: 0.1,
-              dashArray: [5, 5],
+            }}
+            eventHandlers={{
+              mousedown: (e) => handleInteractionStart(e, "drag"),
             }}
           />
-          {/* Corner markers for visual feedback */}
-          {boundingBox.bounds.map((corner, idx) => (
-            <div key={idx}>
-              {/* We'll add resize handles here in a future update */}
-            </div>
-          ))}
+          <ResizeHandle
+            position={L.latLngBounds(boundingBox.bounds).getNorthWest()}
+            handle="nw"
+          />
+          <ResizeHandle
+            position={L.latLngBounds(boundingBox.bounds).getNorthEast()}
+            handle="ne"
+          />
+          <ResizeHandle
+            position={L.latLngBounds(boundingBox.bounds).getSouthWest()}
+            handle="sw"
+          />
+          <ResizeHandle
+            position={L.latLngBounds(boundingBox.bounds).getSouthEast()}
+            handle="se"
+          />
         </>
       )}
     </>

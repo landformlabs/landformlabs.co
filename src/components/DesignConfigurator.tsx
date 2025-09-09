@@ -2,31 +2,19 @@
 
 import { useState, useEffect, useRef } from "react";
 
-interface TopographyResponse {
-  success: boolean;
-  elevationData: number[][];
-  stats: {
-    minElevation: number;
-    maxElevation: number;
-    avgElevation: number;
-    resolution: number;
-    width: number;
-    height: number;
-  };
-  headers: {
-    ncols: number;
-    nrows: number;
-    cellsize: number;
-  };
-}
-
 interface DesignConfiguratorProps {
   gpxData: any;
   boundingBox: string;
   designConfig: {
     routeColor: string;
     printType: "tile" | "ornament";
-    labels: Array<{ text: string; x: number; y: number; size: number }>;
+    labels: Array<{
+      text: string;
+      x: number;
+      y: number;
+      size: number;
+      rotation: number;
+    }>;
   };
   onConfigChange: (config: any) => void;
 }
@@ -37,166 +25,232 @@ export default function DesignConfigurator({
   designConfig,
   onConfigChange,
 }: DesignConfiguratorProps) {
-  const [topographyData, setTopographyData] =
-    useState<TopographyResponse | null>(null);
-  const [isLoadingTopo, setIsLoadingTopo] = useState(true);
-  const [topoError, setTopoError] = useState<string>("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [newLabel, setNewLabel] = useState({ text: "", size: 16 });
+  const [draggingLabel, setDraggingLabel] = useState<number | null>(null);
+  const [rotatingLabel, setRotatingLabel] = useState<number | null>(null);
 
   // Parse bounding box coordinates
   const bbox = boundingBox.split(",").map(Number); // [minLng, minLat, maxLng, maxLat]
 
   // Color options for routes
   const colorOptions = [
-    { name: "Route Blue", value: "#2563eb", bg: "bg-blue-600" },
-    { name: "Adventure Green", value: "#10b981", bg: "bg-emerald-500" },
-    { name: "Summit Black", value: "#1f2937", bg: "bg-gray-800" },
-    { name: "Trail Red", value: "#ef4444", bg: "bg-red-500" },
-    { name: "Desert Orange", value: "#f97316", bg: "bg-orange-500" },
-    { name: "Forest Dark", value: "#166534", bg: "bg-green-800" },
+    { name: "Black", value: "#000000", bg: "bg-black" },
+    { name: "Blue", value: "#2563eb", bg: "bg-blue-600" },
+    { name: "Red", value: "#ef4444", bg: "bg-red-500" },
   ];
 
-  // Load topography data
-  useEffect(() => {
-    const loadTopographyData = async () => {
-      if (!boundingBox) return;
-
-      setIsLoadingTopo(true);
-      setTopoError("");
-
-      try {
-        // Call our OpenTopography API route to get real elevation data
-        const response = await fetch("/api/topography", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ boundingBox }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to load topography data");
-        }
-
-        const data: TopographyResponse = await response.json();
-
-        if (!data.success) {
-          throw new Error("Failed to retrieve elevation data");
-        }
-
-        setTopographyData(data);
-      } catch (error) {
-        console.error("Error loading topography:", error);
-        setTopoError(
-          "Unable to load topography data. Preview will show route only.",
-        );
-        // Continue without topography - just show the route
-        setTopographyData(null);
-      } finally {
-        setIsLoadingTopo(false);
-      }
-    };
-
-    loadTopographyData();
-  }, [boundingBox]);
-
-  // Render design preview on canvas
+  // Canvas rendering and label interaction
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !gpxData || isLoadingTopo) return;
-
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas size
-    const size = 400;
-    canvas.width = size;
-    canvas.height = size;
+    const canvasSize = 400;
+    canvas.width = canvasSize;
+    canvas.height = canvasSize;
 
-    // Clear canvas
-    ctx.fillStyle = "#f8fafc";
-    ctx.fillRect(0, 0, size, size);
+    const drawCurvedText = (
+      text: string,
+      radius: number,
+      rotation: number,
+      fontSize: number,
+    ) => {
+      ctx.save();
+      ctx.translate(canvasSize / 2, canvasSize / 2);
+      ctx.font = `bold ${fontSize}px 'Trispace', monospace`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
 
-    // Draw topography placeholder (would be actual elevation data in production)
-    if (!topoError) {
-      // Generate placeholder topography pattern
-      const imageData = ctx.createImageData(size, size);
-      const data = imageData.data;
+      const textWidth = ctx.measureText(text).width;
+      const totalAngle = textWidth / radius;
 
-      for (let i = 0; i < data.length; i += 4) {
-        const x = (i / 4) % size;
-        const y = Math.floor(i / 4 / size);
+      ctx.rotate(rotation - totalAngle / 2);
 
-        // Simple elevation simulation based on position
-        const elevation = Math.sin(x * 0.02) * Math.cos(y * 0.02) * 50 + 128;
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const charWidth = ctx.measureText(char).width;
+        ctx.rotate(charWidth / 2 / radius);
+        ctx.fillText(char, 0, -radius);
+        ctx.rotate(charWidth / 2 / radius);
+      }
+      ctx.restore();
+    };
 
-        data[i] = elevation * 0.6; // R
-        data[i + 1] = elevation * 0.7; // G
-        data[i + 2] = elevation * 0.5; // B
-        data[i + 3] = 255; // A
+    const redraw = () => {
+      // Clear and draw background
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+      // Draw route
+      const filteredPoints = gpxData.points.filter(
+        (p: any) =>
+          p.lat >= bbox[1] &&
+          p.lat <= bbox[3] &&
+          p.lon >= bbox[0] &&
+          p.lon <= bbox[2],
+      );
+      if (filteredPoints.length > 1) {
+        ctx.strokeStyle = designConfig.routeColor;
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        filteredPoints.forEach((p: any, i: number) => {
+          const x = ((p.lon - bbox[0]) / (bbox[2] - bbox[0])) * canvasSize;
+          const y =
+            canvasSize - ((p.lat - bbox[1]) / (bbox[3] - bbox[1])) * canvasSize;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
       }
 
-      ctx.putImageData(imageData, 0, 0);
-    }
+      // Draw ornament circle
+      if (designConfig.printType === "ornament") {
+        ctx.strokeStyle = "#64748b";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.arc(
+          canvasSize / 2,
+          canvasSize / 2,
+          canvasSize * 0.4,
+          0,
+          2 * Math.PI,
+        );
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
 
-    // Filter GPX points within bounding box
-    const filteredPoints = gpxData.points.filter(
-      (point: any) =>
-        point.lat >= bbox[1] &&
-        point.lat <= bbox[3] &&
-        point.lon >= bbox[0] &&
-        point.lon <= bbox[2],
-    );
-
-    // Draw route
-    if (filteredPoints.length > 1) {
-      ctx.strokeStyle = designConfig.routeColor;
-      ctx.lineWidth = 3;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-
-      ctx.beginPath();
-
-      filteredPoints.forEach((point: any, index: number) => {
-        // Convert lat/lon to canvas coordinates
-        const x = ((point.lon - bbox[0]) / (bbox[2] - bbox[0])) * size;
-        const y = size - ((point.lat - bbox[1]) / (bbox[3] - bbox[1])) * size;
-
-        if (index === 0) {
-          ctx.moveTo(x, y);
+      // Draw labels
+      designConfig.labels.forEach((label) => {
+        if (designConfig.printType === "ornament") {
+          drawCurvedText(
+            label.text,
+            canvasSize * 0.35,
+            label.rotation,
+            label.size,
+          );
         } else {
-          ctx.lineTo(x, y);
+          ctx.fillStyle = "#1f2937";
+          ctx.font = `bold ${label.size}px 'Trispace', monospace`;
+          ctx.textAlign = "center";
+          ctx.fillText(label.text, label.x * canvasSize, label.y * canvasSize);
         }
       });
+    };
 
-      ctx.stroke();
-    }
+    redraw();
 
-    // Draw ornament circle if ornament type is selected
-    if (designConfig.printType === "ornament") {
-      ctx.strokeStyle = "#64748b";
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);
+    const getMousePos = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left) / rect.width,
+        y: (e.clientY - rect.top) / rect.height,
+      };
+    };
 
-      const centerX = size / 2;
-      const centerY = size / 2;
-      const radius = size * 0.4;
+    const handleMouseDown = (e: MouseEvent) => {
+      const pos = getMousePos(e);
+      if (designConfig.printType === "ornament") {
+        const dx = pos.x * canvasSize - canvasSize / 2;
+        const dy = pos.y * canvasSize - canvasSize / 2;
+        const radius = Math.sqrt(dx * dx + dy * dy);
 
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
+        if (radius > canvasSize * 0.3 && radius < canvasSize * 0.5) {
+          const clickAngle = Math.atan2(dy, dx);
+          let closestLabelIndex = -1;
+          let minAngleDiff = Infinity;
 
-    // Draw labels
-    designConfig.labels.forEach((label) => {
-      ctx.fillStyle = "#1f2937";
-      ctx.font = `bold ${label.size}px 'Trispace', monospace`;
-      ctx.textAlign = "center";
-      ctx.fillText(label.text, label.x * size, label.y * size);
-    });
-  }, [gpxData, boundingBox, bbox, designConfig, isLoadingTopo, topoError]);
+          for (let i = 0; i < designConfig.labels.length; i++) {
+            const label = designConfig.labels[i];
+            const angleDiff = Math.abs(clickAngle - label.rotation);
+            if (angleDiff < minAngleDiff) {
+              minAngleDiff = angleDiff;
+              closestLabelIndex = i;
+            }
+          }
+
+          if (closestLabelIndex !== -1) {
+            setRotatingLabel(closestLabelIndex);
+            return;
+          }
+        }
+      } else {
+        for (let i = designConfig.labels.length - 1; i >= 0; i--) {
+          const label = designConfig.labels[i];
+          ctx.font = `bold ${label.size}px 'Trispace', monospace`;
+          const textWidth = ctx.measureText(label.text).width / canvasSize;
+          const textHeight = label.size / canvasSize;
+          if (
+            pos.x > label.x - textWidth / 2 &&
+            pos.x < label.x + textWidth / 2 &&
+            pos.y > label.y - textHeight &&
+            pos.y < label.y
+          ) {
+            setDraggingLabel(i);
+            return;
+          }
+        }
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const pos = getMousePos(e);
+      let cursor = "default";
+      if (draggingLabel !== null) {
+        cursor = "move";
+        const newLabels = [...designConfig.labels];
+        newLabels[draggingLabel] = {
+          ...newLabels[draggingLabel],
+          x: pos.x,
+          y: pos.y,
+        };
+        onConfigChange({ ...designConfig, labels: newLabels });
+      } else if (rotatingLabel !== null) {
+        cursor = "move";
+        const dx = pos.x * canvasSize - canvasSize / 2;
+        const dy = pos.y * canvasSize - canvasSize / 2;
+        const angle = Math.atan2(dy, dx);
+        const newLabels = [...designConfig.labels];
+        newLabels[rotatingLabel] = {
+          ...newLabels[rotatingLabel],
+          rotation: angle,
+        };
+        onConfigChange({ ...designConfig, labels: newLabels });
+      } else {
+        // Logic to change cursor on hover
+      }
+      canvas.style.cursor = cursor;
+    };
+
+    const handleMouseUp = () => {
+      setDraggingLabel(null);
+      setRotatingLabel(null);
+    };
+
+    canvas.addEventListener("mousedown", handleMouseDown);
+    canvas.addEventListener("mousemove", handleMouseMove);
+    canvas.addEventListener("mouseup", handleMouseUp);
+    canvas.addEventListener("mouseleave", handleMouseUp);
+
+    return () => {
+      canvas.removeEventListener("mousedown", handleMouseDown);
+      canvas.removeEventListener("mousemove", handleMouseMove);
+      canvas.removeEventListener("mouseup", handleMouseUp);
+      canvas.removeEventListener("mouseleave", handleMouseUp);
+    };
+  }, [
+    gpxData,
+    boundingBox,
+    bbox,
+    designConfig,
+    onConfigChange,
+    draggingLabel,
+    rotatingLabel,
+  ]);
 
   const handleConfigChange = (updates: any) => {
     onConfigChange({ ...designConfig, ...updates });
@@ -208,8 +262,9 @@ export default function DesignConfigurator({
         ...designConfig.labels,
         {
           ...newLabel,
-          x: 0.5, // Center
-          y: 0.9, // Near bottom
+          x: 0.5,
+          y: 0.9,
+          rotation: 0,
         },
       ];
       handleConfigChange({ labels: updatedLabels });
@@ -226,27 +281,22 @@ export default function DesignConfigurator({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Create high-resolution version
     const exportCanvas = document.createElement("canvas");
     const exportCtx = exportCanvas.getContext("2d");
     if (!exportCtx) return;
 
-    // Set high resolution (300 DPI equivalent)
     const exportSize = 1200;
     exportCanvas.width = exportSize;
     exportCanvas.height = exportSize;
 
-    // Scale up the current design
     exportCtx.scale(exportSize / 400, exportSize / 400);
     exportCtx.drawImage(canvas, 0, 0);
 
-    // Download the image
     const link = document.createElement("a");
     link.download = `route-print-${Date.now()}.png`;
     link.href = exportCanvas.toDataURL("image/png");
     link.click();
 
-    // Copy coordinates to clipboard
     try {
       await navigator.clipboard.writeText(boundingBox);
     } catch (error) {
@@ -263,11 +313,7 @@ export default function DesignConfigurator({
             <h2 className="text-2xl font-headline font-bold text-basalt">
               Design Preview
             </h2>
-            <button
-              onClick={exportDesign}
-              className="btn-primary"
-              disabled={isLoadingTopo}
-            >
+            <button onClick={exportDesign} className="btn-primary">
               Export Design
             </button>
           </div>
@@ -279,23 +325,6 @@ export default function DesignConfigurator({
                 className="border border-slate-storm/20 rounded-lg shadow-sm"
                 style={{ maxWidth: "400px", maxHeight: "400px" }}
               />
-
-              {isLoadingTopo && (
-                <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-lg">
-                  <div className="text-center">
-                    <div className="w-8 h-8 border-2 border-summit-sage border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                    <p className="text-sm text-slate-storm">
-                      Loading topography...
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {topoError && (
-                <div className="absolute top-2 left-2 bg-yellow-50 border border-yellow-200 rounded-md p-2 max-w-xs">
-                  <p className="text-xs text-yellow-800">{topoError}</p>
-                </div>
-              )}
             </div>
           </div>
 

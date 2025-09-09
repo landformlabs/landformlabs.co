@@ -102,6 +102,15 @@ export default function GPXUploader({ onGPXUpload }: GPXUploaderProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
+
+    if (file.size > MAX_FILE_SIZE) {
+      setUploadError(
+        `File size exceeds the limit of ${MAX_FILE_SIZE / 1024 / 1024} MB.`,
+      );
+      return;
+    }
+
     // Validate file type
     if (!file.name.toLowerCase().endsWith(".gpx")) {
       setUploadError("Please select a valid GPX file.");

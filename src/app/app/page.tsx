@@ -16,7 +16,13 @@ export default function GPXDesignApp() {
   const [designConfig, setDesignConfig] = useState({
     routeColor: "#2563eb",
     printType: "tile" as "tile" | "ornament",
-    labels: [] as Array<{ text: string; x: number; y: number; size: number }>,
+    labels: [] as Array<{
+      text: string;
+      x: number;
+      y: number;
+      size: number;
+      rotation: number;
+    }>,
   });
 
   const handleGPXUpload = (parsedGPX: any) => {
