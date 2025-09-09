@@ -69,7 +69,7 @@ const products = [
       "More than an outline, see every ridge and valley",
     ],
     pricing: "$10",
-    etsy: null,
+    etsy: "https://landformlabs.etsy.com/listing/4366358498",
     image: "/state-ornaments.jpeg",
   },
   {
