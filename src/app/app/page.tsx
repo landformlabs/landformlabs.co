@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GPXUploader from "@/components/GPXUploader";
@@ -36,24 +36,62 @@ function GPXDesignApp() {
       <Header />
       <main className="min-h-screen bg-alpine-mist">
         {/* Hero Section */}
-        <div className="bg-alpine-mist py-16 lg:py-24">
+        <div className="bg-alpine-mist py-8 lg:py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h1 className="text-4xl font-headline font-bold text-basalt sm:text-5xl lg:text-6xl">
                 Design Your{" "}
                 <span className="text-gradient-adventure">Route Print</span>
               </h1>
-              <p className="mt-6 max-w-2xl mx-auto text-xl text-slate-storm">
-                Upload your GPX file, visualize your route on the map, and
-                select the perfect area for your custom 3D print.
-              </p>
             </div>
           </div>
         </div>
 
         {/* App Content */}
-        <div className="py-8 lg:py-12">
+        <div className="py-4 lg:py-6">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* How it works - Full width */}
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-summit-sage rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-white font-bold text-lg">1</span>
+                  </div>
+                  <h3 className="font-headline font-semibold text-basalt mb-2">
+                    Upload GPX File
+                  </h3>
+                  <p className="text-slate-storm text-sm">
+                    Upload your GPX file from Strava, Garmin Connect, or any GPS
+                    device.
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-summit-sage rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-white font-bold text-lg">2</span>
+                  </div>
+                  <h3 className="font-headline font-semibold text-basalt mb-2">
+                    Select Print Area
+                  </h3>
+                  <p className="text-slate-storm text-sm">
+                    Draw a square on the map to choose which part of your route
+                    to print.
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-summit-sage rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-white font-bold text-lg">3</span>
+                  </div>
+                  <h3 className="font-headline font-semibold text-basalt mb-2">
+                    Copy Coordinates
+                  </h3>
+                  <p className="text-slate-storm text-sm">
+                    Copy the coordinates and include them with your custom
+                    order.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="grid gap-8 lg:grid-cols-3">
               {/* Left Panel - Controls */}
               <div className="lg:col-span-1">
@@ -64,10 +102,44 @@ function GPXDesignApp() {
 
                   <GPXUploader onGPXUpload={handleGPXUpload} />
 
+                  {/* Instructions */}
+                  {!gpxData ? (
+                    <div className="mt-6 p-4 bg-slate-50 rounded-lg">
+                      <h3 className="font-headline font-semibold text-basalt text-sm mb-2">
+                        Ready to Design
+                      </h3>
+                      <p className="text-sm text-slate-storm">
+                        Upload a GPX file to see your route on the map and start
+                        designing your print area.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-6 p-4 bg-slate-50 rounded-lg">
+                      <h3 className="font-headline font-semibold text-basalt text-sm mb-2">
+                        Draw Print Area
+                      </h3>
+                      <p className="text-sm text-slate-storm mb-3">
+                        Hold{" "}
+                        <kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-xs font-mono">
+                          Ctrl
+                        </kbd>{" "}
+                        (or{" "}
+                        <kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-xs font-mono">
+                          ⌘
+                        </kbd>{" "}
+                        on Mac) and click-drag to draw a square print area.
+                      </p>
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="w-4 h-1 bg-blue-500 rounded"></div>
+                        <span className="text-slate-storm">Your route</span>
+                      </div>
+                    </div>
+                  )}
+
                   {boundingBox && (
                     <div className="mt-6 p-4 bg-summit-sage/5 rounded-lg">
                       <h3 className="font-headline font-semibold text-basalt mb-3">
-                        Bounding Box Coordinates
+                        Print Area Coordinates
                       </h3>
                       <div className="bg-white p-3 rounded border text-sm font-mono text-basalt mb-3 break-all">
                         {boundingBox}
@@ -79,7 +151,8 @@ function GPXDesignApp() {
                         Copy Coordinates
                       </button>
                       <p className="text-sm text-slate-storm mt-2">
-                        Use these coordinates when ordering your custom print.
+                        Use these coordinates when ordering your custom print on
+                        Etsy.
                       </p>
                     </div>
                   )}
@@ -96,55 +169,6 @@ function GPXDesignApp() {
                 </div>
               </div>
             </div>
-
-            {/* Instructions */}
-            {!gpxData && (
-              <div className="mt-12 max-w-4xl mx-auto">
-                <div className="bg-white rounded-lg shadow-lg p-8">
-                  <h2 className="text-2xl font-headline font-bold text-basalt mb-6">
-                    How It Works
-                  </h2>
-                  <div className="grid md:grid-cols-3 gap-6">
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-summit-sage rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-white font-bold text-lg">1</span>
-                      </div>
-                      <h3 className="font-headline font-semibold text-basalt mb-2">
-                        Upload GPX File
-                      </h3>
-                      <p className="text-slate-storm text-sm">
-                        Upload your GPX file from Strava, Garmin Connect, or any
-                        GPS device.
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-summit-sage rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-white font-bold text-lg">2</span>
-                      </div>
-                      <h3 className="font-headline font-semibold text-basalt mb-2">
-                        Select Print Area
-                      </h3>
-                      <p className="text-slate-storm text-sm">
-                        Draw a square on the map to choose which part of your
-                        route to print.
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-summit-sage rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-white font-bold text-lg">3</span>
-                      </div>
-                      <h3 className="font-headline font-semibold text-basalt mb-2">
-                        Copy Coordinates
-                      </h3>
-                      <p className="text-slate-storm text-sm">
-                        Copy the coordinates and include them with your custom
-                        order.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </main>
