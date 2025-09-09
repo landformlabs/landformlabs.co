@@ -19,11 +19,15 @@ const MapWithInteraction = dynamic(() => import("./MapWithInteraction"), {
 interface MapViewerProps {
   gpxData: any;
   onBoundingBoxChange: (bbox: string) => void;
+  boundingBox?: string;
+  onConfirmSelection?: () => void;
 }
 
 export default function MapViewer({
   gpxData,
   onBoundingBoxChange,
+  boundingBox,
+  onConfirmSelection,
 }: MapViewerProps) {
   const [isClient, setIsClient] = useState(false);
 
@@ -72,7 +76,7 @@ export default function MapViewer({
             </div>
           </div>
 
-          {/* Route info */}
+          {/* Route info and confirm button */}
           {gpxData && (
             <div className="text-sm text-slate-storm space-y-1">
               <p className="font-medium text-basalt">{gpxData.fileName}</p>
@@ -82,6 +86,15 @@ export default function MapViewer({
                 The area will be automatically adjusted to form a perfect square
                 for printing.
               </p>
+
+              {/* Confirm selection button */}
+              {boundingBox && onConfirmSelection && (
+                <div className="mt-4 pt-3 border-t border-slate-storm/10">
+                  <button onClick={onConfirmSelection} className="btn-primary">
+                    Confirm Selection & Continue
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

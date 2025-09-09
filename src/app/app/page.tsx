@@ -126,52 +126,12 @@ export default function GPXDesignApp() {
             )}
 
             {currentStep === "map" && gpxData && (
-              <div className="grid gap-8 lg:grid-cols-4">
-                <div className="lg:col-span-1">
-                  <div className="bg-white rounded-lg shadow-lg p-6 sticky top-6">
-                    <h2 className="text-xl font-headline font-bold text-basalt mb-4">
-                      Select Print Area
-                    </h2>
-                    <p className="text-sm text-slate-storm mb-4">
-                      Draw a square on the map to choose which part of your
-                      route to print.
-                    </p>
-                    <div className="text-xs text-slate-storm space-y-2">
-                      <p>
-                        <kbd className="px-2 py-1 bg-slate-200 rounded text-xs">
-                          Ctrl
-                        </kbd>{" "}
-                        + drag to draw area
-                      </p>
-                      <p>
-                        <kbd className="px-2 py-1 bg-slate-200 rounded text-xs">
-                          ⌘
-                        </kbd>{" "}
-                        + drag on Mac
-                      </p>
-                    </div>
-                    {boundingBox && (
-                      <div className="mt-6 p-4 bg-summit-sage/5 rounded-lg">
-                        <h3 className="font-headline font-semibold text-basalt mb-2">
-                          Area Selected
-                        </h3>
-                        <button
-                          onClick={() => handleBoundingBoxConfirm(boundingBox)}
-                          className="btn-primary w-full"
-                        >
-                          Confirm Selection
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="lg:col-span-3">
-                  <MapViewer
-                    gpxData={gpxData}
-                    onBoundingBoxChange={setBoundingBox}
-                  />
-                </div>
-              </div>
+              <MapViewer
+                gpxData={gpxData}
+                onBoundingBoxChange={setBoundingBox}
+                boundingBox={boundingBox}
+                onConfirmSelection={() => handleBoundingBoxConfirm(boundingBox)}
+              />
             )}
 
             {currentStep === "design" && gpxData && boundingBox && (
