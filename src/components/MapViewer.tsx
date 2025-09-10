@@ -21,6 +21,7 @@ interface MapViewerProps {
   onBoundingBoxChange: (bbox: string) => void;
   boundingBox?: string;
   onConfirmSelection?: () => void;
+  onRestart?: () => void;
 }
 
 export default function MapViewer({
@@ -28,6 +29,7 @@ export default function MapViewer({
   onBoundingBoxChange,
   boundingBox,
   onConfirmSelection,
+  onRestart,
 }: MapViewerProps) {
   const [isClient, setIsClient] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -119,9 +121,12 @@ export default function MapViewer({
 
               {/* Confirm selection button */}
               {boundingBox && onConfirmSelection && (
-                <div className="mt-4 pt-3 border-t border-slate-storm/10">
+                <div className="mt-4 pt-3 border-t border-slate-storm/10 flex items-center gap-4">
                   <button onClick={onConfirmSelection} className="btn-primary">
                     Confirm Selection & Continue
+                  </button>
+                  <button onClick={onRestart} className="btn-secondary">
+                    Start Over
                   </button>
                 </div>
               )}

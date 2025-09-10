@@ -22,6 +22,13 @@ export default function GPXDesignApp() {
       y: number;
       size: number;
       rotation: number;
+      width: number;
+      height: number;
+    }>,
+    ornamentLabels: [] as Array<{
+      text: string;
+      size: number;
+      rotation: number;
     }>,
   });
 
@@ -47,6 +54,7 @@ export default function GPXDesignApp() {
       routeColor: "#2563eb",
       printType: "tile",
       labels: [],
+      ornamentLabels: [],
     });
   };
 
@@ -115,15 +123,6 @@ export default function GPXDesignApp() {
         {/* App Content */}
         <div className="py-8 lg:py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Restart Button (shown after upload step) */}
-            {currentStep !== "upload" && (
-              <div className="mb-6 text-center">
-                <button onClick={handleRestart} className="btn-secondary">
-                  Start Over
-                </button>
-              </div>
-            )}
-
             {/* Step Content */}
             {currentStep === "upload" && (
               <div className="max-w-2xl mx-auto">
@@ -137,6 +136,7 @@ export default function GPXDesignApp() {
                 onBoundingBoxChange={setBoundingBox}
                 boundingBox={boundingBox}
                 onConfirmSelection={() => handleBoundingBoxConfirm(boundingBox)}
+                onRestart={handleRestart}
               />
             )}
 
@@ -146,6 +146,7 @@ export default function GPXDesignApp() {
                 boundingBox={boundingBox}
                 designConfig={designConfig}
                 onConfigChange={setDesignConfig}
+                onRestart={handleRestart}
               />
             )}
           </div>

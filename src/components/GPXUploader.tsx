@@ -137,6 +137,7 @@ export default function GPXUploader({ onGPXUpload }: GPXUploaderProps) {
         ...parsedData,
         fileName: file.name,
         fileSize: file.size,
+        gpxString: fileContent,
       };
 
       onGPXUpload(gpxData);
