@@ -273,124 +273,6 @@ export default function DesignConfigurator({
 
   return (
     <div className="grid gap-8 lg:grid-cols-3">
-      {/* Design Preview */}
-      <div className="lg:col-span-2">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-headline font-bold text-basalt">
-              Design Preview
-            </h2>
-            <div className="flex items-center gap-4">
-              <button onClick={onRestart} className="btn-secondary">
-                Start Over
-              </button>
-              <button onClick={exportDesign} className="btn-primary">
-                Export Design
-              </button>
-            </div>
-          </div>
-
-          <div className="flex justify-center">
-            <div className="relative" style={{ width: 400, height: 400 }}>
-              <canvas
-                ref={canvasRef}
-                className="border border-slate-storm/20 rounded-lg shadow-sm absolute top-0 left-0"
-                style={{ width: "400px", height: "400px" }}
-              />
-              {designConfig.printType === "tile" &&
-                designConfig.labels.map((label, index) => (
-                  <Rnd
-                    key={index}
-                    size={{ width: label.width, height: label.height }}
-                    position={{ x: label.x, y: label.y }}
-                    onDragStop={(e, d) => {
-                      handleLabelChange(index, { x: d.x, y: d.y });
-                    }}
-                    onResize={(e, direction, ref, delta, position) => {
-                      const newWidth = parseInt(ref.style.width);
-                      const newHeight = parseInt(ref.style.height);
-                      handleLabelChange(index, {
-                        width: newWidth,
-                        height: newHeight,
-                        size: Math.max(16, newHeight * 0.6),
-                        ...position,
-                      });
-                    }}
-                    minWidth={50}
-                    minHeight={30}
-                    bounds="parent"
-                    style={{
-                      transform: `rotate(${label.rotation}deg)`,
-                    }}
-                    className="flex items-center justify-center border-2 border-solid border-blue-500 bg-white bg-opacity-50"
-                  >
-                    <div
-                      className="w-full h-full flex items-center justify-center text-center p-1"
-                      style={{ fontSize: label.size }}
-                    >
-                      {label.text}
-                    </div>
-                    <div
-                      className="absolute -top-8 left-1/2 -translate-x-1/2 w-6 h-6 bg-blue-500 rounded-full cursor-grab active:cursor-grabbing flex items-center justify-center text-white"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        const rect =
-                          e.currentTarget.parentElement?.getBoundingClientRect();
-                        if (!rect) return;
-
-                        const centerX = rect.left + rect.width / 2;
-                        const centerY = rect.top + rect.height / 2;
-
-                        const onMouseMove = (moveEvent: MouseEvent) => {
-                          const dx = moveEvent.clientX - centerX;
-                          const dy = moveEvent.clientY - centerY;
-                          handleLabelChange(index, {
-                            rotation: (Math.atan2(dy, dx) * 180) / Math.PI + 90,
-                          });
-                        };
-
-                        const onMouseUp = () => {
-                          document.removeEventListener(
-                            "mousemove",
-                            onMouseMove,
-                          );
-                          document.removeEventListener("mouseup", onMouseUp);
-                        };
-
-                        document.addEventListener("mousemove", onMouseMove);
-                        document.addEventListener("mouseup", onMouseUp);
-                      }}
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 4v5h5M20 20v-5h-5"
-                        />
-                      </svg>
-                    </div>
-                  </Rnd>
-                ))}
-            </div>
-          </div>
-
-          <div className="mt-4 text-center">
-            <p className="text-sm text-slate-storm">
-              Preview shows your selected area with route overlay
-            </p>
-            <p className="text-xs text-slate-storm/70 mt-1">
-              Export will generate a high-resolution 1200x1200px PNG
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Design Controls */}
       <div className="lg:col-span-1">
         <div className="bg-white rounded-lg shadow-lg p-6 sticky top-6 space-y-6">
@@ -623,6 +505,124 @@ export default function DesignConfigurator({
               <p>• Coordinates copied to clipboard</p>
               <p>• Ready for 3D printing order</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Design Preview */}
+      <div className="lg:col-span-2">
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-headline font-bold text-basalt">
+              Design Preview
+            </h2>
+            <div className="flex items-center gap-4">
+              <button onClick={onRestart} className="btn-secondary">
+                Start Over
+              </button>
+              <button onClick={exportDesign} className="btn-primary">
+                Export Design
+              </button>
+            </div>
+          </div>
+
+          <div className="flex justify-center">
+            <div className="relative" style={{ width: 400, height: 400 }}>
+              <canvas
+                ref={canvasRef}
+                className="border border-slate-storm/20 rounded-lg shadow-sm absolute top-0 left-0"
+                style={{ width: "400px", height: "400px" }}
+              />
+              {designConfig.printType === "tile" &&
+                designConfig.labels.map((label, index) => (
+                  <Rnd
+                    key={index}
+                    size={{ width: label.width, height: label.height }}
+                    position={{ x: label.x, y: label.y }}
+                    onDragStop={(e, d) => {
+                      handleLabelChange(index, { x: d.x, y: d.y });
+                    }}
+                    onResize={(e, direction, ref, delta, position) => {
+                      const newWidth = parseInt(ref.style.width);
+                      const newHeight = parseInt(ref.style.height);
+                      handleLabelChange(index, {
+                        width: newWidth,
+                        height: newHeight,
+                        size: Math.max(16, newHeight * 0.6),
+                        ...position,
+                      });
+                    }}
+                    minWidth={50}
+                    minHeight={30}
+                    bounds="parent"
+                    style={{
+                      transform: `rotate(${label.rotation}deg)`,
+                    }}
+                    className="flex items-center justify-center border-2 border-solid border-blue-500 bg-white bg-opacity-50"
+                  >
+                    <div
+                      className="w-full h-full flex items-center justify-center text-center p-1"
+                      style={{ fontSize: label.size }}
+                    >
+                      {label.text}
+                    </div>
+                    <div
+                      className="absolute -top-8 left-1/2 -translate-x-1/2 w-6 h-6 bg-blue-500 rounded-full cursor-grab active:cursor-grabbing flex items-center justify-center text-white"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        const rect =
+                          e.currentTarget.parentElement?.getBoundingClientRect();
+                        if (!rect) return;
+
+                        const centerX = rect.left + rect.width / 2;
+                        const centerY = rect.top + rect.height / 2;
+
+                        const onMouseMove = (moveEvent: MouseEvent) => {
+                          const dx = moveEvent.clientX - centerX;
+                          const dy = moveEvent.clientY - centerY;
+                          handleLabelChange(index, {
+                            rotation: (Math.atan2(dy, dx) * 180) / Math.PI + 90,
+                          });
+                        };
+
+                        const onMouseUp = () => {
+                          document.removeEventListener(
+                            "mousemove",
+                            onMouseMove,
+                          );
+                          document.removeEventListener("mouseup", onMouseUp);
+                        };
+
+                        document.addEventListener("mousemove", onMouseMove);
+                        document.addEventListener("mouseup", onMouseUp);
+                      }}
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h-5M20 20v-5h-5"
+                        />
+                      </svg>
+                    </div>
+                  </Rnd>
+                ))}
+            </div>
+          </div>
+
+          <div className="mt-4 text-center">
+            <p className="text-sm text-slate-storm">
+              Preview shows your selected area with route overlay
+            </p>
+            <p className="text-xs text-slate-storm/70 mt-1">
+              Export will generate a high-resolution 1200x1200px PNG
+            </p>
           </div>
         </div>
       </div>
