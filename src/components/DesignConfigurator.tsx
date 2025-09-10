@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Rnd } from "react-rnd";
 import JSZip from "jszip";
 
@@ -55,8 +55,8 @@ export default function DesignConfigurator({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [newLabel, setNewLabel] = useState({
     text: "",
-    fontFamily: "Trispace" as const,
-    textAlign: "center" as const,
+    fontFamily: "Trispace" as "Garamond" | "Poppins" | "Trispace",
+    textAlign: "center" as "left" | "center" | "right",
     bold: true,
     italic: false,
   });
@@ -68,7 +68,7 @@ export default function DesignConfigurator({
     height: 30,
     size: 24,
     rotation: 0,
-    fontFamily: "Trispace" as const,
+    fontFamily: "Trispace" as "Garamond" | "Poppins" | "Trispace",
     bold: true,
     italic: false,
   });
@@ -145,7 +145,7 @@ export default function DesignConfigurator({
   };
 
   // Helper function to get ornament circle properties with defaults
-  const getOrnamentCircle = () => {
+  const getOrnamentCircle = useCallback(() => {
     return (
       designConfig.ornamentCircle || {
         x: 200, // center of 400px canvas
@@ -153,7 +153,7 @@ export default function DesignConfigurator({
         radius: 160, // 40% of 400px canvas
       }
     );
-  };
+  }, [designConfig.ornamentCircle]);
 
   // Canvas rendering
   useEffect(() => {
@@ -249,7 +249,7 @@ export default function DesignConfigurator({
     };
 
     redraw();
-  }, [gpxData, boundingBox, bbox, designConfig]);
+  }, [gpxData, boundingBox, bbox, designConfig, getOrnamentCircle]);
 
   const handleConfigChange = (updates: any) => {
     onConfigChange({ ...designConfig, ...updates });
@@ -411,10 +411,12 @@ export default function DesignConfigurator({
       });
     }
 
-    const pngBlob = await new Promise((resolve) =>
+    const pngBlob = await new Promise<Blob | null>((resolve) =>
       exportCanvas.toBlob(resolve, "image/png"),
     );
-    zip.file("design.png", pngBlob);
+    if (pngBlob) {
+      zip.file("design.png", pngBlob);
+    }
 
     const gpxString = gpxData.gpxString;
     zip.file("route.gpx", gpxString);
