@@ -31,12 +31,9 @@ export default function GPXDesignApp() {
     }>,
     ornamentLabels: [] as Array<{
       text: string;
-      x: number;
-      y: number;
-      width: number;
-      height: number;
+      angle: number; // Position around circle in degrees (0 = top)
+      radius: number; // Distance from center
       size: number;
-      rotation: number;
       fontFamily: "Garamond" | "Poppins" | "Trispace";
       bold: boolean;
       italic: boolean;

@@ -25,12 +25,9 @@ interface DesignConfiguratorProps {
     }>;
     ornamentLabels: Array<{
       text: string;
-      x: number;
-      y: number;
-      width: number;
-      height: number;
+      angle: number; // Position around circle in degrees (0 = top)
+      radius: number; // Distance from center
       size: number;
-      rotation: number;
       fontFamily: "Garamond" | "Poppins" | "Trispace";
       bold: boolean;
       italic: boolean;
@@ -62,12 +59,9 @@ export default function DesignConfigurator({
   });
   const [newOrnamentLabel, setNewOrnamentLabel] = useState({
     text: "",
-    x: 50,
-    y: 50,
-    width: 150,
-    height: 30,
+    angle: 0, // Position around circle in degrees (0 = top)
+    radius: 180, // Distance from center
     size: 24,
-    rotation: 0,
     fontFamily: "Trispace" as "Garamond" | "Poppins" | "Trispace",
     bold: true,
     italic: false,
@@ -139,21 +133,15 @@ export default function DesignConfigurator({
     return `${style} ${weight} ${fontSize}px ${fontFamily}`;
   };
 
-  // Helper function to determine if ornament text should be inverted
-  const shouldInvertOrnamentText = (labelY: number, circleY: number) => {
-    return labelY > circleY;
-  };
-
-  // Helper function to get ornament circle properties with defaults
+  // Helper function to get ornament circle properties - now fills the entire canvas
   const getOrnamentCircle = useCallback(() => {
-    return (
-      designConfig.ornamentCircle || {
-        x: 200, // center of 400px canvas
-        y: 200,
-        radius: 160, // 40% of 400px canvas
-      }
-    );
-  }, [designConfig.ornamentCircle]);
+    const canvasSize = 400;
+    return {
+      x: canvasSize / 2, // center of canvas
+      y: canvasSize / 2,
+      radius: canvasSize / 2 - 10, // Fill canvas with small padding
+    };
+  }, []);
 
   // Canvas rendering
   useEffect(() => {
@@ -168,8 +156,8 @@ export default function DesignConfigurator({
 
     const drawCurvedText = (
       text: string,
+      angle: number, // angle in degrees (0 = top)
       radius: number,
-      rotation: number,
       fontSize: number,
       fontFamily: string = "'Trispace', monospace",
       bold: boolean = true,
@@ -178,20 +166,34 @@ export default function DesignConfigurator({
       ctx.save();
       ctx.translate(canvasSize / 2, canvasSize / 2);
       ctx.font = generateFontString(fontSize, fontFamily, bold, italic);
-      ctx.fillStyle = "#1f2937"; // Set text color to dark gray
+      ctx.fillStyle = "#1f2937";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
+      // Calculate if text should be flipped (bottom half of circle)
+      const normalizedAngle = ((angle % 360) + 360) % 360;
+      const shouldFlip = normalizedAngle > 90 && normalizedAngle < 270;
+
+      // Calculate text metrics for proper centering
       const textWidth = ctx.measureText(text).width;
       const totalAngle = textWidth / radius;
 
-      ctx.rotate(rotation * (Math.PI / 180) - totalAngle / 2);
+      // Convert angle to radians and adjust for top being 0°
+      let startAngle = (angle - 90) * (Math.PI / 180) - totalAngle / 2;
+
+      if (shouldFlip) {
+        // Flip text by rotating 180° and reversing character order
+        startAngle += Math.PI;
+        text = text.split("").reverse().join("");
+      }
+
+      ctx.rotate(startAngle);
 
       for (let i = 0; i < text.length; i++) {
         const char = text[i];
         const charWidth = ctx.measureText(char).width;
         ctx.rotate(charWidth / 2 / radius);
-        ctx.fillText(char, 0, -radius);
+        ctx.fillText(char, 0, shouldFlip ? radius : -radius);
         ctx.rotate(charWidth / 2 / radius);
       }
       ctx.restore();
@@ -201,6 +203,21 @@ export default function DesignConfigurator({
       // Clear and draw background
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+      // For ornaments, set up circular clipping
+      if (designConfig.printType === "ornament") {
+        const ornamentCircle = getOrnamentCircle();
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(
+          ornamentCircle.x,
+          ornamentCircle.y,
+          ornamentCircle.radius,
+          0,
+          2 * Math.PI,
+        );
+        ctx.clip();
+      }
 
       // Draw route
       const filteredPoints = gpxData.points.filter(
@@ -226,12 +243,15 @@ export default function DesignConfigurator({
         ctx.stroke();
       }
 
-      // Draw ornament circle (now dynamic)
+      // Handle ornament-specific rendering
       if (designConfig.printType === "ornament") {
+        ctx.restore(); // Restore from circular clipping
+
         const ornamentCircle = getOrnamentCircle();
+
+        // Draw ornament circle border
         ctx.strokeStyle = "#64748b";
         ctx.lineWidth = 2;
-        ctx.setLineDash([5, 5]);
         ctx.beginPath();
         ctx.arc(
           ornamentCircle.x,
@@ -241,10 +261,19 @@ export default function DesignConfigurator({
           2 * Math.PI,
         );
         ctx.stroke();
-        ctx.setLineDash([]);
 
-        // Note: Ornament labels will now be rendered as draggable Rnd components
-        // instead of being drawn directly on the canvas
+        // Draw ornament labels as curved text
+        designConfig.ornamentLabels.forEach((label: any) => {
+          drawCurvedText(
+            label.text,
+            label.angle,
+            label.radius,
+            label.size,
+            label.fontFamily,
+            label.bold,
+            label.italic,
+          );
+        });
       }
     };
 
@@ -301,12 +330,9 @@ export default function DesignConfigurator({
       handleConfigChange({ ornamentLabels: updatedLabels });
       setNewOrnamentLabel({
         text: "",
-        x: 50,
-        y: 50,
-        width: 150,
-        height: 30,
+        angle: 0, // Position around circle in degrees (0 = top)
+        radius: 180, // Distance from center
         size: 24,
-        rotation: 0,
         fontFamily: "Trispace",
         bold: true,
         italic: false,
@@ -370,44 +396,76 @@ export default function DesignConfigurator({
         exportCtx.restore();
       });
     } else if (designConfig.printType === "ornament") {
-      // Draw positioned ornament labels onto the export canvas
+      // Draw curved ornament labels onto the export canvas
       designConfig.ornamentLabels.forEach((label) => {
-        const ornamentCircle = getOrnamentCircle();
-        const shouldInvert = shouldInvertOrnamentText(
-          label.y + label.height / 2,
-          ornamentCircle.y,
-        );
+        const drawExportCurvedText = (
+          text: string,
+          angle: number,
+          radius: number,
+          fontSize: number,
+          fontFamily: string,
+          bold: boolean,
+          italic: boolean,
+        ) => {
+          exportCtx.save();
+          exportCtx.translate((400 * scale) / 2, (400 * scale) / 2);
+          exportCtx.font = generateFontString(
+            fontSize * scale,
+            fontFamily,
+            bold,
+            italic,
+          );
+          exportCtx.fillStyle = "#1f2937";
+          exportCtx.textAlign = "center";
+          exportCtx.textBaseline = "middle";
 
-        exportCtx.save();
-        exportCtx.translate(
-          (label.x + label.width / 2) * scale,
-          (label.y + label.height / 2) * scale,
-        );
+          // Calculate if text should be flipped (bottom half of circle)
+          const normalizedAngle = ((angle % 360) + 360) % 360;
+          const shouldFlip = normalizedAngle > 90 && normalizedAngle < 270;
 
-        // Apply rotation and inversion
-        const totalRotation =
-          (label.rotation + (shouldInvert ? 180 : 0)) * (Math.PI / 180);
-        exportCtx.rotate(totalRotation);
+          // Calculate text metrics for proper centering
+          const textWidth = exportCtx.measureText(text).width;
+          const scaledRadius = radius * scale;
+          const totalAngle = textWidth / scaledRadius;
 
-        // Apply text inversion if needed
-        if (shouldInvert) {
-          exportCtx.scale(1, -1);
-        }
+          // Convert angle to radians and adjust for top being 0°
+          let startAngle = (angle - 90) * (Math.PI / 180) - totalAngle / 2;
 
-        exportCtx.fillStyle = "#1f2937";
+          if (shouldFlip) {
+            // Flip text by rotating 180° and reversing character order
+            startAngle += Math.PI;
+            text = text.split("").reverse().join("");
+          }
+
+          exportCtx.rotate(startAngle);
+
+          for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const charWidth = exportCtx.measureText(char).width;
+            exportCtx.rotate(charWidth / 2 / scaledRadius);
+            exportCtx.fillText(
+              char,
+              0,
+              shouldFlip ? scaledRadius : -scaledRadius,
+            );
+            exportCtx.rotate(charWidth / 2 / scaledRadius);
+          }
+          exportCtx.restore();
+        };
+
         const fontOption = fontFamilyOptions.find(
           (f) => f.value === label.fontFamily,
         );
-        exportCtx.font = generateFontString(
-          label.size * scale,
+
+        drawExportCurvedText(
+          label.text,
+          label.angle,
+          label.radius,
+          label.size,
           fontOption?.cssFont || "'Trispace', monospace",
           label.bold,
           label.italic,
         );
-        exportCtx.textAlign = "center";
-        exportCtx.textBaseline = "middle";
-        exportCtx.fillText(label.text, 0, 0);
-        exportCtx.restore();
       });
     }
 
@@ -840,7 +898,7 @@ export default function DesignConfigurator({
                         </div>
                         <div className="text-xs text-slate-storm">
                           {label.fontFamily} • {label.size}px •{" "}
-                          {label.rotation.toFixed(0)}° •{" "}
+                          {(label.angle || 0).toFixed(0)}° •{" "}
                           {label.bold ? "Bold" : "Normal"} •{" "}
                           {label.italic ? "Italic" : "Regular"}
                         </div>
@@ -906,16 +964,32 @@ export default function DesignConfigurator({
                       className="w-full mb-3"
                     />
                     <div className="text-xs text-slate-storm mb-1">
-                      Rotation: {label.rotation.toFixed(0)}°
+                      Position: {label.angle?.toFixed(0) || 0}° around circle
                     </div>
                     <input
                       type="range"
-                      min="-180"
-                      max="180"
-                      value={label.rotation}
+                      min="0"
+                      max="360"
+                      value={label.angle || 0}
                       onChange={(e) =>
                         handleOrnamentLabelChange(index, {
-                          rotation: parseInt(e.target.value),
+                          angle: parseInt(e.target.value),
+                        })
+                      }
+                      className="w-full mb-3"
+                    />
+
+                    <div className="text-xs text-slate-storm mb-1">
+                      Distance: {label.radius || 180}px from center
+                    </div>
+                    <input
+                      type="range"
+                      min="120"
+                      max="220"
+                      value={label.radius || 180}
+                      onChange={(e) =>
+                        handleOrnamentLabelChange(index, {
+                          radius: parseInt(e.target.value),
                         })
                       }
                       className="w-full"
@@ -1192,156 +1266,7 @@ export default function DesignConfigurator({
                   </Rnd>
                 ))}
 
-              {/* Ornament Interactive Components */}
-              {designConfig.printType === "ornament" && (
-                <>
-                  {/* Draggable and Resizable Circle Overlay */}
-                  <Rnd
-                    size={{
-                      width: getOrnamentCircle().radius * 2,
-                      height: getOrnamentCircle().radius * 2,
-                    }}
-                    position={{
-                      x: getOrnamentCircle().x - getOrnamentCircle().radius,
-                      y: getOrnamentCircle().y - getOrnamentCircle().radius,
-                    }}
-                    onDragStop={(e, d) => {
-                      const newCircle = {
-                        x: d.x + getOrnamentCircle().radius,
-                        y: d.y + getOrnamentCircle().radius,
-                        radius: getOrnamentCircle().radius,
-                      };
-                      handleConfigChange({ ornamentCircle: newCircle });
-                    }}
-                    onResize={(e, direction, ref, delta, position) => {
-                      const newRadius =
-                        Math.min(
-                          parseInt(ref.style.width),
-                          parseInt(ref.style.height),
-                        ) / 2;
-                      const newCircle = {
-                        x: position.x + newRadius,
-                        y: position.y + newRadius,
-                        radius: newRadius,
-                      };
-                      handleConfigChange({ ornamentCircle: newCircle });
-                    }}
-                    minWidth={80}
-                    minHeight={80}
-                    maxWidth={380}
-                    maxHeight={380}
-                    bounds="parent"
-                    className="border-2 border-dashed border-summit-sage bg-summit-sage/10 rounded-full opacity-70 hover:opacity-100 transition-opacity"
-                    lockAspectRatio={true}
-                  >
-                    <div className="w-full h-full rounded-full flex items-center justify-center text-xs text-summit-sage font-semibold">
-                      Circle
-                    </div>
-                  </Rnd>
-
-                  {/* Draggable Ornament Labels */}
-                  {designConfig.ornamentLabels.map((label, index) => {
-                    const ornamentCircle = getOrnamentCircle();
-                    const shouldInvert = shouldInvertOrnamentText(
-                      label.y + label.height / 2,
-                      ornamentCircle.y,
-                    );
-
-                    return (
-                      <Rnd
-                        key={`ornament-${index}`}
-                        size={{ width: label.width, height: label.height }}
-                        position={{ x: label.x, y: label.y }}
-                        onDragStop={(e, d) => {
-                          handleOrnamentLabelChange(index, { x: d.x, y: d.y });
-                        }}
-                        onResize={(e, direction, ref, delta, position) => {
-                          const newWidth = parseInt(ref.style.width);
-                          const newHeight = parseInt(ref.style.height);
-                          handleOrnamentLabelChange(index, {
-                            width: newWidth,
-                            height: newHeight,
-                            size: Math.max(12, newHeight * 0.6),
-                            ...position,
-                          });
-                        }}
-                        minWidth={50}
-                        minHeight={20}
-                        bounds="parent"
-                        style={{
-                          transform: `rotate(${label.rotation + (shouldInvert ? 180 : 0)}deg)`,
-                        }}
-                        className="flex items-center justify-center border-2 border-solid border-orange-500 bg-white bg-opacity-70"
-                      >
-                        <div
-                          className="w-full h-full flex items-center justify-center text-center p-1"
-                          style={{
-                            fontSize: label.size,
-                            fontFamily:
-                              fontFamilyOptions.find(
-                                (f) => f.value === label.fontFamily,
-                              )?.cssFont || "'Trispace', monospace",
-                            fontWeight: label.bold ? "bold" : "normal",
-                            fontStyle: label.italic ? "italic" : "normal",
-                            transform: shouldInvert ? "scaleY(-1)" : "none",
-                          }}
-                        >
-                          {label.text}
-                        </div>
-                        <div
-                          className="absolute -top-8 left-1/2 -translate-x-1/2 w-6 h-6 bg-orange-500 rounded-full cursor-grab active:cursor-grabbing flex items-center justify-center text-white"
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            const rect =
-                              e.currentTarget.parentElement?.getBoundingClientRect();
-                            if (!rect) return;
-
-                            const centerX = rect.left + rect.width / 2;
-                            const centerY = rect.top + rect.height / 2;
-
-                            const onMouseMove = (moveEvent: MouseEvent) => {
-                              const dx = moveEvent.clientX - centerX;
-                              const dy = moveEvent.clientY - centerY;
-                              handleOrnamentLabelChange(index, {
-                                rotation:
-                                  (Math.atan2(dy, dx) * 180) / Math.PI + 90,
-                              });
-                            };
-
-                            const onMouseUp = () => {
-                              document.removeEventListener(
-                                "mousemove",
-                                onMouseMove,
-                              );
-                              document.removeEventListener(
-                                "mouseup",
-                                onMouseUp,
-                              );
-                            };
-
-                            document.addEventListener("mousemove", onMouseMove);
-                            document.addEventListener("mouseup", onMouseUp);
-                          }}
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 4v5h5M20 20v-5h-5"
-                            />
-                          </svg>
-                        </div>
-                      </Rnd>
-                    );
-                  })}
-                </>
-              )}
+              {/* Ornament canvas is now circular and fixed - no interactive overlay needed */}
             </div>
           </div>
 
