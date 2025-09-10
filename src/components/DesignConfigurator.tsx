@@ -172,7 +172,7 @@ export default function DesignConfigurator({
 
       // Calculate if text should be flipped (bottom half of circle)
       const normalizedAngle = ((angle % 360) + 360) % 360;
-      const shouldFlip = normalizedAngle > 90 && normalizedAngle < 270;
+      const shouldFlip = normalizedAngle > 180;
 
       // Calculate text metrics for proper centering
       const textWidth = ctx.measureText(text).width;
@@ -264,12 +264,15 @@ export default function DesignConfigurator({
 
         // Draw ornament labels as curved text
         designConfig.ornamentLabels.forEach((label: any) => {
+          const fontOption = fontFamilyOptions.find(
+            (f) => f.value === label.fontFamily,
+          );
           drawCurvedText(
             label.text,
             label.angle,
             label.radius,
             label.size,
-            label.fontFamily,
+            fontOption?.cssFont || "'Trispace', monospace",
             label.bold,
             label.italic,
           );
@@ -421,7 +424,7 @@ export default function DesignConfigurator({
 
           // Calculate if text should be flipped (bottom half of circle)
           const normalizedAngle = ((angle % 360) + 360) % 360;
-          const shouldFlip = normalizedAngle > 90 && normalizedAngle < 270;
+          const shouldFlip = normalizedAngle > 180;
 
           // Calculate text metrics for proper centering
           const textWidth = exportCtx.measureText(text).width;
@@ -1218,55 +1221,75 @@ export default function DesignConfigurator({
                     >
                       {label.text}
                     </div>
-                    <div
-                      className="absolute -top-8 left-1/2 -translate-x-1/2 w-6 h-6 bg-blue-500 rounded-full cursor-grab active:cursor-grabbing flex items-center justify-center text-white"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        const rect =
-                          e.currentTarget.parentElement?.getBoundingClientRect();
-                        if (!rect) return;
-
-                        const centerX = rect.left + rect.width / 2;
-                        const centerY = rect.top + rect.height / 2;
-
-                        const onMouseMove = (moveEvent: MouseEvent) => {
-                          const dx = moveEvent.clientX - centerX;
-                          const dy = moveEvent.clientY - centerY;
-                          handleLabelChange(index, {
-                            rotation: (Math.atan2(dy, dx) * 180) / Math.PI + 90,
-                          });
-                        };
-
-                        const onMouseUp = () => {
-                          document.removeEventListener(
-                            "mousemove",
-                            onMouseMove,
-                          );
-                          document.removeEventListener("mouseup", onMouseUp);
-                        };
-
-                        document.addEventListener("mousemove", onMouseMove);
-                        document.addEventListener("mouseup", onMouseUp);
-                      }}
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 4v5h-5M20 20v-5h-5"
-                        />
-                      </svg>
-                    </div>
                   </Rnd>
                 ))}
 
-              {/* Ornament canvas is now circular and fixed - no interactive overlay needed */}
+              {/* Draggable ornament label boundaries */}
+              {designConfig.printType === "ornament" &&
+                designConfig.ornamentLabels.map((label, index) => {
+                  const ornamentCircle = getOrnamentCircle();
+
+                  // Convert angle/radius to x/y coordinates for Rnd positioning
+                  const angleRad = ((label.angle || 0) - 90) * (Math.PI / 180); // -90 to make 0° top
+                  const labelRadius = label.radius || 180;
+                  const centerX = ornamentCircle.x;
+                  const centerY = ornamentCircle.y;
+                  const labelX = centerX + Math.cos(angleRad) * labelRadius;
+                  const labelY = centerY + Math.sin(angleRad) * labelRadius;
+
+                  // Estimate text width for boundary size
+                  const estimatedWidth =
+                    label.text.length * (label.size || 24) * 0.6;
+                  const boundaryWidth = Math.max(estimatedWidth, 50);
+                  const boundaryHeight = (label.size || 24) + 10;
+
+                  return (
+                    <Rnd
+                      key={`ornament-boundary-${index}`}
+                      size={{ width: boundaryWidth, height: boundaryHeight }}
+                      position={{
+                        x: labelX - boundaryWidth / 2,
+                        y: labelY - boundaryHeight / 2,
+                      }}
+                      onDragStop={(e, d) => {
+                        // Convert dragged position back to angle/radius
+                        const draggedX = d.x + boundaryWidth / 2;
+                        const draggedY = d.y + boundaryHeight / 2;
+                        const deltaX = draggedX - centerX;
+                        const deltaY = draggedY - centerY;
+
+                        const newRadius = Math.sqrt(
+                          deltaX * deltaX + deltaY * deltaY,
+                        );
+                        const newAngle =
+                          ((Math.atan2(deltaY, deltaX) * 180) / Math.PI +
+                            90 +
+                            360) %
+                          360;
+
+                        handleOrnamentLabelChange(index, {
+                          angle: newAngle,
+                          radius: Math.max(120, Math.min(220, newRadius)), // Constrain radius
+                        });
+                      }}
+                      onResize={(e, direction, ref, delta, position) => {
+                        const newWidth = parseInt(ref.style.width);
+                        const newHeight = parseInt(ref.style.height);
+                        handleOrnamentLabelChange(index, {
+                          size: Math.max(12, newHeight - 10), // Convert height back to font size
+                        });
+                      }}
+                      minWidth={50}
+                      minHeight={20}
+                      bounds="parent"
+                      className="border-2 border-dashed border-orange-500 bg-orange-500/10 opacity-70 hover:opacity-100 transition-opacity"
+                    >
+                      <div className="w-full h-full flex items-center justify-center text-xs text-orange-600 font-medium">
+                        {label.text}
+                      </div>
+                    </Rnd>
+                  );
+                })}
             </div>
           </div>
 
