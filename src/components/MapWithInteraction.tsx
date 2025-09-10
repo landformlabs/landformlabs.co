@@ -50,6 +50,11 @@ function MapController({
   const [interactionState, setInteractionState] = useState<InteractionState>({
     type: null,
   });
+  const [boundingBoxString, setBoundingBoxString] = useState<string>("");
+
+  useEffect(() => {
+    onBoundingBoxChange(boundingBoxString);
+  }, [boundingBoxString, onBoundingBoxChange]);
 
   // Fit map to GPX data on load
   useEffect(() => {
@@ -93,9 +98,9 @@ function MapController({
     if (boundingBox) {
       const [sw, ne] = boundingBox.bounds;
       const coordString = `${sw[1].toFixed(5)},${sw[0].toFixed(5)},${ne[1].toFixed(5)},${ne[0].toFixed(5)}`;
-      onBoundingBoxChange(coordString);
+      setBoundingBoxString(coordString);
     }
-  }, [map, boundingBox, onBoundingBoxChange]);
+  }, [map, boundingBox, setBoundingBoxString]);
 
   // Main mouse event handler effect
   useEffect(() => {
@@ -172,7 +177,7 @@ function MapController({
       if (e.key === "Escape") {
         setIsDrawing(false);
         setBoundingBox(null);
-        onBoundingBoxChange("");
+        setBoundingBoxString("");
         endInteraction();
       }
     };
@@ -195,7 +200,6 @@ function MapController({
     interactionState,
     createSquareBounds,
     endInteraction,
-    onBoundingBoxChange,
   ]);
 
   const handleInteractionStart = (
