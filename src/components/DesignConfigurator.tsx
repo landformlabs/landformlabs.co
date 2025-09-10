@@ -1306,72 +1306,7 @@ export default function DesignConfigurator({
                   </Rnd>
                 ))}
 
-              {/* Draggable ornament label boundaries */}
-              {designConfig.printType === "ornament" &&
-                designConfig.ornamentLabels.map((label, index) => {
-                  const ornamentCircle = getOrnamentCircle();
-
-                  // Convert angle/radius to x/y coordinates for Rnd positioning
-                  const angleRad = ((label.angle || 0) - 90) * (Math.PI / 180); // -90 to make 0° top
-                  const labelRadius = label.radius || 180;
-                  const centerX = ornamentCircle.x;
-                  const centerY = ornamentCircle.y;
-                  const labelX = centerX + Math.cos(angleRad) * labelRadius;
-                  const labelY = centerY + Math.sin(angleRad) * labelRadius;
-
-                  // Estimate text width for boundary size
-                  const estimatedWidth =
-                    label.text.length * (label.size || 24) * 0.6;
-                  const boundaryWidth = Math.max(estimatedWidth, 50);
-                  const boundaryHeight = (label.size || 24) + 10;
-
-                  return (
-                    <Rnd
-                      key={`ornament-boundary-${index}`}
-                      size={{ width: boundaryWidth, height: boundaryHeight }}
-                      position={{
-                        x: labelX - boundaryWidth / 2,
-                        y: labelY - boundaryHeight / 2,
-                      }}
-                      onDragStop={(e, d) => {
-                        // Convert dragged position back to angle/radius
-                        const draggedX = d.x + boundaryWidth / 2;
-                        const draggedY = d.y + boundaryHeight / 2;
-                        const deltaX = draggedX - centerX;
-                        const deltaY = draggedY - centerY;
-
-                        const newRadius = Math.sqrt(
-                          deltaX * deltaX + deltaY * deltaY,
-                        );
-                        const newAngle =
-                          ((Math.atan2(deltaY, deltaX) * 180) / Math.PI +
-                            90 +
-                            360) %
-                          360;
-
-                        handleOrnamentLabelChange(index, {
-                          angle: newAngle,
-                          radius: Math.max(120, Math.min(220, newRadius)), // Constrain radius
-                        });
-                      }}
-                      onResize={(e, direction, ref, delta, position) => {
-                        const newWidth = parseInt(ref.style.width);
-                        const newHeight = parseInt(ref.style.height);
-                        handleOrnamentLabelChange(index, {
-                          size: Math.max(12, newHeight - 10), // Convert height back to font size
-                        });
-                      }}
-                      minWidth={50}
-                      minHeight={20}
-                      bounds="parent"
-                      className="border-2 border-dashed border-orange-500 bg-orange-500/10 opacity-70 hover:opacity-100 transition-opacity"
-                    >
-                      <div className="w-full h-full flex items-center justify-center text-xs text-orange-600 font-medium">
-                        {label.text}
-                      </div>
-                    </Rnd>
-                  );
-                })}
+              {/* Ornament labels positioned using slider controls only */}
             </div>
           </div>
 
