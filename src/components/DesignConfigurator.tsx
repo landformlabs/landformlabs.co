@@ -25,12 +25,21 @@ interface DesignConfiguratorProps {
     }>;
     ornamentLabels: Array<{
       text: string;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
       size: number;
       rotation: number;
       fontFamily: "Garamond" | "Poppins" | "Trispace";
       bold: boolean;
       italic: boolean;
     }>;
+    ornamentCircle: {
+      x: number;
+      y: number;
+      radius: number;
+    };
   };
   onConfigChange: (config: any) => void;
   onRestart?: () => void;
@@ -53,6 +62,10 @@ export default function DesignConfigurator({
   });
   const [newOrnamentLabel, setNewOrnamentLabel] = useState({
     text: "",
+    x: 50,
+    y: 50,
+    width: 150,
+    height: 30,
     size: 24,
     rotation: 0,
     fontFamily: "Trispace" as const,
@@ -62,6 +75,9 @@ export default function DesignConfigurator({
   const [selectedLabelIndex, setSelectedLabelIndex] = useState<number | null>(
     null,
   );
+  const [selectedOrnamentLabelIndex, setSelectedOrnamentLabelIndex] = useState<
+    number | null
+  >(null);
 
   // Parse bounding box coordinates
   const bbox = boundingBox.split(",").map(Number); // [minLng, minLat, maxLng, maxLat]
@@ -121,6 +137,22 @@ export default function DesignConfigurator({
     const weight = bold ? "bold" : "normal";
     const style = italic ? "italic" : "normal";
     return `${style} ${weight} ${fontSize}px ${fontFamily}`;
+  };
+
+  // Helper function to determine if ornament text should be inverted
+  const shouldInvertOrnamentText = (labelY: number, circleY: number) => {
+    return labelY > circleY;
+  };
+
+  // Helper function to get ornament circle properties with defaults
+  const getOrnamentCircle = () => {
+    return (
+      designConfig.ornamentCircle || {
+        x: 200, // center of 400px canvas
+        y: 200,
+        radius: 160, // 40% of 400px canvas
+      }
+    );
   };
 
   // Canvas rendering
@@ -194,36 +226,25 @@ export default function DesignConfigurator({
         ctx.stroke();
       }
 
-      // Draw ornament circle and labels
+      // Draw ornament circle (now dynamic)
       if (designConfig.printType === "ornament") {
+        const ornamentCircle = getOrnamentCircle();
         ctx.strokeStyle = "#64748b";
         ctx.lineWidth = 2;
         ctx.setLineDash([5, 5]);
         ctx.beginPath();
         ctx.arc(
-          canvasSize / 2,
-          canvasSize / 2,
-          canvasSize * 0.4,
+          ornamentCircle.x,
+          ornamentCircle.y,
+          ornamentCircle.radius,
           0,
           2 * Math.PI,
         );
         ctx.stroke();
         ctx.setLineDash([]);
 
-        designConfig.ornamentLabels.forEach((label) => {
-          const fontOption = fontFamilyOptions.find(
-            (f) => f.value === label.fontFamily,
-          );
-          drawCurvedText(
-            label.text,
-            canvasSize * 0.35,
-            label.rotation,
-            label.size,
-            fontOption?.cssFont || "'Trispace', monospace",
-            label.bold,
-            label.italic,
-          );
-        });
+        // Note: Ornament labels will now be rendered as draggable Rnd components
+        // instead of being drawn directly on the canvas
       }
     };
 
@@ -280,6 +301,10 @@ export default function DesignConfigurator({
       handleConfigChange({ ornamentLabels: updatedLabels });
       setNewOrnamentLabel({
         text: "",
+        x: 50,
+        y: 50,
+        width: 150,
+        height: 30,
         size: 24,
         rotation: 0,
         fontFamily: "Trispace",
@@ -340,6 +365,46 @@ export default function DesignConfigurator({
           label.italic,
         );
         exportCtx.textAlign = label.textAlign || "center";
+        exportCtx.textBaseline = "middle";
+        exportCtx.fillText(label.text, 0, 0);
+        exportCtx.restore();
+      });
+    } else if (designConfig.printType === "ornament") {
+      // Draw positioned ornament labels onto the export canvas
+      designConfig.ornamentLabels.forEach((label) => {
+        const ornamentCircle = getOrnamentCircle();
+        const shouldInvert = shouldInvertOrnamentText(
+          label.y + label.height / 2,
+          ornamentCircle.y,
+        );
+
+        exportCtx.save();
+        exportCtx.translate(
+          (label.x + label.width / 2) * scale,
+          (label.y + label.height / 2) * scale,
+        );
+
+        // Apply rotation and inversion
+        const totalRotation =
+          (label.rotation + (shouldInvert ? 180 : 0)) * (Math.PI / 180);
+        exportCtx.rotate(totalRotation);
+
+        // Apply text inversion if needed
+        if (shouldInvert) {
+          exportCtx.scale(1, -1);
+        }
+
+        exportCtx.fillStyle = "#1f2937";
+        const fontOption = fontFamilyOptions.find(
+          (f) => f.value === label.fontFamily,
+        );
+        exportCtx.font = generateFontString(
+          label.size * scale,
+          fontOption?.cssFont || "'Trispace', monospace",
+          label.bold,
+          label.italic,
+        );
+        exportCtx.textAlign = "center";
         exportCtx.textBaseline = "middle";
         exportCtx.fillText(label.text, 0, 0);
         exportCtx.restore();
@@ -1124,6 +1189,157 @@ export default function DesignConfigurator({
                     </div>
                   </Rnd>
                 ))}
+
+              {/* Ornament Interactive Components */}
+              {designConfig.printType === "ornament" && (
+                <>
+                  {/* Draggable and Resizable Circle Overlay */}
+                  <Rnd
+                    size={{
+                      width: getOrnamentCircle().radius * 2,
+                      height: getOrnamentCircle().radius * 2,
+                    }}
+                    position={{
+                      x: getOrnamentCircle().x - getOrnamentCircle().radius,
+                      y: getOrnamentCircle().y - getOrnamentCircle().radius,
+                    }}
+                    onDragStop={(e, d) => {
+                      const newCircle = {
+                        x: d.x + getOrnamentCircle().radius,
+                        y: d.y + getOrnamentCircle().radius,
+                        radius: getOrnamentCircle().radius,
+                      };
+                      handleConfigChange({ ornamentCircle: newCircle });
+                    }}
+                    onResize={(e, direction, ref, delta, position) => {
+                      const newRadius =
+                        Math.min(
+                          parseInt(ref.style.width),
+                          parseInt(ref.style.height),
+                        ) / 2;
+                      const newCircle = {
+                        x: position.x + newRadius,
+                        y: position.y + newRadius,
+                        radius: newRadius,
+                      };
+                      handleConfigChange({ ornamentCircle: newCircle });
+                    }}
+                    minWidth={80}
+                    minHeight={80}
+                    maxWidth={380}
+                    maxHeight={380}
+                    bounds="parent"
+                    className="border-2 border-dashed border-summit-sage bg-summit-sage/10 rounded-full opacity-70 hover:opacity-100 transition-opacity"
+                    lockAspectRatio={true}
+                  >
+                    <div className="w-full h-full rounded-full flex items-center justify-center text-xs text-summit-sage font-semibold">
+                      Circle
+                    </div>
+                  </Rnd>
+
+                  {/* Draggable Ornament Labels */}
+                  {designConfig.ornamentLabels.map((label, index) => {
+                    const ornamentCircle = getOrnamentCircle();
+                    const shouldInvert = shouldInvertOrnamentText(
+                      label.y + label.height / 2,
+                      ornamentCircle.y,
+                    );
+
+                    return (
+                      <Rnd
+                        key={`ornament-${index}`}
+                        size={{ width: label.width, height: label.height }}
+                        position={{ x: label.x, y: label.y }}
+                        onDragStop={(e, d) => {
+                          handleOrnamentLabelChange(index, { x: d.x, y: d.y });
+                        }}
+                        onResize={(e, direction, ref, delta, position) => {
+                          const newWidth = parseInt(ref.style.width);
+                          const newHeight = parseInt(ref.style.height);
+                          handleOrnamentLabelChange(index, {
+                            width: newWidth,
+                            height: newHeight,
+                            size: Math.max(12, newHeight * 0.6),
+                            ...position,
+                          });
+                        }}
+                        minWidth={50}
+                        minHeight={20}
+                        bounds="parent"
+                        style={{
+                          transform: `rotate(${label.rotation + (shouldInvert ? 180 : 0)}deg)`,
+                        }}
+                        className="flex items-center justify-center border-2 border-solid border-orange-500 bg-white bg-opacity-70"
+                      >
+                        <div
+                          className="w-full h-full flex items-center justify-center text-center p-1"
+                          style={{
+                            fontSize: label.size,
+                            fontFamily:
+                              fontFamilyOptions.find(
+                                (f) => f.value === label.fontFamily,
+                              )?.cssFont || "'Trispace', monospace",
+                            fontWeight: label.bold ? "bold" : "normal",
+                            fontStyle: label.italic ? "italic" : "normal",
+                            transform: shouldInvert ? "scaleY(-1)" : "none",
+                          }}
+                        >
+                          {label.text}
+                        </div>
+                        <div
+                          className="absolute -top-8 left-1/2 -translate-x-1/2 w-6 h-6 bg-orange-500 rounded-full cursor-grab active:cursor-grabbing flex items-center justify-center text-white"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            const rect =
+                              e.currentTarget.parentElement?.getBoundingClientRect();
+                            if (!rect) return;
+
+                            const centerX = rect.left + rect.width / 2;
+                            const centerY = rect.top + rect.height / 2;
+
+                            const onMouseMove = (moveEvent: MouseEvent) => {
+                              const dx = moveEvent.clientX - centerX;
+                              const dy = moveEvent.clientY - centerY;
+                              handleOrnamentLabelChange(index, {
+                                rotation:
+                                  (Math.atan2(dy, dx) * 180) / Math.PI + 90,
+                              });
+                            };
+
+                            const onMouseUp = () => {
+                              document.removeEventListener(
+                                "mousemove",
+                                onMouseMove,
+                              );
+                              document.removeEventListener(
+                                "mouseup",
+                                onMouseUp,
+                              );
+                            };
+
+                            document.addEventListener("mousemove", onMouseMove);
+                            document.addEventListener("mouseup", onMouseUp);
+                          }}
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 4v5h5M20 20v-5h-5"
+                            />
+                          </svg>
+                        </div>
+                      </Rnd>
+                    );
+                  })}
+                </>
+              )}
             </div>
           </div>
 
