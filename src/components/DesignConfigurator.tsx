@@ -958,10 +958,21 @@ export default function DesignConfigurator({
                 {designConfig.ornamentLabels.map((label, index) => (
                   <div
                     key={index}
-                    className="p-3 bg-slate-50 rounded-lg border border-slate-storm/10"
+                    className={`p-3 rounded-lg border-2 transition-all ${
+                      selectedOrnamentLabelIndex === index
+                        ? "border-summit-sage bg-summit-sage/5"
+                        : "border-slate-storm/20 bg-slate-50 hover:border-slate-storm/40"
+                    }`}
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <div>
+                      <div
+                        className="flex-1 cursor-pointer"
+                        onClick={() =>
+                          setSelectedOrnamentLabelIndex(
+                            selectedOrnamentLabelIndex === index ? null : index,
+                          )
+                        }
+                      >
                         <div className="text-sm font-semibold text-basalt">
                           {label.text}
                         </div>
@@ -990,116 +1001,121 @@ export default function DesignConfigurator({
                       </button>
                     </div>
 
-                    {/* Font Family Selection */}
-                    <div className="mb-3">
-                      <label className="block text-xs font-semibold text-basalt mb-1">
-                        Font Family
-                      </label>
-                      <div className="grid grid-cols-3 gap-1">
-                        {fontFamilyOptions.map((font) => (
-                          <button
-                            key={font.value}
-                            onClick={() =>
-                              handleOrnamentLabelChange(index, {
-                                fontFamily: font.value,
-                              })
-                            }
-                            className={`px-2 py-1 text-xs rounded transition-all ${
-                              label.fontFamily === font.value
-                                ? "bg-summit-sage text-white"
-                                : "bg-slate-100 hover:bg-slate-200 text-basalt"
-                            }`}
-                            style={{ fontFamily: font.cssFont }}
-                          >
-                            {font.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    {selectedOrnamentLabelIndex === index && (
+                      <div className="space-y-3 pt-3 border-t border-slate-storm/10">
+                        {/* Font Family Selection */}
+                        <div className="mb-3">
+                          <label className="block text-xs font-semibold text-basalt mb-1">
+                            Font Family
+                          </label>
+                          <div className="grid grid-cols-3 gap-1">
+                            {fontFamilyOptions.map((font) => (
+                              <button
+                                key={font.value}
+                                onClick={() =>
+                                  handleOrnamentLabelChange(index, {
+                                    fontFamily: font.value,
+                                  })
+                                }
+                                className={`px-2 py-1 text-xs rounded transition-all ${
+                                  label.fontFamily === font.value
+                                    ? "bg-summit-sage text-white"
+                                    : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                                }`}
+                                style={{ fontFamily: font.cssFont }}
+                              >
+                                {font.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
 
-                    <div className="text-xs text-slate-storm mb-1">
-                      Size: {label.size}px
-                    </div>
-                    <input
-                      type="range"
-                      min="12"
-                      max="48"
-                      value={label.size}
-                      onChange={(e) =>
-                        handleOrnamentLabelChange(index, {
-                          size: parseInt(e.target.value),
-                        })
-                      }
-                      className="w-full mb-3"
-                    />
-                    <div className="text-xs text-slate-storm mb-1">
-                      Position: {label.angle?.toFixed(0) || 0}° around circle
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="360"
-                      value={label.angle || 0}
-                      onChange={(e) =>
-                        handleOrnamentLabelChange(index, {
-                          angle: parseInt(e.target.value),
-                        })
-                      }
-                      className="w-full mb-3"
-                    />
-
-                    <div className="text-xs text-slate-storm mb-1">
-                      Distance: {label.radius || 180}px from center
-                    </div>
-                    <input
-                      type="range"
-                      min="120"
-                      max="220"
-                      value={label.radius || 180}
-                      onChange={(e) =>
-                        handleOrnamentLabelChange(index, {
-                          radius: parseInt(e.target.value),
-                        })
-                      }
-                      className="w-full"
-                    />
-
-                    {/* Text Style */}
-                    <div className="mt-3">
-                      <label className="block text-xs font-semibold text-basalt mb-1">
-                        Text Style
-                      </label>
-                      <div className="grid grid-cols-2 gap-1">
-                        <button
-                          onClick={() =>
+                        <div className="text-xs text-slate-storm mb-1">
+                          Size: {label.size}px
+                        </div>
+                        <input
+                          type="range"
+                          min="12"
+                          max="48"
+                          value={label.size}
+                          onChange={(e) =>
                             handleOrnamentLabelChange(index, {
-                              bold: !label.bold,
+                              size: parseInt(e.target.value),
                             })
                           }
-                          className={`px-3 py-2 text-sm font-bold rounded transition-all ${
-                            label.bold
-                              ? "bg-summit-sage text-white"
-                              : "bg-slate-100 hover:bg-slate-200 text-basalt"
-                          }`}
-                        >
-                          B
-                        </button>
-                        <button
-                          onClick={() =>
+                          className="w-full mb-3"
+                        />
+                        <div className="text-xs text-slate-storm mb-1">
+                          Position: {label.angle?.toFixed(0) || 0}° around
+                          circle
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="360"
+                          value={label.angle || 0}
+                          onChange={(e) =>
                             handleOrnamentLabelChange(index, {
-                              italic: !label.italic,
+                              angle: parseInt(e.target.value),
                             })
                           }
-                          className={`px-3 py-2 text-sm italic rounded transition-all ${
-                            label.italic
-                              ? "bg-summit-sage text-white"
-                              : "bg-slate-100 hover:bg-slate-200 text-basalt"
-                          }`}
-                        >
-                          I
-                        </button>
+                          className="w-full mb-3"
+                        />
+
+                        <div className="text-xs text-slate-storm mb-1">
+                          Distance: {label.radius || 180}px from center
+                        </div>
+                        <input
+                          type="range"
+                          min="120"
+                          max="220"
+                          value={label.radius || 180}
+                          onChange={(e) =>
+                            handleOrnamentLabelChange(index, {
+                              radius: parseInt(e.target.value),
+                            })
+                          }
+                          className="w-full"
+                        />
+
+                        {/* Text Style */}
+                        <div className="mt-3">
+                          <label className="block text-xs font-semibold text-basalt mb-1">
+                            Text Style
+                          </label>
+                          <div className="grid grid-cols-2 gap-1">
+                            <button
+                              onClick={() =>
+                                handleOrnamentLabelChange(index, {
+                                  bold: !label.bold,
+                                })
+                              }
+                              className={`px-3 py-2 text-sm font-bold rounded transition-all ${
+                                label.bold
+                                  ? "bg-summit-sage text-white"
+                                  : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                              }`}
+                            >
+                              B
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleOrnamentLabelChange(index, {
+                                  italic: !label.italic,
+                                })
+                              }
+                              className={`px-3 py-2 text-sm italic rounded transition-all ${
+                                label.italic
+                                  ? "bg-summit-sage text-white"
+                                  : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                              }`}
+                            >
+                              I
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 ))}
 
