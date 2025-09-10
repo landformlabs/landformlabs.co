@@ -24,12 +24,28 @@ export default function GPXDesignApp() {
       rotation: number;
       width: number;
       height: number;
+      fontFamily: "Garamond" | "Poppins" | "Trispace";
+      textAlign: "left" | "center" | "right";
+      bold: boolean;
+      italic: boolean;
     }>,
     ornamentLabels: [] as Array<{
       text: string;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
       size: number;
       rotation: number;
+      fontFamily: "Garamond" | "Poppins" | "Trispace";
+      bold: boolean;
+      italic: boolean;
     }>,
+    ornamentCircle: {
+      x: 200,
+      y: 200,
+      radius: 160,
+    },
   });
 
   const handleGPXUpload = (parsedGPX: any) => {
@@ -55,6 +71,11 @@ export default function GPXDesignApp() {
       printType: "tile",
       labels: [],
       ornamentLabels: [],
+      ornamentCircle: {
+        x: 200,
+        y: 200,
+        radius: 160,
+      },
     });
   };
 
@@ -63,7 +84,7 @@ export default function GPXDesignApp() {
       <Header />
       <main className="min-h-screen bg-alpine-mist">
         {/* Hero Section */}
-        <div className="bg-alpine-mist py-16 lg:py-24">
+        <div className="bg-alpine-mist py-8 lg:py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h1 className="text-4xl font-headline font-bold text-basalt sm:text-5xl lg:text-6xl">
