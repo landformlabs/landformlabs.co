@@ -16,6 +16,7 @@ export default function GPXDesignApp() {
   const [designConfig, setDesignConfig] = useState({
     routeColor: "#2563eb",
     printType: "tile" as "tile" | "ornament",
+    tileSize: "ridgeline" as "basecamp" | "ridgeline" | "summit",
     labels: [] as Array<{
       text: string;
       x: number;
@@ -66,6 +67,7 @@ export default function GPXDesignApp() {
     setDesignConfig({
       routeColor: "#2563eb",
       printType: "tile",
+      tileSize: "ridgeline",
       labels: [],
       ornamentLabels: [],
       ornamentCircle: {
@@ -97,7 +99,8 @@ export default function GPXDesignApp() {
               <div className="mt-8 flex justify-center">
                 <div className="flex items-center space-x-4">
                   <div
-                    className={`flex items-center space-x-2 ${currentStep === "upload" ? "text-summit-sage" : currentStep === "map" || currentStep === "design" ? "text-basalt" : "text-slate-storm/50"}`}
+                    onClick={() => setCurrentStep("upload")}
+                    className={`flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity ${currentStep === "upload" ? "text-summit-sage" : currentStep === "map" || currentStep === "design" ? "text-basalt" : "text-slate-storm/50"}`}
                   >
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${currentStep === "upload" ? "bg-summit-sage text-white" : currentStep === "map" || currentStep === "design" ? "bg-basalt text-white" : "bg-slate-storm/20 text-slate-storm/50"}`}
@@ -110,7 +113,8 @@ export default function GPXDesignApp() {
                     className={`w-8 h-px ${currentStep === "map" || currentStep === "design" ? "bg-basalt" : "bg-slate-storm/20"}`}
                   ></div>
                   <div
-                    className={`flex items-center space-x-2 ${currentStep === "map" ? "text-summit-sage" : currentStep === "design" ? "text-basalt" : "text-slate-storm/50"}`}
+                    onClick={() => gpxData && setCurrentStep("map")}
+                    className={`flex items-center space-x-2 transition-opacity ${gpxData ? "cursor-pointer hover:opacity-80" : "cursor-not-allowed"} ${currentStep === "map" ? "text-summit-sage" : currentStep === "design" ? "text-basalt" : "text-slate-storm/50"}`}
                   >
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${currentStep === "map" ? "bg-summit-sage text-white" : currentStep === "design" ? "bg-basalt text-white" : "bg-slate-storm/20 text-slate-storm/50"}`}
@@ -123,7 +127,10 @@ export default function GPXDesignApp() {
                     className={`w-8 h-px ${currentStep === "design" ? "bg-basalt" : "bg-slate-storm/20"}`}
                   ></div>
                   <div
-                    className={`flex items-center space-x-2 ${currentStep === "design" ? "text-summit-sage" : "text-slate-storm/50"}`}
+                    onClick={() =>
+                      gpxData && boundingBox && setCurrentStep("design")
+                    }
+                    className={`flex items-center space-x-2 transition-opacity ${gpxData && boundingBox ? "cursor-pointer hover:opacity-80" : "cursor-not-allowed"} ${currentStep === "design" ? "text-summit-sage" : "text-slate-storm/50"}`}
                   >
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${currentStep === "design" ? "bg-summit-sage text-white" : "bg-slate-storm/20 text-slate-storm/50"}`}

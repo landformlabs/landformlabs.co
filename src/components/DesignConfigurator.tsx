@@ -10,6 +10,7 @@ interface DesignConfiguratorProps {
   designConfig: {
     routeColor: string;
     printType: "tile" | "ornament";
+    tileSize: "basecamp" | "ridgeline" | "summit";
     labels: Array<{
       text: string;
       x: number;
@@ -120,6 +121,21 @@ export default function DesignConfigurator({
       icon: "M3 3h18v2H3V3zm6 4h12v2H9V7zm-6 4h18v2H3v-2z",
     },
   ];
+
+  // Helper function to get tile size scaling factor
+  const getTileSizeScaling = () => {
+    // Scale text relative to physical size - larger prints need smaller relative text
+    switch (designConfig.tileSize) {
+      case "basecamp": // 100mm - smallest tile, largest relative text
+        return 1.4;
+      case "ridgeline": // 155mm - baseline size
+        return 1.0;
+      case "summit": // 210mm - largest tile, smallest relative text
+        return 0.7;
+      default:
+        return 1.0;
+    }
+  };
 
   // Helper function to generate font string with weight and style
   const generateFontString = (
@@ -388,7 +404,7 @@ export default function DesignConfigurator({
           (f) => f.value === label.fontFamily,
         );
         exportCtx.font = generateFontString(
-          label.size * scale,
+          label.size * getTileSizeScaling() * scale,
           fontOption?.cssFont || "'Trispace', monospace",
           label.bold,
           label.italic,
@@ -487,6 +503,8 @@ export default function DesignConfigurator({
     const orderSpecs = {
       orderInfo: {
         printType: designConfig.printType,
+        tileSize:
+          designConfig.printType === "tile" ? designConfig.tileSize : undefined,
         routeColor: designConfig.routeColor,
         boundingBox: boundingBox,
         timestamp: new Date().toISOString(),
@@ -528,6 +546,14 @@ export default function DesignConfigurator({
     orderSummary += `Order Reference: ${orderSpecs.orderInfo.orderReference}\n`;
     orderSummary += `Date: ${new Date().toLocaleDateString()}\n`;
     orderSummary += `Print Type: ${designConfig.printType.charAt(0).toUpperCase() + designConfig.printType.slice(1)}\n`;
+    if (designConfig.printType === "tile") {
+      const tileSizeInfo = {
+        basecamp: "Basecamp (100mm × 100mm) - $20",
+        ridgeline: "Ridgeline (155mm × 155mm) - $40",
+        summit: "Summit (210mm × 210mm) - $60",
+      };
+      orderSummary += `Tile Size: ${tileSizeInfo[designConfig.tileSize]}\n`;
+    }
     orderSummary += `Route Color: ${designConfig.routeColor}\n\n`;
 
     orderSummary += `ROUTE INFORMATION:\n`;
@@ -645,6 +671,50 @@ export default function DesignConfigurator({
               </button>
             </div>
           </div>
+
+          {/* Tile Size Selection */}
+          {designConfig.printType === "tile" && (
+            <div>
+              <label className="block text-sm font-headline font-semibold text-basalt mb-3">
+                Tile Size
+              </label>
+              <div className="grid grid-cols-1 gap-3">
+                <button
+                  onClick={() => handleConfigChange({ tileSize: "basecamp" })}
+                  className={`p-4 rounded-lg border-2 text-left transition-all ${designConfig.tileSize === "basecamp" ? "border-summit-sage bg-summit-sage/5" : "border-slate-storm/20 hover:border-slate-storm/40"}`}
+                >
+                  <div className="font-semibold text-basalt text-sm mb-1">
+                    Basecamp (100mm × 100mm)
+                  </div>
+                  <div className="text-xs text-slate-storm">
+                    $20 - Perfect for desks and small spaces
+                  </div>
+                </button>
+                <button
+                  onClick={() => handleConfigChange({ tileSize: "ridgeline" })}
+                  className={`p-4 rounded-lg border-2 text-left transition-all ${designConfig.tileSize === "ridgeline" ? "border-summit-sage bg-summit-sage/5" : "border-slate-storm/20 hover:border-slate-storm/40"}`}
+                >
+                  <div className="font-semibold text-basalt text-sm mb-1">
+                    Ridgeline (155mm × 155mm)
+                  </div>
+                  <div className="text-xs text-slate-storm">
+                    $40 - Great balance of size and detail
+                  </div>
+                </button>
+                <button
+                  onClick={() => handleConfigChange({ tileSize: "summit" })}
+                  className={`p-4 rounded-lg border-2 text-left transition-all ${designConfig.tileSize === "summit" ? "border-summit-sage bg-summit-sage/5" : "border-slate-storm/20 hover:border-slate-storm/40"}`}
+                >
+                  <div className="font-semibold text-basalt text-sm mb-1">
+                    Summit (210mm × 210mm)
+                  </div>
+                  <div className="text-xs text-slate-storm">
+                    $60 - Maximum impact and detail
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Text Labels */}
           {designConfig.printType === "tile" ? (
@@ -1238,10 +1308,7 @@ export default function DesignConfigurator({
             <h2 className="text-2xl font-headline font-bold text-basalt">
               Design Preview
             </h2>
-            <div className="flex items-center gap-4">
-              <button onClick={onRestart} className="btn-secondary">
-                Start Over
-              </button>
+            <div className="flex items-center">
               <button onClick={exportDesign} className="btn-primary">
                 Export Design
               </button>
@@ -1285,7 +1352,7 @@ export default function DesignConfigurator({
                     <div
                       className="w-full h-full flex items-center text-center p-1"
                       style={{
-                        fontSize: label.size,
+                        fontSize: label.size * getTileSizeScaling(),
                         fontFamily:
                           fontFamilyOptions.find(
                             (f) => f.value === label.fontFamily,
