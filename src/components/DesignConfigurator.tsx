@@ -476,30 +476,96 @@ export default function DesignConfigurator({
       exportCanvas.toBlob(resolve, "image/png"),
     );
     if (pngBlob) {
-      zip.file("design.png", pngBlob);
+      zip.file("design-preview.png", pngBlob);
     }
 
+    // Add GPX route data
     const gpxString = gpxData.gpxString;
-    zip.file("route.gpx", gpxString);
+    zip.file("route-data.gpx", gpxString);
 
-    let labelInfo = "Bounding Box:\n" + boundingBox + "\n\n";
+    // Create comprehensive order specifications
+    const orderSpecs = {
+      orderInfo: {
+        printType: designConfig.printType,
+        routeColor: designConfig.routeColor,
+        boundingBox: boundingBox,
+        timestamp: new Date().toISOString(),
+        orderReference: `LF-${Date.now()}`,
+      },
+      labels:
+        designConfig.printType === "tile"
+          ? designConfig.labels.map((label) => ({
+              text: label.text,
+              position: { x: label.x, y: label.y },
+              size: { width: label.width, height: label.height },
+              typography: {
+                fontFamily: label.fontFamily,
+                fontSize: label.size,
+                textAlign: label.textAlign,
+                bold: label.bold,
+                italic: label.italic,
+              },
+              rotation: label.rotation,
+            }))
+          : designConfig.ornamentLabels.map((label) => ({
+              text: label.text,
+              position: { angle: label.angle, radius: label.radius },
+              typography: {
+                fontFamily: label.fontFamily,
+                fontSize: label.size,
+                bold: label.bold,
+                italic: label.italic,
+              },
+            })),
+    };
+
+    // Add machine-readable specifications
+    zip.file("order-specifications.json", JSON.stringify(orderSpecs, null, 2));
+
+    // Create human-readable order summary
+    let orderSummary = `LANDFORM LABS - CUSTOM PRINT ORDER\n`;
+    orderSummary += `=====================================\n\n`;
+    orderSummary += `Order Reference: ${orderSpecs.orderInfo.orderReference}\n`;
+    orderSummary += `Date: ${new Date().toLocaleDateString()}\n`;
+    orderSummary += `Print Type: ${designConfig.printType.charAt(0).toUpperCase() + designConfig.printType.slice(1)}\n`;
+    orderSummary += `Route Color: ${designConfig.routeColor}\n\n`;
+
+    orderSummary += `ROUTE INFORMATION:\n`;
+    orderSummary += `Bounding Box: ${boundingBox}\n\n`;
+
     if (designConfig.printType === "tile") {
-      labelInfo += "Tile Labels:\n";
+      orderSummary += `TILE LABELS (${designConfig.labels.length}):\n`;
       designConfig.labels.forEach((l, i) => {
-        labelInfo += `  Label ${i + 1}: ${l.text}\n`;
+        orderSummary += `  ${i + 1}. "${l.text}"\n`;
+        orderSummary += `     Font: ${l.fontFamily}, ${l.size}px\n`;
+        orderSummary += `     Style: ${l.bold ? "Bold" : "Normal"} ${l.italic ? "Italic" : "Regular"}\n`;
+        orderSummary += `     Alignment: ${l.textAlign}\n`;
+        orderSummary += `     Position: (${l.x}, ${l.y}) ${l.width}x${l.height}px\n`;
+        orderSummary += `     Rotation: ${l.rotation}°\n\n`;
       });
     } else {
-      labelInfo += "Ornament Labels:\n";
+      orderSummary += `ORNAMENT LABELS (${designConfig.ornamentLabels.length}):\n`;
       designConfig.ornamentLabels.forEach((l, i) => {
-        labelInfo += `  Label ${i + 1}: ${l.text}\n`;
+        orderSummary += `  ${i + 1}. "${l.text}"\n`;
+        orderSummary += `     Font: ${l.fontFamily}, ${l.size}px\n`;
+        orderSummary += `     Style: ${l.bold ? "Bold" : "Normal"} ${l.italic ? "Italic" : "Regular"}\n`;
+        orderSummary += `     Position: ${l.angle}° angle, ${l.radius}px from center\n\n`;
       });
     }
-    zip.file("info.txt", labelInfo);
+
+    orderSummary += `FILES INCLUDED:\n`;
+    orderSummary += `- route-data.gpx: Original GPS route data\n`;
+    orderSummary += `- design-preview.png: High-resolution design preview\n`;
+    orderSummary += `- order-specifications.json: Machine-readable specifications\n`;
+    orderSummary += `- order-summary.txt: This human-readable summary\n\n`;
+    orderSummary += `To place your order, email this entire ZIP file to: orders@landformlabs.co\n`;
+
+    zip.file("order-summary.txt", orderSummary);
 
     zip.generateAsync({ type: "blob" }).then((content) => {
       const link = document.createElement("a");
       link.href = URL.createObjectURL(content);
-      link.download = "landform-labs-design.zip";
+      link.download = `landform-labs-order-${orderSpecs.orderInfo.orderReference.split("-")[1]}.zip`;
       link.click();
     });
   };
