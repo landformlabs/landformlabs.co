@@ -18,11 +18,14 @@ interface DesignConfiguratorProps {
       rotation: number;
       width: number;
       height: number;
+      fontFamily: "Garamond" | "Poppins" | "Trispace";
+      textAlign: "left" | "center" | "right";
     }>;
     ornamentLabels: Array<{
       text: string;
       size: number;
       rotation: number;
+      fontFamily: "Garamond" | "Poppins" | "Trispace";
     }>;
   };
   onConfigChange: (config: any) => void;
@@ -37,12 +40,20 @@ export default function DesignConfigurator({
   onRestart,
 }: DesignConfiguratorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [newLabel, setNewLabel] = useState({ text: "" });
+  const [newLabel, setNewLabel] = useState({
+    text: "",
+    fontFamily: "Trispace" as const,
+    textAlign: "center" as const,
+  });
   const [newOrnamentLabel, setNewOrnamentLabel] = useState({
     text: "",
     size: 24,
     rotation: 0,
+    fontFamily: "Trispace" as const,
   });
+  const [selectedLabelIndex, setSelectedLabelIndex] = useState<number | null>(
+    null,
+  );
 
   // Parse bounding box coordinates
   const bbox = boundingBox.split(",").map(Number); // [minLng, minLat, maxLng, maxLat]
@@ -52,6 +63,44 @@ export default function DesignConfigurator({
     { name: "Black", value: "#000000" },
     { name: "Blue", value: "#2563eb" },
     { name: "Red", value: "#ef4444" },
+  ];
+
+  // Font family options
+  const fontFamilyOptions = [
+    {
+      name: "Trispace",
+      value: "Trispace" as const,
+      cssFont: "'Trispace', monospace",
+    },
+    {
+      name: "Garamond",
+      value: "Garamond" as const,
+      cssFont: "'EB Garamond', serif",
+    },
+    {
+      name: "Poppins",
+      value: "Poppins" as const,
+      cssFont: "'Poppins', sans-serif",
+    },
+  ];
+
+  // Text alignment options
+  const textAlignOptions = [
+    {
+      name: "Left",
+      value: "left" as const,
+      icon: "M3 3h18v2H3V3zm0 4h12v2H3V7zm0 4h18v2H3v-2z",
+    },
+    {
+      name: "Center",
+      value: "center" as const,
+      icon: "M5 3h14v2H5V3zm-2 4h18v2H3V7zm2 4h14v2H5v-2z",
+    },
+    {
+      name: "Right",
+      value: "right" as const,
+      icon: "M3 3h18v2H3V3zm6 4h12v2H9V7zm-6 4h18v2H3v-2z",
+    },
   ];
 
   // Canvas rendering
@@ -70,10 +119,11 @@ export default function DesignConfigurator({
       radius: number,
       rotation: number,
       fontSize: number,
+      fontFamily: string = "'Trispace', monospace",
     ) => {
       ctx.save();
       ctx.translate(canvasSize / 2, canvasSize / 2);
-      ctx.font = `bold ${fontSize}px 'Trispace', monospace`;
+      ctx.font = `bold ${fontSize}px ${fontFamily}`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
@@ -138,11 +188,15 @@ export default function DesignConfigurator({
         ctx.setLineDash([]);
 
         designConfig.ornamentLabels.forEach((label) => {
+          const fontOption = fontFamilyOptions.find(
+            (f) => f.value === label.fontFamily,
+          );
           drawCurvedText(
             label.text,
             canvasSize * 0.35,
             label.rotation,
             label.size,
+            fontOption?.cssFont || "'Trispace', monospace",
           );
         });
       }
@@ -166,17 +220,19 @@ export default function DesignConfigurator({
       const updatedLabels = [
         ...designConfig.labels,
         {
-          ...newLabel,
+          text: newLabel.text,
           x: 50,
           y: 50,
           rotation: 0,
           width: 150,
           height: 50,
-          size: 24, // Initial font size
+          size: 24,
+          fontFamily: newLabel.fontFamily,
+          textAlign: newLabel.textAlign,
         },
       ];
       handleConfigChange({ labels: updatedLabels });
-      setNewLabel({ text: "" });
+      setNewLabel({ text: "", fontFamily: "Trispace", textAlign: "center" });
     }
   };
 
@@ -189,7 +245,12 @@ export default function DesignConfigurator({
     if (newOrnamentLabel.text.trim()) {
       const updatedLabels = [...designConfig.ornamentLabels, newOrnamentLabel];
       handleConfigChange({ ornamentLabels: updatedLabels });
-      setNewOrnamentLabel({ text: "", size: 24, rotation: 0 });
+      setNewOrnamentLabel({
+        text: "",
+        size: 24,
+        rotation: 0,
+        fontFamily: "Trispace",
+      });
     }
   };
 
@@ -233,8 +294,12 @@ export default function DesignConfigurator({
         );
         exportCtx.rotate((label.rotation * Math.PI) / 180);
         exportCtx.fillStyle = "#1f2937";
-        exportCtx.font = `bold ${label.size * scale}px 'Trispace', monospace`;
-        exportCtx.textAlign = "center";
+
+        const fontOption = fontFamilyOptions.find(
+          (f) => f.value === label.fontFamily,
+        );
+        exportCtx.font = `bold ${label.size * scale}px ${fontOption?.cssFont || "'Trispace', monospace"}`;
+        exportCtx.textAlign = label.textAlign || "center";
         exportCtx.textBaseline = "middle";
         exportCtx.fillText(label.text, 0, 0);
         exportCtx.restore();
@@ -358,45 +423,219 @@ export default function DesignConfigurator({
                 {designConfig.labels.map((label, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                    className={`p-3 rounded-lg border-2 transition-all ${
+                      selectedLabelIndex === index
+                        ? "border-summit-sage bg-summit-sage/5"
+                        : "border-slate-storm/20 bg-slate-50 hover:border-slate-storm/40"
+                    }`}
                   >
-                    <div className="flex-1">
-                      <div className="text-sm font-semibold text-basalt">
-                        {label.text}
-                      </div>
-                      <div className="text-xs text-slate-storm">
-                        Size: {Math.round(label.size)}px
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => removeLabel(index)}
-                      className="text-red-500 hover:text-red-700 p-1"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
+                    <div className="flex items-center justify-between mb-3">
+                      <div
+                        className="flex-1 cursor-pointer"
+                        onClick={() =>
+                          setSelectedLabelIndex(
+                            selectedLabelIndex === index ? null : index,
+                          )
+                        }
                       >
-                        <path
-                          fillRule="evenodd"
-                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
+                        <div className="text-sm font-semibold text-basalt">
+                          {label.text}
+                        </div>
+                        <div className="text-xs text-slate-storm">
+                          {label.fontFamily} • {label.textAlign} •{" "}
+                          {Math.round(label.size)}px
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeLabel(index)}
+                        className="text-red-500 hover:text-red-700 p-1 ml-2"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {selectedLabelIndex === index && (
+                      <div className="space-y-3 pt-3 border-t border-slate-storm/10">
+                        {/* Text Content */}
+                        <div>
+                          <label className="block text-xs font-semibold text-basalt mb-1">
+                            Text
+                          </label>
+                          <input
+                            type="text"
+                            value={label.text}
+                            onChange={(e) =>
+                              handleLabelChange(index, { text: e.target.value })
+                            }
+                            className="w-full px-2 py-1 border border-slate-storm/20 rounded text-sm focus-ring focus:border-summit-sage"
+                          />
+                        </div>
+
+                        {/* Font Family */}
+                        <div>
+                          <label className="block text-xs font-semibold text-basalt mb-1">
+                            Font Family
+                          </label>
+                          <div className="grid grid-cols-3 gap-1">
+                            {fontFamilyOptions.map((font) => (
+                              <button
+                                key={font.value}
+                                onClick={() =>
+                                  handleLabelChange(index, {
+                                    fontFamily: font.value,
+                                  })
+                                }
+                                className={`px-2 py-1 text-xs rounded transition-all ${
+                                  label.fontFamily === font.value
+                                    ? "bg-summit-sage text-white"
+                                    : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                                }`}
+                                style={{ fontFamily: font.cssFont }}
+                              >
+                                {font.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Text Alignment */}
+                        <div>
+                          <label className="block text-xs font-semibold text-basalt mb-1">
+                            Text Alignment
+                          </label>
+                          <div className="grid grid-cols-3 gap-1">
+                            {textAlignOptions.map((align) => (
+                              <button
+                                key={align.value}
+                                onClick={() =>
+                                  handleLabelChange(index, {
+                                    textAlign: align.value,
+                                  })
+                                }
+                                className={`p-2 rounded transition-all ${
+                                  label.textAlign === align.value
+                                    ? "bg-summit-sage text-white"
+                                    : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                                }`}
+                                title={align.name}
+                              >
+                                <svg
+                                  className="w-3 h-3 mx-auto"
+                                  fill="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path d={align.icon} />
+                                </svg>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Font Size */}
+                        <div>
+                          <label className="block text-xs font-semibold text-basalt mb-1">
+                            Font Size: {Math.round(label.size)}px
+                          </label>
+                          <input
+                            type="range"
+                            min="12"
+                            max="48"
+                            value={label.size}
+                            onChange={(e) =>
+                              handleLabelChange(index, {
+                                size: parseInt(e.target.value),
+                              })
+                            }
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
 
-                <div className="space-y-2">
+                <div className="space-y-3 pt-4 border-t border-slate-storm/10">
+                  <h4 className="text-sm font-semibold text-basalt">
+                    Add New Label
+                  </h4>
+
+                  {/* Text Input */}
                   <input
                     type="text"
                     value={newLabel.text}
                     onChange={(e) =>
                       setNewLabel({ ...newLabel, text: e.target.value })
                     }
-                    placeholder="Add label text..."
+                    placeholder="Enter label text..."
                     className="w-full px-3 py-2 border border-slate-storm/20 rounded-lg focus-ring focus:border-summit-sage text-sm"
                   />
+
+                  {/* Font Family Selection */}
+                  <div>
+                    <label className="block text-xs font-semibold text-basalt mb-1">
+                      Font Family
+                    </label>
+                    <div className="grid grid-cols-3 gap-1">
+                      {fontFamilyOptions.map((font) => (
+                        <button
+                          key={font.value}
+                          onClick={() =>
+                            setNewLabel({ ...newLabel, fontFamily: font.value })
+                          }
+                          className={`px-2 py-1 text-xs rounded transition-all ${
+                            newLabel.fontFamily === font.value
+                              ? "bg-summit-sage text-white"
+                              : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                          }`}
+                          style={{ fontFamily: font.cssFont }}
+                        >
+                          {font.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Text Alignment Selection */}
+                  <div>
+                    <label className="block text-xs font-semibold text-basalt mb-1">
+                      Text Alignment
+                    </label>
+                    <div className="grid grid-cols-3 gap-1">
+                      {textAlignOptions.map((align) => (
+                        <button
+                          key={align.value}
+                          onClick={() =>
+                            setNewLabel({ ...newLabel, textAlign: align.value })
+                          }
+                          className={`p-2 rounded transition-all ${
+                            newLabel.textAlign === align.value
+                              ? "bg-summit-sage text-white"
+                              : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                          }`}
+                          title={align.name}
+                        >
+                          <svg
+                            className="w-3 h-3 mx-auto"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d={align.icon} />
+                          </svg>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <button
                     onClick={addLabel}
                     disabled={!newLabel.text.trim()}
@@ -415,10 +654,19 @@ export default function DesignConfigurator({
 
               <div className="space-y-3">
                 {designConfig.ornamentLabels.map((label, index) => (
-                  <div key={index} className="p-3 bg-slate-50 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm font-semibold text-basalt">
-                        {label.text}
+                  <div
+                    key={index}
+                    className="p-3 bg-slate-50 rounded-lg border border-slate-storm/10"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <div className="text-sm font-semibold text-basalt">
+                          {label.text}
+                        </div>
+                        <div className="text-xs text-slate-storm">
+                          {label.fontFamily} • {label.size}px •{" "}
+                          {label.rotation.toFixed(0)}°
+                        </div>
                       </div>
                       <button
                         onClick={() => removeOrnamentLabel(index)}
@@ -437,7 +685,35 @@ export default function DesignConfigurator({
                         </svg>
                       </button>
                     </div>
-                    <div className="text-xs text-slate-storm mt-2">
+
+                    {/* Font Family Selection */}
+                    <div className="mb-3">
+                      <label className="block text-xs font-semibold text-basalt mb-1">
+                        Font Family
+                      </label>
+                      <div className="grid grid-cols-3 gap-1">
+                        {fontFamilyOptions.map((font) => (
+                          <button
+                            key={font.value}
+                            onClick={() =>
+                              handleOrnamentLabelChange(index, {
+                                fontFamily: font.value,
+                              })
+                            }
+                            className={`px-2 py-1 text-xs rounded transition-all ${
+                              label.fontFamily === font.value
+                                ? "bg-summit-sage text-white"
+                                : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                            }`}
+                            style={{ fontFamily: font.cssFont }}
+                          >
+                            {font.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-slate-storm mb-1">
                       Size: {label.size}px
                     </div>
                     <input
@@ -450,9 +726,9 @@ export default function DesignConfigurator({
                           size: parseInt(e.target.value),
                         })
                       }
-                      className="w-full mt-1"
+                      className="w-full mb-3"
                     />
-                    <div className="text-xs text-slate-storm mt-2">
+                    <div className="text-xs text-slate-storm mb-1">
                       Rotation: {label.rotation.toFixed(0)}°
                     </div>
                     <input
@@ -465,12 +741,17 @@ export default function DesignConfigurator({
                           rotation: parseInt(e.target.value),
                         })
                       }
-                      className="w-full mt-1"
+                      className="w-full"
                     />
                   </div>
                 ))}
 
-                <div className="space-y-2 pt-4 border-t">
+                <div className="space-y-3 pt-4 border-t border-slate-storm/10">
+                  <h4 className="text-sm font-semibold text-basalt">
+                    Add New Ornament Label
+                  </h4>
+
+                  {/* Text Input */}
                   <input
                     type="text"
                     value={newOrnamentLabel.text}
@@ -480,9 +761,38 @@ export default function DesignConfigurator({
                         text: e.target.value,
                       })
                     }
-                    placeholder="Add ornament label..."
+                    placeholder="Enter ornament label text..."
                     className="w-full px-3 py-2 border border-slate-storm/20 rounded-lg focus-ring focus:border-summit-sage text-sm"
                   />
+
+                  {/* Font Family Selection */}
+                  <div>
+                    <label className="block text-xs font-semibold text-basalt mb-1">
+                      Font Family
+                    </label>
+                    <div className="grid grid-cols-3 gap-1">
+                      {fontFamilyOptions.map((font) => (
+                        <button
+                          key={font.value}
+                          onClick={() =>
+                            setNewOrnamentLabel({
+                              ...newOrnamentLabel,
+                              fontFamily: font.value,
+                            })
+                          }
+                          className={`px-2 py-1 text-xs rounded transition-all ${
+                            newOrnamentLabel.fontFamily === font.value
+                              ? "bg-summit-sage text-white"
+                              : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                          }`}
+                          style={{ fontFamily: font.cssFont }}
+                        >
+                          {font.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <button
                     onClick={addOrnamentLabel}
                     disabled={!newOrnamentLabel.text.trim()}
@@ -561,8 +871,21 @@ export default function DesignConfigurator({
                     className="flex items-center justify-center border-2 border-solid border-blue-500 bg-white bg-opacity-50"
                   >
                     <div
-                      className="w-full h-full flex items-center justify-center text-center p-1"
-                      style={{ fontSize: label.size }}
+                      className="w-full h-full flex items-center text-center p-1"
+                      style={{
+                        fontSize: label.size,
+                        fontFamily:
+                          fontFamilyOptions.find(
+                            (f) => f.value === label.fontFamily,
+                          )?.cssFont || "'Trispace', monospace",
+                        textAlign: label.textAlign || "center",
+                        justifyContent:
+                          label.textAlign === "left"
+                            ? "flex-start"
+                            : label.textAlign === "right"
+                              ? "flex-end"
+                              : "center",
+                      }}
                     >
                       {label.text}
                     </div>
