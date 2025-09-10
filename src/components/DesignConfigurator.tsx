@@ -20,12 +20,16 @@ interface DesignConfiguratorProps {
       height: number;
       fontFamily: "Garamond" | "Poppins" | "Trispace";
       textAlign: "left" | "center" | "right";
+      bold: boolean;
+      italic: boolean;
     }>;
     ornamentLabels: Array<{
       text: string;
       size: number;
       rotation: number;
       fontFamily: "Garamond" | "Poppins" | "Trispace";
+      bold: boolean;
+      italic: boolean;
     }>;
   };
   onConfigChange: (config: any) => void;
@@ -44,12 +48,16 @@ export default function DesignConfigurator({
     text: "",
     fontFamily: "Trispace" as const,
     textAlign: "center" as const,
+    bold: true,
+    italic: false,
   });
   const [newOrnamentLabel, setNewOrnamentLabel] = useState({
     text: "",
     size: 24,
     rotation: 0,
     fontFamily: "Trispace" as const,
+    bold: true,
+    italic: false,
   });
   const [selectedLabelIndex, setSelectedLabelIndex] = useState<number | null>(
     null,
@@ -103,6 +111,18 @@ export default function DesignConfigurator({
     },
   ];
 
+  // Helper function to generate font string with weight and style
+  const generateFontString = (
+    fontSize: number,
+    fontFamily: string,
+    bold: boolean = true,
+    italic: boolean = false,
+  ) => {
+    const weight = bold ? "bold" : "normal";
+    const style = italic ? "italic" : "normal";
+    return `${style} ${weight} ${fontSize}px ${fontFamily}`;
+  };
+
   // Canvas rendering
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -120,10 +140,13 @@ export default function DesignConfigurator({
       rotation: number,
       fontSize: number,
       fontFamily: string = "'Trispace', monospace",
+      bold: boolean = true,
+      italic: boolean = false,
     ) => {
       ctx.save();
       ctx.translate(canvasSize / 2, canvasSize / 2);
-      ctx.font = `bold ${fontSize}px ${fontFamily}`;
+      ctx.font = generateFontString(fontSize, fontFamily, bold, italic);
+      ctx.fillStyle = "#1f2937"; // Set text color to dark gray
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
@@ -197,6 +220,8 @@ export default function DesignConfigurator({
             label.rotation,
             label.size,
             fontOption?.cssFont || "'Trispace', monospace",
+            label.bold,
+            label.italic,
           );
         });
       }
@@ -229,10 +254,18 @@ export default function DesignConfigurator({
           size: 24,
           fontFamily: newLabel.fontFamily,
           textAlign: newLabel.textAlign,
+          bold: newLabel.bold,
+          italic: newLabel.italic,
         },
       ];
       handleConfigChange({ labels: updatedLabels });
-      setNewLabel({ text: "", fontFamily: "Trispace", textAlign: "center" });
+      setNewLabel({
+        text: "",
+        fontFamily: "Trispace",
+        textAlign: "center",
+        bold: true,
+        italic: false,
+      });
     }
   };
 
@@ -250,6 +283,8 @@ export default function DesignConfigurator({
         size: 24,
         rotation: 0,
         fontFamily: "Trispace",
+        bold: true,
+        italic: false,
       });
     }
   };
@@ -298,7 +333,12 @@ export default function DesignConfigurator({
         const fontOption = fontFamilyOptions.find(
           (f) => f.value === label.fontFamily,
         );
-        exportCtx.font = `bold ${label.size * scale}px ${fontOption?.cssFont || "'Trispace', monospace"}`;
+        exportCtx.font = generateFontString(
+          label.size * scale,
+          fontOption?.cssFont || "'Trispace', monospace",
+          label.bold,
+          label.italic,
+        );
         exportCtx.textAlign = label.textAlign || "center";
         exportCtx.textBaseline = "middle";
         exportCtx.fillText(label.text, 0, 0);
@@ -559,6 +599,41 @@ export default function DesignConfigurator({
                             className="w-full"
                           />
                         </div>
+
+                        {/* Text Style */}
+                        <div>
+                          <label className="block text-xs font-semibold text-basalt mb-1">
+                            Text Style
+                          </label>
+                          <div className="grid grid-cols-2 gap-1">
+                            <button
+                              onClick={() =>
+                                handleLabelChange(index, { bold: !label.bold })
+                              }
+                              className={`px-3 py-2 text-sm font-bold rounded transition-all ${
+                                label.bold
+                                  ? "bg-summit-sage text-white"
+                                  : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                              }`}
+                            >
+                              B
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleLabelChange(index, {
+                                  italic: !label.italic,
+                                })
+                              }
+                              className={`px-3 py-2 text-sm italic rounded transition-all ${
+                                label.italic
+                                  ? "bg-summit-sage text-white"
+                                  : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                              }`}
+                            >
+                              I
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -636,6 +711,39 @@ export default function DesignConfigurator({
                     </div>
                   </div>
 
+                  {/* Text Style Selection */}
+                  <div>
+                    <label className="block text-xs font-semibold text-basalt mb-1">
+                      Text Style
+                    </label>
+                    <div className="grid grid-cols-2 gap-1">
+                      <button
+                        onClick={() =>
+                          setNewLabel({ ...newLabel, bold: !newLabel.bold })
+                        }
+                        className={`px-3 py-2 text-sm font-bold rounded transition-all ${
+                          newLabel.bold
+                            ? "bg-summit-sage text-white"
+                            : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                        }`}
+                      >
+                        B
+                      </button>
+                      <button
+                        onClick={() =>
+                          setNewLabel({ ...newLabel, italic: !newLabel.italic })
+                        }
+                        className={`px-3 py-2 text-sm italic rounded transition-all ${
+                          newLabel.italic
+                            ? "bg-summit-sage text-white"
+                            : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                        }`}
+                      >
+                        I
+                      </button>
+                    </div>
+                  </div>
+
                   <button
                     onClick={addLabel}
                     disabled={!newLabel.text.trim()}
@@ -665,7 +773,9 @@ export default function DesignConfigurator({
                         </div>
                         <div className="text-xs text-slate-storm">
                           {label.fontFamily} • {label.size}px •{" "}
-                          {label.rotation.toFixed(0)}°
+                          {label.rotation.toFixed(0)}° •{" "}
+                          {label.bold ? "Bold" : "Normal"} •{" "}
+                          {label.italic ? "Italic" : "Regular"}
                         </div>
                       </div>
                       <button
@@ -743,6 +853,43 @@ export default function DesignConfigurator({
                       }
                       className="w-full"
                     />
+
+                    {/* Text Style */}
+                    <div className="mt-3">
+                      <label className="block text-xs font-semibold text-basalt mb-1">
+                        Text Style
+                      </label>
+                      <div className="grid grid-cols-2 gap-1">
+                        <button
+                          onClick={() =>
+                            handleOrnamentLabelChange(index, {
+                              bold: !label.bold,
+                            })
+                          }
+                          className={`px-3 py-2 text-sm font-bold rounded transition-all ${
+                            label.bold
+                              ? "bg-summit-sage text-white"
+                              : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                          }`}
+                        >
+                          B
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleOrnamentLabelChange(index, {
+                              italic: !label.italic,
+                            })
+                          }
+                          className={`px-3 py-2 text-sm italic rounded transition-all ${
+                            label.italic
+                              ? "bg-summit-sage text-white"
+                              : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                          }`}
+                        >
+                          I
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ))}
 
@@ -790,6 +937,45 @@ export default function DesignConfigurator({
                           {font.name}
                         </button>
                       ))}
+                    </div>
+                  </div>
+
+                  {/* Text Style Selection */}
+                  <div>
+                    <label className="block text-xs font-semibold text-basalt mb-1">
+                      Text Style
+                    </label>
+                    <div className="grid grid-cols-2 gap-1">
+                      <button
+                        onClick={() =>
+                          setNewOrnamentLabel({
+                            ...newOrnamentLabel,
+                            bold: !newOrnamentLabel.bold,
+                          })
+                        }
+                        className={`px-3 py-2 text-sm font-bold rounded transition-all ${
+                          newOrnamentLabel.bold
+                            ? "bg-summit-sage text-white"
+                            : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                        }`}
+                      >
+                        B
+                      </button>
+                      <button
+                        onClick={() =>
+                          setNewOrnamentLabel({
+                            ...newOrnamentLabel,
+                            italic: !newOrnamentLabel.italic,
+                          })
+                        }
+                        className={`px-3 py-2 text-sm italic rounded transition-all ${
+                          newOrnamentLabel.italic
+                            ? "bg-summit-sage text-white"
+                            : "bg-slate-100 hover:bg-slate-200 text-basalt"
+                        }`}
+                      >
+                        I
+                      </button>
                     </div>
                   </div>
 
@@ -885,6 +1071,8 @@ export default function DesignConfigurator({
                             : label.textAlign === "right"
                               ? "flex-end"
                               : "center",
+                        fontWeight: label.bold ? "bold" : "normal",
+                        fontStyle: label.italic ? "italic" : "normal",
                       }}
                     >
                       {label.text}
