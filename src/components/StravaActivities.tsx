@@ -97,6 +97,7 @@ export default function StravaActivities({ accessToken, onActivitySelect }: { ac
           totalPoints,
           fileSize: gpxString.length,
           gpxString,
+          activityId: activity.id,
           gpx: {
             trk: {
               trkseg: {

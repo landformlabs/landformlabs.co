@@ -507,6 +507,7 @@ export default function DesignConfigurator({
           designConfig.printType === "tile" ? designConfig.tileSize : undefined,
         routeColor: designConfig.routeColor,
         boundingBox: boundingBox,
+        stravaActivityUrl: gpxData.activityId ? `https://www.strava.com/activities/${gpxData.activityId}` : undefined,
         timestamp: new Date().toISOString(),
         orderReference: `LF-${Date.now()}`,
       },
