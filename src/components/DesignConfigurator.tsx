@@ -281,6 +281,12 @@ export default function DesignConfigurator({
         );
         ctx.stroke();
 
+        // Draw dimension label for ornament
+        ctx.fillStyle = "#64748b";
+        ctx.font = "14px 'Trispace', monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("75mm diameter", canvasSize / 2, canvasSize - 15);
+
         // Draw ornament labels as curved text
         designConfig.ornamentLabels.forEach((label: any) => {
           const fontOption = fontFamilyOptions.find(
@@ -296,6 +302,22 @@ export default function DesignConfigurator({
             label.italic,
           );
         });
+      } else {
+        // Draw dimension labels for route tiles
+        const tileDimensions = {
+          basecamp: "100mm × 100mm",
+          ridgeline: "155mm × 155mm",
+          summit: "210mm × 210mm",
+        };
+
+        ctx.fillStyle = "#64748b";
+        ctx.font = "14px 'Trispace', monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          tileDimensions[designConfig.tileSize],
+          canvasSize / 2,
+          canvasSize - 15,
+        );
       }
     };
 
