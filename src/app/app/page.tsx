@@ -54,45 +54,30 @@ export default function GPXDesignApp() {
   const [showGpxUploader, setShowGpxUploader] = useState(false);
 
   useEffect(() => {
-    const refreshToken = localStorage.getItem("strava_refresh_token");
-    const accessToken = localStorage.getItem("strava_access_token");
-    const expiresAt = localStorage.getItem("strava_expires_at");
+    const checkStravaAuth = async () => {
+      try {
+        const response = await fetch("/api/strava/auth", {
+          method: "GET",
+          credentials: "include", // Include cookies in request
+        });
 
-    const handleTokenRefresh = async () => {
-      if (refreshToken) {
-        try {
-          const response = await fetch("/api/strava/refresh", {
-            method: "POST",
-            body: JSON.stringify({ refresh_token: refreshToken }),
-          });
+        if (response.ok) {
           const data = await response.json();
-          if (data.access_token) {
-            localStorage.setItem("strava_access_token", data.access_token);
-            localStorage.setItem("strava_refresh_token", data.refresh_token);
-            localStorage.setItem("strava_expires_at", data.expires_at);
-            setStravaAccessToken(data.access_token);
+          if (data.authenticated && data.accessToken) {
+            setStravaAccessToken(data.accessToken);
           } else {
-            throw new Error("Failed to refresh token");
+            setStravaAccessToken(null);
           }
-        } catch (error) {
-          console.error("Error refreshing token:", error);
-          localStorage.removeItem("strava_access_token");
-          localStorage.removeItem("strava_refresh_token");
-          localStorage.removeItem("strava_expires_at");
+        } else {
+          setStravaAccessToken(null);
         }
+      } catch (error) {
+        console.error("Error checking Strava authentication:", error);
+        setStravaAccessToken(null);
       }
     };
 
-    if (accessToken && expiresAt) {
-      if (Date.now() / 1000 > parseInt(expiresAt)) {
-        // Token expired
-        handleTokenRefresh();
-      } else {
-        setStravaAccessToken(accessToken);
-      }
-    } else if (refreshToken) {
-      handleTokenRefresh();
-    }
+    checkStravaAuth();
   }, []);
 
   useEffect(() => {

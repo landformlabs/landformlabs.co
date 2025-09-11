@@ -259,18 +259,16 @@ export default function GPXUploader({ onGPXUpload }: GPXUploaderProps) {
 
         <div className="bg-summit-sage/5 rounded-lg p-4">
           <h3 className="font-headline font-semibold text-basalt text-sm mb-2">
-            Supported GPX Sources
+            You can export your GPX file from the following sources
           </h3>
           <div className="text-xs text-slate-storm space-y-1">
-            <p>✓ Strava (export your activity as GPX)</p>
+            <p>✓ Strava (or connect directly below)</p>
             <p>✓ Garmin Connect</p>
             <p>✓ Komoot</p>
             <p>✓ AllTrails</p>
             <p>✓ Most GPS devices and fitness apps</p>
           </div>
         </div>
-
-
       </div>
     </div>
   );
