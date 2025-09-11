@@ -1,0 +1,33 @@
+{
+  "languages": {
+    "CSS": {
+      "enable_language_server": true,
+      "format_on_save": "on"
+    }
+  },
+  "lsp": {
+    "tailwindcss-language-server": {
+      "settings": {
+        "tailwindCSS": {
+          "validate": true,
+          "lint": {
+            "unknownAtRules": "ignore"
+          },
+          "experimental": {
+            "classRegex": []
+          }
+        }
+      }
+    },
+    "vscode-css-language-server": {
+      "settings": {
+        "css": {
+          "validate": false,
+          "lint": {
+            "unknownAtRules": "ignore"
+          }
+        }
+      }
+    }
+  }
+}

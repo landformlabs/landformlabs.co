@@ -42,9 +42,8 @@ export default function Footer() {
             </Link>
 
             <p className="text-sm text-alpine-mist/80 mb-4">
-              Transform your favorite outdoor memories into beautiful,
-              personalized proof of your epic adventures. Get Out There, Amaze
-              Yourself, Own It, Repeat.
+              Transform your adventures into personalized proof of your epic
+              achievements. Get Out There, Amaze Yourself, Own It, Repeat.
             </p>
 
             {/* Consolidated Contact Info */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Rnd } from "react-rnd";
 import JSZip from "jszip";
 
@@ -85,23 +85,26 @@ export default function DesignConfigurator({
   ];
 
   // Font family options
-  const fontFamilyOptions = [
-    {
-      name: "Trispace",
-      value: "Trispace" as const,
-      cssFont: "'Trispace', monospace",
-    },
-    {
-      name: "Garamond",
-      value: "Garamond" as const,
-      cssFont: "'EB Garamond', serif",
-    },
-    {
-      name: "Poppins",
-      value: "Poppins" as const,
-      cssFont: "'Poppins', sans-serif",
-    },
-  ];
+  const fontFamilyOptions = useMemo(
+    () => [
+      {
+        name: "Trispace",
+        value: "Trispace" as const,
+        cssFont: "'Trispace', monospace",
+      },
+      {
+        name: "Garamond",
+        value: "Garamond" as const,
+        cssFont: "'EB Garamond', serif",
+      },
+      {
+        name: "Poppins",
+        value: "Poppins" as const,
+        cssFont: "'Poppins', sans-serif",
+      },
+    ],
+    [],
+  );
 
   // Text alignment options
   const textAlignOptions = [
@@ -297,7 +300,14 @@ export default function DesignConfigurator({
     };
 
     redraw();
-  }, [gpxData, boundingBox, bbox, designConfig, getOrnamentCircle, fontFamilyOptions]);
+  }, [
+    gpxData,
+    boundingBox,
+    bbox,
+    designConfig,
+    getOrnamentCircle,
+    fontFamilyOptions,
+  ]);
 
   const handleConfigChange = (updates: any) => {
     onConfigChange({ ...designConfig, ...updates });
@@ -388,6 +398,17 @@ export default function DesignConfigurator({
 
     // Draw the base canvas content
     exportCtx.drawImage(canvas, 0, 0, exportSize, exportSize);
+
+    // Draw border around the entire canvas to match UI display
+    const borderWidth = 2 * scale; // Scale the border width proportionally
+    exportCtx.strokeStyle = "#64748b"; // slate-storm color to match UI
+    exportCtx.lineWidth = borderWidth;
+    exportCtx.strokeRect(
+      borderWidth / 2,
+      borderWidth / 2,
+      exportSize - borderWidth,
+      exportSize - borderWidth,
+    );
 
     // Draw the HTML labels onto the export canvas
     if (designConfig.printType === "tile") {
@@ -507,7 +528,9 @@ export default function DesignConfigurator({
           designConfig.printType === "tile" ? designConfig.tileSize : undefined,
         routeColor: designConfig.routeColor,
         boundingBox: boundingBox,
-        stravaActivityUrl: gpxData.activityId ? `https://www.strava.com/activities/${gpxData.activityId}` : undefined,
+        stravaActivityUrl: gpxData.activityId
+          ? `https://www.strava.com/activities/${gpxData.activityId}`
+          : undefined,
         timestamp: new Date().toISOString(),
         orderReference: `LF-${Date.now()}`,
       },
