@@ -270,45 +270,7 @@ export default function GPXUploader({ onGPXUpload }: GPXUploaderProps) {
           </div>
         </div>
 
-        {/* Instructions */}
-        <div className="bg-white rounded-lg border border-slate-storm/10 p-6">
-          <h3 className="font-headline font-semibold text-basalt mb-4">
-            How It Works
-          </h3>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="w-10 h-10 bg-summit-sage rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-white font-bold text-sm">1</span>
-              </div>
-              <p className="text-sm font-semibold text-basalt mb-1">
-                Upload GPX
-              </p>
-              <p className="text-xs text-slate-storm">
-                Choose your adventure file
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-10 h-10 bg-summit-sage rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-white font-bold text-sm">2</span>
-              </div>
-              <p className="text-sm font-semibold text-basalt mb-1">
-                Select Area
-              </p>
-              <p className="text-xs text-slate-storm">Draw your print region</p>
-            </div>
-            <div className="text-center">
-              <div className="w-10 h-10 bg-summit-sage rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-white font-bold text-sm">3</span>
-              </div>
-              <p className="text-sm font-semibold text-basalt mb-1">
-                Customize
-              </p>
-              <p className="text-xs text-slate-storm">
-                Design your perfect print
-              </p>
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
   );

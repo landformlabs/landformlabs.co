@@ -233,8 +233,8 @@ export default function GPXDesignApp() {
                     {!stravaAccessToken && (
                       <div className="mt-8 text-center">
                         <p className="text-slate-storm mb-4">Or</p>
-                        <a href="/strava" className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded">
-                          Connect with Strava
+                        <a href="/strava">
+                          <img src="/btn_strava_connect_with_orange.svg" alt="Connect with Strava" className="mx-auto" />
                         </a>
                       </div>
                     )}
