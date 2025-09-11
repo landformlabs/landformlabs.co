@@ -125,8 +125,6 @@ export async function GET(request: NextRequest) {
 
         // Fetch activities in batches until we have enough or no more exist
         while (allActivities.length < limit && hasMore) {
-          console.log(`Fetching activities page ${page}...`);
-
           const batch = await fetchActivitiesBatch(accessToken, page);
 
           if (batch.length === 0) {
@@ -151,7 +149,6 @@ export async function GET(request: NextRequest) {
 
           // Rate limiting: wait 10 seconds between requests if we need more
           if (allActivities.length < limit && hasMore) {
-            console.log("Rate limiting: waiting 10 seconds...");
             await new Promise((resolve) => setTimeout(resolve, 10000));
           }
         }
@@ -170,7 +167,6 @@ export async function GET(request: NextRequest) {
 
         // If we have cached data, use it despite the error
         if (cached) {
-          console.log("Using cached data due to fetch error");
         } else {
           // Return error if no cached data available
           if (error instanceof Error && error.message === "AUTH_ERROR") {

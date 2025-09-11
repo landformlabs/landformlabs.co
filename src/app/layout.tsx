@@ -130,7 +130,7 @@ export default function RootLayout({
               "@type": "Organization",
               name: "Landform Labs",
               url: "https://landformlabs.co",
-              logo: "https://landformlabs.co/logo.png",
+              logo: "https://landformlabs.co/square-500.svg",
               description:
                 "We create custom 3D printed proof that celebrates outdoor adventures, from route prints to mountain-shaped desk accessories.",
               foundingDate: "2024",

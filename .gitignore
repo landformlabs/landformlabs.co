@@ -40,6 +40,7 @@ secrets/
 .eslintcache
 .stylelintcache
 *.tsbuildinfo
+tsconfig.tsbuildinfo
 
 # Sanity CMS
 .sanity/

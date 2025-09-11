@@ -38,7 +38,7 @@ const products = [
     ],
     colors: ["Black (Standard)", "Red", "Blue"],
     etsy: "https://landformlabs.etsy.com/listing/1772130512",
-    image: "/route-tiles.JPG",
+    image: "/route-tiles.jpg",
   },
   {
     id: "route-ornaments",

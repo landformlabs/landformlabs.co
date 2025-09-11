@@ -10,7 +10,7 @@ const features = [
     description:
       "Transform your favorite GPS routes into stunning 3D printed art with NFC technology.",
     href: "/products#route-tiles",
-    image: "/route-tiles.JPG",
+    image: "/route-tiles.jpg",
   },
   {
     name: "Adventure Ornaments",
