@@ -297,7 +297,7 @@ export default function DesignConfigurator({
     };
 
     redraw();
-  }, [gpxData, boundingBox, bbox, designConfig, getOrnamentCircle]);
+  }, [gpxData, boundingBox, bbox, designConfig, getOrnamentCircle, fontFamilyOptions]);
 
   const handleConfigChange = (updates: any) => {
     onConfigChange({ ...designConfig, ...updates });

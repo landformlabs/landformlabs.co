@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function StravaAuthPage() {
+function StravaAuthContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -21,4 +21,12 @@ export default function StravaAuthPage() {
   }, [searchParams, router]);
 
   return <div>Authenticating with Strava...</div>;
+}
+
+export default function StravaAuthPage() {
+  return (
+    <Suspense fallback={<div>Loading authentication...</div>}>
+      <StravaAuthContent />
+    </Suspense>
+  );
 }
