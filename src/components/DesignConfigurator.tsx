@@ -281,12 +281,6 @@ export default function DesignConfigurator({
         );
         ctx.stroke();
 
-        // Draw dimension label for ornament
-        ctx.fillStyle = "#64748b";
-        ctx.font = "14px 'Trispace', monospace";
-        ctx.textAlign = "center";
-        ctx.fillText("75mm diameter", canvasSize / 2, canvasSize - 15);
-
         // Draw ornament labels as curved text
         designConfig.ornamentLabels.forEach((label: any) => {
           const fontOption = fontFamilyOptions.find(
@@ -302,22 +296,6 @@ export default function DesignConfigurator({
             label.italic,
           );
         });
-      } else {
-        // Draw dimension labels for route tiles
-        const tileDimensions = {
-          basecamp: "100mm × 100mm",
-          ridgeline: "155mm × 155mm",
-          summit: "210mm × 210mm",
-        };
-
-        ctx.fillStyle = "#64748b";
-        ctx.font = "14px 'Trispace', monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(
-          tileDimensions[designConfig.tileSize],
-          canvasSize / 2,
-          canvasSize - 15,
-        );
       }
     };
 
@@ -1421,6 +1399,31 @@ export default function DesignConfigurator({
 
               {/* Ornament labels positioned using slider controls only */}
             </div>
+          </div>
+
+          {/* Dimension Display */}
+          <div className="mt-4 text-center">
+            {designConfig.printType === "ornament" ? (
+              <div className="inline-flex items-center px-4 py-2 bg-alpine-mist rounded-lg">
+                <span className="text-sm font-semibold text-basalt font-trispace">
+                  75mm diameter
+                </span>
+                <span className="ml-2 text-xs text-slate-storm">
+                  Fixed size
+                </span>
+              </div>
+            ) : (
+              <div className="inline-flex items-center px-4 py-2 bg-alpine-mist rounded-lg">
+                <span className="text-sm font-semibold text-basalt font-trispace">
+                  {designConfig.tileSize === "basecamp" && "100mm × 100mm"}
+                  {designConfig.tileSize === "ridgeline" && "155mm × 155mm"}
+                  {designConfig.tileSize === "summit" && "210mm × 210mm"}
+                </span>
+                <span className="ml-2 text-xs text-slate-storm">
+                  Physical size
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="mt-4 text-center">
