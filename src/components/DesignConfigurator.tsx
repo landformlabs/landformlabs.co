@@ -1408,9 +1408,6 @@ export default function DesignConfigurator({
                 <span className="text-sm font-semibold text-basalt font-trispace">
                   75mm diameter
                 </span>
-                <span className="ml-2 text-xs text-slate-storm">
-                  Fixed size
-                </span>
               </div>
             ) : (
               <div className="inline-flex items-center px-4 py-2 bg-alpine-mist rounded-lg">
@@ -1418,9 +1415,6 @@ export default function DesignConfigurator({
                   {designConfig.tileSize === "basecamp" && "100mm × 100mm"}
                   {designConfig.tileSize === "ridgeline" && "155mm × 155mm"}
                   {designConfig.tileSize === "summit" && "210mm × 210mm"}
-                </span>
-                <span className="ml-2 text-xs text-slate-storm">
-                  Physical size
                 </span>
               </div>
             )}
