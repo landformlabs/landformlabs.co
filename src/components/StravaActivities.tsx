@@ -676,19 +676,25 @@ export default function StravaActivities({
 
                       <div className="flex items-center space-x-4 text-sm text-slate-storm">
                         <span className="flex items-center">
-                          <span className="w-4 h-4 mr-1">📏</span>
+                          <span className="font-medium text-xs text-slate-storm/70 mr-1">
+                            Distance:
+                          </span>
                           {(activity.distance / 1000).toFixed(2)} km
                         </span>
 
                         <span className="flex items-center">
-                          <span className="w-4 h-4 mr-1">📅</span>
+                          <span className="font-medium text-xs text-slate-storm/70 mr-1">
+                            Date:
+                          </span>
                           {formatActivityDate(activity.start_date_local)}
                         </span>
 
                         {activity.photos?.count &&
                           activity.photos.count > 0 && (
                             <span className="flex items-center">
-                              <span className="w-4 h-4 mr-1">📸</span>
+                              <span className="font-medium text-xs text-slate-storm/70 mr-1">
+                                Photos:
+                              </span>
                               {activity.photos.count}
                             </span>
                           )}
