@@ -86,11 +86,18 @@ h6 {
 }
 
 .get-out-there {
-    font-family: "Poppins", sans-serif;
+    font-family: "Poppins", "Helvetica Neue", Arial, sans-serif;
     font-weight: 900;
+    font-display: swap;
     letter-spacing: -0.04em;
     text-transform: uppercase;
     color: var(--color-summit-sage);
+    /* Fallback for browsers that don't support font-weight 900 */
+    font-synthesis: weight;
+    /* Ensure consistent rendering across browsers */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
 /* Custom focus states for accessibility */

@@ -78,6 +78,31 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="scroll-smooth">
+      <head>
+        {/* Preconnect to Google Fonts for faster loading */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin=""
+        />
+
+        {/* Preload critical fonts for better performance and consistency */}
+        <link
+          rel="preload"
+          href="https://fonts.gstatic.com/s/poppins/v23/pxiByp8kv8JHgFVrLBT5V1s.ttf"
+          as="font"
+          type="font/ttf"
+          crossOrigin=""
+        />
+        <link
+          rel="preload"
+          href="https://fonts.gstatic.com/s/trispace/v24/Yq6E-LKSQC0tSl2YRQkq5mRJJxgmqvOuYQ.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin=""
+        />
+      </head>
       <body className="font-body antialiased min-h-screen relative">
         <GoogleAnalytics />
         {children}
