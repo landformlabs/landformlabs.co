@@ -5,8 +5,7 @@
 /* Leaflet CSS for map functionality */
 @import "leaflet/dist/leaflet.css";
 
-@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Trispace:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap");
+/* Google Fonts are now loaded via HTML head for better performance */
 
 :root {
     /* Landform Labs Brand Colors */
@@ -76,7 +75,7 @@ h6 {
 /* Hero-specific ultra-condensed styling */
 .hero-mantra {
     font-family: "Poppins", sans-serif;
-    font-weight: 900;
+    font-weight: 800;
     color: var(--color-basalt);
     text-align: left;
     letter-spacing: -0.1em;
@@ -92,7 +91,7 @@ h6 {
     letter-spacing: -0.04em;
     text-transform: uppercase;
     color: var(--color-summit-sage);
-    /* Fallback for browsers that don't support font-weight 900 */
+    /* Fallback for browsers that don't support the exact font weight */
     font-synthesis: weight;
     /* Ensure consistent rendering across browsers */
     -webkit-font-smoothing: antialiased;

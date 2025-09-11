@@ -79,27 +79,41 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
-        {/* Preconnect to Google Fonts for faster loading */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        {/* Optimize Google Fonts loading for better performance */}
+        <link
+          rel="preconnect"
+          href="https://fonts.googleapis.com"
+          crossOrigin=""
+        />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin=""
         />
 
-        {/* Preload critical fonts for better performance and consistency */}
+        {/* Preload and load Google Fonts for optimal performance */}
         <link
           rel="preload"
-          href="https://fonts.gstatic.com/s/poppins/v23/pxiByp8kv8JHgFVrLBT5V1s.ttf"
-          as="font"
-          type="font/ttf"
+          href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+          as="style"
           crossOrigin=""
         />
         <link
           rel="preload"
-          href="https://fonts.gstatic.com/s/trispace/v24/Yq6E-LKSQC0tSl2YRQkq5mRJJxgmqvOuYQ.woff2"
-          as="font"
-          type="font/woff2"
+          href="https://fonts.googleapis.com/css2?family=Trispace:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+          as="style"
+          crossOrigin=""
+        />
+
+        {/* Load the stylesheets immediately after preload */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+          crossOrigin=""
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Trispace:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
           crossOrigin=""
         />
       </head>
