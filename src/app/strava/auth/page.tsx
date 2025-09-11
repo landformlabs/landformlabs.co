@@ -20,7 +20,7 @@ export default function StravaAuthPage() {
           Completing Strava Authentication
         </h1>
         <p className="text-slate-storm">
-          You'll be redirected to the app momentarily...
+          You&apos;ll be redirected to the app momentarily...
         </p>
       </div>
     </div>

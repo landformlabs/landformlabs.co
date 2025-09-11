@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-export default function StravaPage() {
+function StravaPageContent() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
@@ -154,5 +154,19 @@ export default function StravaPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function StravaPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-alpine-mist flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-summit-sage border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      }
+    >
+      <StravaPageContent />
+    </Suspense>
   );
 }
