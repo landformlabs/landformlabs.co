@@ -61,16 +61,6 @@ function StravaPageContent() {
           )}
 
           <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-            <div className="mb-6">
-              <Image
-                src="/btn_strava_connect_with_orange.svg"
-                alt="Connect with Strava"
-                width={193}
-                height={48}
-                className="mx-auto mb-4"
-              />
-            </div>
-
             <h2 className="text-xl font-semibold text-basalt mb-4">
               Why Connect Strava?
             </h2>
