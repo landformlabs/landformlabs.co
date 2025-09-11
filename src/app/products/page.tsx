@@ -38,7 +38,7 @@ const products = [
     ],
     colors: ["Black (Standard)", "Red", "Blue"],
     etsy: "https://landformlabs.etsy.com/listing/1772130512",
-    image: "/route-tiles.jpg",
+    image: "/route-tiles.webp",
   },
   {
     id: "route-ornaments",
@@ -54,7 +54,7 @@ const products = [
     ],
     pricing: "$25",
     etsy: "https://landformlabs.etsy.com/listing/1813900470",
-    image: "/gpx-ornaments.jpeg",
+    image: "/gpx-ornaments.webp",
   },
   {
     id: "state-ornaments",
@@ -70,7 +70,7 @@ const products = [
     ],
     pricing: "$10",
     etsy: "https://landformlabs.etsy.com/listing/4366358498",
-    image: "/state-ornaments.jpeg",
+    image: "/state-ornaments.webp",
   },
   {
     id: "mountain-pen-holders",
@@ -86,7 +86,7 @@ const products = [
     ],
     pricing: "$30",
     etsy: "https://landformlabs.etsy.com/listing/1786366140",
-    image: "/pen-holder.jpg",
+    image: "/pen-holder.webp",
   },
   {
     id: "custom-prints",
@@ -102,7 +102,7 @@ const products = [
     ],
     pricing: "Contact for Quote",
     etsy: "https://landformlabs.etsy.com/listing/1819645585",
-    image: "/custom-print.jpeg",
+    image: "/custom-print.webp",
   },
 ];
 

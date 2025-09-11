@@ -10,28 +10,28 @@ const features = [
     description:
       "Transform your favorite GPS routes into stunning 3D printed art with NFC technology.",
     href: "/products#route-tiles",
-    image: "/route-tiles.jpg",
+    image: "/route-tiles.webp",
   },
   {
     name: "Adventure Ornaments",
     description:
       "Holiday decorations that celebrate your epic adventures, perfect for trees or windows.",
     href: "/products#route-ornaments",
-    image: "/gpx-ornaments.jpeg",
+    image: "/gpx-ornaments.webp",
   },
   {
     name: "Custom Keepsakes",
     description:
       "Personalized proof of your most meaningful outdoor moments and achievements.",
     href: "/products#custom-prints",
-    image: "/custom-print.jpeg",
+    image: "/custom-print.webp",
   },
   {
     name: "Desk Accessories",
     description:
       "Mountain-shaped pen holders and organizers that bring adventure to your workspace.",
     href: "/products#mountain-pen-holders",
-    image: "/pen-holder.jpg",
+    image: "/pen-holder.webp",
   },
 ];
 

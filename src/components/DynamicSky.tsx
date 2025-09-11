@@ -91,7 +91,7 @@ export default function DynamicSky() {
       <div
         className="fixed inset-0 -z-20 transition-opacity duration-[30s] ease-in-out"
         style={{
-          backgroundImage: 'url("/wireframe-timp-transparent.png")',
+          backgroundImage: 'url("/wireframe-timp-transparent.webp")',
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",

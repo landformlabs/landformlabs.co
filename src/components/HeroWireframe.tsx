@@ -81,7 +81,7 @@ export default function HeroWireframe() {
       <div
         className="absolute inset-0 transition-opacity duration-[30s] ease-in-out"
         style={{
-          backgroundImage: 'url("/wireframe-timp-transparent.png")',
+          backgroundImage: 'url("/wireframe-timp-transparent.webp")',
           backgroundSize: "cover",
           backgroundPosition: "center bottom",
           backgroundRepeat: "no-repeat",

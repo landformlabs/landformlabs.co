@@ -49,7 +49,7 @@ export default function About() {
               <div className="mt-10 lg:mt-0">
                 <div className="relative">
                   <Image
-                    src="/me.jpeg"
+                    src="/me.webp"
                     alt="Founder of Landform Labs on an outdoor adventure"
                     width={400}
                     height={500}

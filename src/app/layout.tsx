@@ -40,7 +40,7 @@ export const metadata: Metadata = {
       "Transform your favorite outdoor memories into beautiful, personalized proof of your epic adventures.",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/route-tiles.webp",
         width: 1200,
         height: 630,
         alt: "Landform Labs - Adventure-inspired 3D printed keepsakes",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     title: "Landform Labs - Turn Your Adventures Into Tangible Proof",
     description:
       "Transform your favorite outdoor memories into beautiful, personalized proof of your epic adventures.",
-    images: ["/og-image.jpg"],
+    images: ["/route-tiles.webp"],
   },
   robots: {
     index: true,
