@@ -34,10 +34,18 @@ This guide walks you through setting up the Strava integration for Landform Labs
 
 2. Update the `.env.local` file with your Strava application credentials:
    ```env
+   # Strava Client ID (used in both contexts)
    NEXT_PUBLIC_STRAVA_CLIENT_ID=your_client_id_from_strava
+   STRAVA_CLIENT_ID=your_client_id_from_strava
+   
+   # Strava Client Secret (server-only)
    STRAVA_CLIENT_SECRET=your_client_secret_from_strava
+   
+   # OAuth Redirect URI
    NEXT_PUBLIC_STRAVA_REDIRECT_URI=http://localhost:3000/api/strava/callback
    ```
+
+**Note**: Both `NEXT_PUBLIC_STRAVA_CLIENT_ID` and `STRAVA_CLIENT_ID` should have the same value. The public version is used for client-side OAuth redirects, while the server-only version is used for API authentication.
 
 ## 3. Security Configuration
 
@@ -51,6 +59,9 @@ The default configuration uses HTTP cookies for local development. Ensure you ha
 
 ```env
 NODE_ENV=production
+NEXT_PUBLIC_STRAVA_CLIENT_ID=your_client_id_from_strava
+STRAVA_CLIENT_ID=your_client_id_from_strava
+STRAVA_CLIENT_SECRET=your_client_secret_from_strava
 NEXT_PUBLIC_STRAVA_REDIRECT_URI=https://yourdomain.com/api/strava/callback
 ```
 
@@ -58,6 +69,7 @@ The production build automatically:
 - Enables secure HTTPS-only cookies
 - Sets strict SameSite policies
 - Implements CSRF protection
+- Uses server-only environment variables for API calls
 
 ## 4. Test the Integration
 
@@ -117,9 +129,10 @@ Check server logs for detailed error information during authentication and API c
 ### Vercel Deployment
 
 1. Add environment variables in Vercel dashboard:
-   - `NEXT_PUBLIC_STRAVA_CLIENT_ID`
-   - `STRAVA_CLIENT_SECRET`
-   - `NEXT_PUBLIC_STRAVA_REDIRECT_URI`
+   - `NEXT_PUBLIC_STRAVA_CLIENT_ID` (same value as STRAVA_CLIENT_ID)
+   - `STRAVA_CLIENT_ID` (your Strava app client ID)
+   - `STRAVA_CLIENT_SECRET` (keep this secure)
+   - `NEXT_PUBLIC_STRAVA_REDIRECT_URI` (https://yourdomain.com/api/strava/callback)
 
 2. Update your Strava app's Authorization Callback Domain to your production domain
 
@@ -128,11 +141,13 @@ Check server logs for detailed error information during authentication and API c
 ### Security Checklist
 
 - [ ] `STRAVA_CLIENT_SECRET` is kept secure and not exposed to client
+- [ ] Both `NEXT_PUBLIC_STRAVA_CLIENT_ID` and `STRAVA_CLIENT_ID` are configured with same value
 - [ ] Redirect URI uses HTTPS in production
-- [ ] Rate limiting is implemented
+- [ ] Rate limiting is implemented and handled gracefully
 - [ ] Error messages don't expose sensitive information
 - [ ] Tokens are stored in HTTP-only cookies
 - [ ] CSRF protection is enabled
+- [ ] Automatic token refresh is working properly
 
 ## 7. API Usage and Limitations
 
