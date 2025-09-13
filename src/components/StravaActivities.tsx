@@ -7,6 +7,7 @@ interface StravaActivity {
   id: number;
   name: string;
   distance: number;
+  moving_time: number;
   sport_type: string;
   start_date_local: string;
   photos?: {
@@ -281,6 +282,10 @@ export default function StravaActivities({
           fileSize: gpxString.length,
           gpxString,
           activityId: activity.id,
+          activityName: activity.name,
+          date: new Date(activity.start_date_local),
+          distance: activity.distance,
+          duration: activity.moving_time * 1000, // convert to ms
           gpx: {
             trk: {
               trkseg: {

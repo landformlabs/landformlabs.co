@@ -90,17 +90,17 @@ export default function DesignConfigurator({
       {
         name: "Trispace",
         value: "Trispace" as const,
-        cssFont: "'Trispace', monospace",
+        cssFont: "var(--font-trispace), monospace",
       },
       {
         name: "Garamond",
         value: "Garamond" as const,
-        cssFont: "'EB Garamond', serif",
+        cssFont: "var(--font-eb-garamond), serif",
       },
       {
         name: "Poppins",
         value: "Poppins" as const,
-        cssFont: "'Poppins', sans-serif",
+        cssFont: "var(--font-poppins), sans-serif",
       },
     ],
     [],
@@ -178,7 +178,7 @@ export default function DesignConfigurator({
       angle: number, // angle in degrees (0 = top)
       radius: number,
       fontSize: number,
-      fontFamily: string = "'Trispace', monospace",
+      fontFamily: string = "var(--font-trispace), monospace",
       bold: boolean = true,
       italic: boolean = false,
     ) => {
@@ -219,6 +219,8 @@ export default function DesignConfigurator({
     };
 
     const redraw = () => {
+      if (!ctx) return;
+
       // Clear and draw background
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvasSize, canvasSize);
@@ -291,7 +293,7 @@ export default function DesignConfigurator({
             label.angle,
             label.radius,
             label.size,
-            fontOption?.cssFont || "'Trispace', monospace",
+            fontOption?.cssFont || "var(--font-trispace), monospace",
             label.bold,
             label.italic,
           );
@@ -345,6 +347,28 @@ export default function DesignConfigurator({
         bold: true,
         italic: false,
       });
+    }
+  };
+
+  const quickAddLabel = (text: string) => {
+    if (text) {
+      const updatedLabels = [
+        ...designConfig.labels,
+        {
+          text,
+          x: 50,
+          y: 50,
+          rotation: 0,
+          width: 150,
+          height: 50,
+          size: 24,
+          fontFamily: "Trispace",
+          textAlign: "center",
+          bold: true,
+          italic: false,
+        },
+      ];
+      handleConfigChange({ labels: updatedLabels });
     }
   };
 
@@ -426,7 +450,7 @@ export default function DesignConfigurator({
         );
         exportCtx.font = generateFontString(
           label.size * getTileSizeScaling() * scale,
-          fontOption?.cssFont || "'Trispace', monospace",
+          fontOption?.cssFont || "var(--font-trispace), monospace",
           label.bold,
           label.italic,
         );
@@ -502,7 +526,7 @@ export default function DesignConfigurator({
           label.angle,
           label.radius,
           label.size,
-          fontOption?.cssFont || "'Trispace', monospace",
+          fontOption?.cssFont || "var(--font-trispace), monospace",
           label.bold,
           label.italic,
         );
@@ -628,6 +652,87 @@ export default function DesignConfigurator({
           <h3 className="text-xl font-headline font-bold text-basalt">
             Customize Design
           </h3>
+
+          {/* Activity Details */}
+          <div>
+            <h3 className="text-xl font-headline font-bold text-basalt mb-3">
+              Activity Details
+            </h3>
+            <div className="space-y-2 text-sm text-slate-storm">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold">Name:</span>
+                <div className="flex items-center">
+                  <span className="text-right mr-2">
+                    {gpxData.activityName || "N/A"}
+                  </span>
+                  <button
+                    onClick={() => quickAddLabel(gpxData.activityName)}
+                    className="text-xs bg-slate-200 px-2 py-1 rounded"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold">Date:</span>
+                <div className="flex items-center">
+                  <span className="text-right mr-2">
+                    {gpxData.date
+                      ? new Date(gpxData.date).toLocaleDateString()
+                      : "N/A"}
+                  </span>
+                  <button
+                    onClick={() =>
+                      quickAddLabel(new Date(gpxData.date).toLocaleDateString())
+                    }
+                    className="text-xs bg-slate-200 px-2 py-1 rounded"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold">Distance:</span>
+                <div className="flex items-center">
+                  <span className="text-right mr-2">
+                    {gpxData.distance
+                      ? `${(gpxData.distance / 1000).toFixed(2)} km`
+                      : "N/A"}
+                  </span>
+                  <button
+                    onClick={() =>
+                      quickAddLabel(
+                        `${(gpxData.distance / 1000).toFixed(2)} km`,
+                      )
+                    }
+                    className="text-xs bg-slate-200 px-2 py-1 rounded"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold">Time:</span>
+                <div className="flex items-center">
+                  <span className="text-right mr-2">
+                    {gpxData.duration
+                      ? new Date(gpxData.duration).toISOString().substr(11, 8)
+                      : "N/A"}
+                  </span>
+                  <button
+                    onClick={() =>
+                      quickAddLabel(
+                        new Date(gpxData.duration).toISOString().substr(11, 8),
+                      )
+                    }
+                    className="text-xs bg-slate-200 px-2 py-1 rounded"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Route Color */}
           <div>
@@ -1140,7 +1245,7 @@ export default function DesignConfigurator({
                           className="w-full mb-3"
                         />
                         <div className="text-xs text-slate-storm mb-1">
-                          Position: {label.angle?.toFixed(0) || 0}° around
+                          Position: {(label.angle || 0).toFixed(0)}° around
                           circle
                         </div>
                         <input
@@ -1380,7 +1485,7 @@ export default function DesignConfigurator({
                         fontFamily:
                           fontFamilyOptions.find(
                             (f) => f.value === label.fontFamily,
-                          )?.cssFont || "'Trispace', monospace",
+                          )?.cssFont || "var(--font-trispace), monospace",
                         textAlign: label.textAlign || "center",
                         justifyContent:
                           label.textAlign === "left"

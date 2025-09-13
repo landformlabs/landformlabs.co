@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { calculateDistance } from "@/lib/gpx";
 
 interface GPXUploaderProps {
   onGPXUpload: (parsedGPX: any) => void;
@@ -16,17 +17,21 @@ export default function GPXUploader({ onGPXUpload }: GPXUploaderProps) {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(gpxContent, "text/xml");
 
-    // Check for parsing errors
     const parseError = xmlDoc.querySelector("parsererror");
     if (parseError) {
       throw new Error("Invalid GPX file format");
     }
 
-    // Extract track points
     const trackPoints: Array<{ lat: number; lon: number; ele?: number }> = [];
     const tracks = xmlDoc.querySelectorAll("trk");
 
+    let activityName =
+      xmlDoc.querySelector("metadata > name")?.textContent || "";
+
     tracks.forEach((track) => {
+      if (!activityName) {
+        activityName = track.querySelector("name")?.textContent || "";
+      }
       const segments = track.querySelectorAll("trkseg");
       segments.forEach((segment) => {
         const points = segment.querySelectorAll("trkpt");
@@ -45,10 +50,12 @@ export default function GPXUploader({ onGPXUpload }: GPXUploaderProps) {
       });
     });
 
-    // Extract route points if no tracks found
     if (trackPoints.length === 0) {
       const routes = xmlDoc.querySelectorAll("rte");
       routes.forEach((route) => {
+        if (!activityName) {
+          activityName = route.querySelector("name")?.textContent || "";
+        }
         const points = route.querySelectorAll("rtept");
         points.forEach((point) => {
           const lat = parseFloat(point.getAttribute("lat") || "0");
@@ -61,7 +68,6 @@ export default function GPXUploader({ onGPXUpload }: GPXUploaderProps) {
       });
     }
 
-    // Extract waypoints if no tracks or routes found
     if (trackPoints.length === 0) {
       const waypoints = xmlDoc.querySelectorAll("wpt");
       waypoints.forEach((point) => {
@@ -78,7 +84,6 @@ export default function GPXUploader({ onGPXUpload }: GPXUploaderProps) {
       throw new Error("No GPS track data found in this GPX file");
     }
 
-    // Calculate bounds
     const lats = trackPoints.map((p) => p.lat);
     const lons = trackPoints.map((p) => p.lon);
 
@@ -89,10 +94,33 @@ export default function GPXUploader({ onGPXUpload }: GPXUploaderProps) {
       maxLon: Math.max(...lons),
     };
 
+    let totalDistance = 0;
+    for (let i = 0; i < trackPoints.length - 1; i++) {
+      totalDistance += calculateDistance(trackPoints[i], trackPoints[i + 1]);
+    }
+
+    const timeElements = xmlDoc.querySelectorAll("trkpt > time");
+    let startTime: Date | null = null;
+    let endTime: Date | null = null;
+
+    if (timeElements.length > 0) {
+      startTime = new Date(timeElements[0].textContent || "");
+      endTime = new Date(
+        timeElements[timeElements.length - 1].textContent || "",
+      );
+    }
+
+    const duration =
+      startTime && endTime ? endTime.getTime() - startTime.getTime() : 0;
+
     return {
       points: trackPoints,
       bounds,
       totalPoints: trackPoints.length,
+      activityName,
+      date: startTime,
+      distance: totalDistance,
+      duration,
     };
   };
 
