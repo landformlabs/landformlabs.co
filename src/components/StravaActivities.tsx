@@ -55,6 +55,7 @@ export default function StravaActivities({
   >(null);
   const [hasMoreActivities, setHasMoreActivities] = useState(true);
   const [sportTypeFilter, setSportTypeFilter] = useState("");
+  const [includeVirtualRides, setIncludeVirtualRides] = useState(false);
 
   // Format activity date for display
   const formatActivityDate = (dateString: string) => {
@@ -109,7 +110,15 @@ export default function StravaActivities({
         }
 
         const data = await response.json();
-        setComprehensiveActivities(data.activities);
+        let filteredData = data.activities.filter(
+          (activity: StravaActivity) => activity.distance > 0,
+        );
+        if (!includeVirtualRides) {
+          filteredData = filteredData.filter(
+            (activity: StravaActivity) => activity.sport_type !== "VirtualRide",
+          );
+        }
+        setComprehensiveActivities(filteredData);
         setTotalActivitiesCount(data.totalActivities);
         setHasMoreActivities(data.hasMore);
       } catch (error) {
@@ -199,7 +208,15 @@ export default function StravaActivities({
           }
         }
         const data = await response.json();
-        setActivities(data);
+        let filteredData = data.filter(
+          (activity: StravaActivity) => activity.distance > 0,
+        );
+        if (!includeVirtualRides) {
+          filteredData = filteredData.filter(
+            (activity: StravaActivity) => activity.sport_type !== "VirtualRide",
+          );
+        }
+        setActivities(filteredData);
       } catch (error) {
         console.error("Error fetching Strava activities:", error);
         if (error instanceof TypeError) {
@@ -559,6 +576,21 @@ export default function StravaActivities({
                 className="w-full px-4 py-3 border border-slate-storm/20 rounded-lg focus-ring focus:border-summit-sage text-basalt"
               />
             </div>
+          </div>
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="includeVirtualRides"
+              checked={includeVirtualRides}
+              onChange={(e) => setIncludeVirtualRides(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-summit-sage focus:ring-summit-sage"
+            />
+            <label
+              htmlFor="includeVirtualRides"
+              className="ml-2 block text-sm text-gray-900"
+            >
+              Include Virtual Rides
+            </label>
           </div>
         </div>
       </div>
