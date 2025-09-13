@@ -90,17 +90,17 @@ export default function DesignConfigurator({
       {
         name: "Trispace",
         value: "Trispace" as const,
-        cssFont: "'Trispace', monospace",
+        cssFont: "var(--font-trispace), monospace",
       },
       {
         name: "Garamond",
         value: "Garamond" as const,
-        cssFont: "'EB Garamond', serif",
+        cssFont: "var(--font-eb-garamond), serif",
       },
       {
         name: "Poppins",
         value: "Poppins" as const,
-        cssFont: "'Poppins', sans-serif",
+        cssFont: "var(--font-poppins), sans-serif",
       },
     ],
     [],
@@ -178,7 +178,7 @@ export default function DesignConfigurator({
       angle: number, // angle in degrees (0 = top)
       radius: number,
       fontSize: number,
-      fontFamily: string = "'Trispace', monospace",
+      fontFamily: string = "var(--font-trispace), monospace",
       bold: boolean = true,
       italic: boolean = false,
     ) => {
@@ -219,8 +219,23 @@ export default function DesignConfigurator({
     };
 
     const redraw = () => {
-      // Clear and draw background
-      ctx.fillStyle = "#ffffff";
+      // Clear and draw hillshade-style background
+      ctx.fillStyle = "#f8f9fa";
+      ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+      // Add subtle hillshade texture
+      const gradient = ctx.createRadialGradient(
+        canvasSize * 0.3,
+        canvasSize * 0.3,
+        0,
+        canvasSize * 0.7,
+        canvasSize * 0.7,
+        canvasSize * 0.8,
+      );
+      gradient.addColorStop(0, "rgba(245, 245, 245, 0.3)");
+      gradient.addColorStop(0.5, "rgba(235, 235, 235, 0.2)");
+      gradient.addColorStop(1, "rgba(225, 225, 225, 0.1)");
+      ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvasSize, canvasSize);
 
       // For ornaments, set up circular clipping
@@ -248,9 +263,13 @@ export default function DesignConfigurator({
       );
       if (filteredPoints.length > 1) {
         ctx.strokeStyle = designConfig.routeColor;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
+        ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
+        ctx.shadowBlur = 2;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
         ctx.beginPath();
         filteredPoints.forEach((p: any, i: number) => {
           const x = ((p.lon - bbox[0]) / (bbox[2] - bbox[0])) * canvasSize;
@@ -291,7 +310,7 @@ export default function DesignConfigurator({
             label.angle,
             label.radius,
             label.size,
-            fontOption?.cssFont || "'Trispace', monospace",
+            fontOption?.cssFont || "var(--font-trispace), monospace",
             label.bold,
             label.italic,
           );

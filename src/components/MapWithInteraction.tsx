@@ -243,7 +243,13 @@ function MapController({
       {gpxData && (
         <Polyline
           positions={gpxData.points.map((p: any) => [p.lat, p.lon])}
-          pathOptions={{ color: "#2563eb", weight: 4, opacity: 0.9 }}
+          pathOptions={{
+            color: "#1d4ed8",
+            weight: 5,
+            opacity: 1.0,
+            lineCap: "round",
+            lineJoin: "round",
+          }}
         />
       )}
       {boundingBox && (
@@ -295,8 +301,9 @@ export default function MapWithInteraction({
       className="rounded-lg"
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
+        url="https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}@2x.png"
+        className="hillshade-tiles"
       />
       <MapController
         gpxData={gpxData}
