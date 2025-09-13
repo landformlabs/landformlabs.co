@@ -16,8 +16,10 @@ interface StravaActivity {
   id: number;
   name: string;
   distance: number;
+  moving_time: number;
   sport_type: string;
   start_date_local: string;
+  total_elevation_gain?: number;
   photos?: {
     primary?: {
       unique_id: string;
@@ -61,18 +63,123 @@ async function fetchActivitiesBatch(
 function searchActivities(
   activities: StravaActivity[],
   query: string,
-  sportType?: string,
+  parsedFilter?: any,
+  excludeVirtual?: boolean,
 ): StravaActivity[] {
-  const normalizedQuery = query.toLowerCase().trim();
+  let filtered = [...activities];
 
-  return activities.filter((activity) => {
-    // Sport type filter
-    if (sportType && activity.sport_type !== sportType) {
-      return false;
+  // Exclude virtual rides if requested
+  if (excludeVirtual) {
+    filtered = filtered.filter(
+      (activity) => activity.sport_type !== "VirtualRide",
+    );
+  }
+
+  // If we have a parsed filter, use the advanced natural language logic
+  if (parsedFilter) {
+    // Apply date range filter
+    if (parsedFilter.dateRange) {
+      filtered = filtered.filter((activity) => {
+        const activityDate = new Date(activity.start_date_local);
+        const activityDateStr = activityDate.toISOString().split("T")[0];
+
+        if (
+          parsedFilter.dateRange.after &&
+          activityDateStr < parsedFilter.dateRange.after
+        ) {
+          return false;
+        }
+
+        if (
+          parsedFilter.dateRange.before &&
+          activityDateStr > parsedFilter.dateRange.before
+        ) {
+          return false;
+        }
+
+        return true;
+      });
     }
 
-    // Text search across multiple fields
-    if (normalizedQuery) {
+    // Apply activity type filter
+    if (parsedFilter.activityType) {
+      filtered = filtered.filter(
+        (activity) => activity.sport_type === parsedFilter.activityType,
+      );
+    }
+
+    // Apply text search filter
+    if (parsedFilter.textSearch) {
+      const searchTerm = parsedFilter.textSearch.toLowerCase();
+      filtered = filtered.filter((activity) =>
+        activity.name.toLowerCase().includes(searchTerm),
+      );
+    }
+
+    // Apply superlative sorting and filtering
+    if (parsedFilter.superlative) {
+      const { field, type } = parsedFilter.superlative;
+
+      // Sort based on the superlative
+      filtered.sort((a, b) => {
+        let aValue: number;
+        let bValue: number;
+
+        switch (field) {
+          case "distance":
+            aValue = a.distance;
+            bValue = b.distance;
+            break;
+          case "time":
+            aValue = a.moving_time;
+            bValue = b.moving_time;
+            break;
+          case "elevation":
+            aValue = a.total_elevation_gain || 0;
+            bValue = b.total_elevation_gain || 0;
+            break;
+          case "date":
+            aValue = new Date(a.start_date_local).getTime();
+            bValue = new Date(b.start_date_local).getTime();
+            break;
+          default:
+            return 0;
+        }
+
+        // Determine sort direction based on superlative type
+        const isDescending = [
+          "longest",
+          "fastest",
+          "highest",
+          "recent",
+          "newest",
+          "latest",
+        ].includes(type);
+        return isDescending ? bValue - aValue : aValue - bValue;
+      });
+
+      // For superlatives, limit to top results to avoid overwhelming
+      if (
+        [
+          "longest",
+          "shortest",
+          "fastest",
+          "slowest",
+          "highest",
+          "lowest",
+        ].includes(type)
+      ) {
+        filtered = filtered.slice(0, 20);
+      }
+    }
+
+    return filtered;
+  }
+
+  // Fallback to simple text search if no parsed filter
+  const normalizedQuery = query.toLowerCase().trim();
+  if (normalizedQuery) {
+    filtered = filtered.filter((activity) => {
       const searchableText = [
         activity.name,
         activity.sport_type,
@@ -82,10 +189,10 @@ function searchActivities(
         .toLowerCase();
 
       return searchableText.includes(normalizedQuery);
-    }
+    });
+  }
 
-    return true;
-  });
+  return filtered;
 }
 
 export async function GET(request: NextRequest) {
@@ -99,9 +206,21 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("query") || "";
-    const sportType = searchParams.get("sport_type") || "";
+    const parsedFilterParam = searchParams.get("parsed_filter");
+    const excludeVirtual = searchParams.get("exclude_virtual") === "true";
     const limit = Math.min(parseInt(searchParams.get("limit") || "1000"), 2000);
     const forceRefresh = searchParams.get("refresh") === "true";
+
+    // Parse the natural language filter if provided
+    let parsedFilter = null;
+    if (parsedFilterParam) {
+      try {
+        parsedFilter = JSON.parse(parsedFilterParam);
+      } catch (error) {
+        console.error("Error parsing filter JSON:", error);
+        // Continue with null parsedFilter to fall back to simple search
+      }
+    }
 
     // Create cache key based on access token (user-specific)
     const cacheKey = accessToken;
@@ -197,7 +316,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const searchResults = searchActivities(cached.activities, query, sportType);
+    const searchResults = searchActivities(
+      cached.activities,
+      query,
+      parsedFilter,
+      excludeVirtual,
+    );
 
     return NextResponse.json({
       activities: searchResults,
@@ -205,7 +329,7 @@ export async function GET(request: NextRequest) {
       hasMore: cached.hasMore,
       lastFetched: cached.lastFetched,
       searchQuery: query,
-      sportTypeFilter: sportType,
+      parsedFilter: parsedFilter,
     });
   } catch (error) {
     console.error("Search API error:", error);

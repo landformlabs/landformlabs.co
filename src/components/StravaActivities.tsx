@@ -2,6 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react";
 import RouteThumbnail from "./RouteThumbnail";
+import {
+  parseNaturalLanguageQuery,
+  getSearchSuggestions,
+  interpretQuery,
+  type ParsedFilter,
+} from "../utils/naturalLanguageParser";
 
 interface StravaActivity {
   id: number;
@@ -41,20 +47,15 @@ export default function StravaActivities({
     type: "network" | "auth" | "api" | "general";
     message: string;
   } | null>(null);
-  const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [after, setAfter] = useState<string>("");
-  const [before, setBefore] = useState<string>("");
-  const [searchMode, setSearchMode] = useState<"current" | "all">("current");
-  const [comprehensiveActivities, setComprehensiveActivities] = useState<
-    StravaActivity[]
-  >([]);
-  const [comprehensiveLoading, setComprehensiveLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<StravaActivity[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [parsedFilter, setParsedFilter] = useState<ParsedFilter>({});
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [totalActivitiesCount, setTotalActivitiesCount] = useState<
     number | null
   >(null);
   const [hasMoreActivities, setHasMoreActivities] = useState(true);
-  const [sportTypeFilter, setSportTypeFilter] = useState("");
   const [includeVirtualRides, setIncludeVirtualRides] = useState(false);
 
   // Format activity date for display
@@ -76,25 +77,37 @@ export default function StravaActivities({
     });
   };
 
-  // Comprehensive search function
-  const performComprehensiveSearch = useCallback(
-    async (query: string, sportType?: string) => {
-      if (!accessToken || !query.trim()) {
-        setComprehensiveActivities([]);
+  // Natural language search function
+  const performNaturalLanguageSearch = useCallback(
+    async (query: string) => {
+      if (!accessToken) {
+        setSearchResults([]);
         return;
       }
 
-      setComprehensiveLoading(true);
+      if (!query.trim()) {
+        setSearchResults([]);
+        setParsedFilter({});
+        return;
+      }
+
+      setSearchLoading(true);
       setError(null);
 
       try {
+        // Parse the natural language query
+        const parsed = parseNaturalLanguageQuery(query);
+        setParsedFilter(parsed);
+
+        // Build search parameters for the API
         const params = new URLSearchParams({
           query: query.trim(),
           limit: "1000",
+          parsed_filter: JSON.stringify(parsed),
         });
 
-        if (sportType) {
-          params.append("sport_type", sportType);
+        if (!includeVirtualRides) {
+          params.append("exclude_virtual", "true");
         }
 
         const response = await fetch(`/api/strava/activities/search?${params}`);
@@ -113,16 +126,12 @@ export default function StravaActivities({
         let filteredData = data.activities.filter(
           (activity: StravaActivity) => activity.distance > 0,
         );
-        if (!includeVirtualRides) {
-          filteredData = filteredData.filter(
-            (activity: StravaActivity) => activity.sport_type !== "VirtualRide",
-          );
-        }
-        setComprehensiveActivities(filteredData);
+
+        setSearchResults(filteredData);
         setTotalActivitiesCount(data.totalActivities);
         setHasMoreActivities(data.hasMore);
       } catch (error) {
-        console.error("Comprehensive search error:", error);
+        console.error("Natural language search error:", error);
         if (error instanceof Error && error.message === "AUTH_ERROR") {
           setError({
             type: "auth",
@@ -141,82 +150,78 @@ export default function StravaActivities({
             message: "Search failed. Please try again later.",
           });
         }
-        setComprehensiveActivities([]);
+        setSearchResults([]);
+        setParsedFilter({});
       } finally {
-        setComprehensiveLoading(false);
+        setSearchLoading(false);
       }
     },
-    [accessToken],
+    [accessToken, includeVirtualRides],
   );
 
-  // Debounced comprehensive search
+  // Debounced natural language search
   useEffect(() => {
-    if (searchMode === "all" && (searchQuery.trim() || sportTypeFilter)) {
-      const timeoutId = setTimeout(() => {
-        performComprehensiveSearch(searchQuery, sportTypeFilter || undefined);
-      }, 500);
+    const timeoutId = setTimeout(() => {
+      performNaturalLanguageSearch(searchQuery);
+    }, 500);
 
-      return () => clearTimeout(timeoutId);
-    } else if (
-      searchMode === "all" &&
-      !searchQuery.trim() &&
-      !sportTypeFilter
-    ) {
-      setComprehensiveActivities([]);
-    }
-  }, [
-    searchQuery,
-    searchMode,
-    sportTypeFilter,
-    accessToken,
-    performComprehensiveSearch,
-  ]);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, includeVirtualRides, performNaturalLanguageSearch]);
 
+  // Load initial activities when component mounts
   useEffect(() => {
     if (!accessToken) {
       setLoading(false);
       return;
     }
 
-    const fetchActivities = async () => {
+    const fetchInitialActivities = async () => {
       setLoading(true);
       setError(null);
       try {
-        const afterTimestamp = after ? new Date(after).getTime() / 1000 : null;
-        const beforeTimestamp = before
-          ? new Date(before).getTime() / 1000
-          : null;
+        let allActivities: StravaActivity[] = [];
+        let page = 1;
+        const targetCount = 20;
+        const maxPages = 5; // Safety limit to prevent infinite loops
 
-        let url = `https://www.strava.com/api/v3/athlete/activities?access_token=${accessToken}&page=${page}&per_page=10`;
-        if (afterTimestamp) {
-          url += `&after=${afterTimestamp}`;
-        }
-        if (beforeTimestamp) {
-          url += `&before=${beforeTimestamp}`;
-        }
+        // Keep fetching until we have enough activities or hit our page limit
+        while (allActivities.length < targetCount && page <= maxPages) {
+          const perPage = includeVirtualRides ? 20 : 50; // Fetch more if filtering virtuals
+          let url = `https://www.strava.com/api/v3/athlete/activities?access_token=${accessToken}&page=${page}&per_page=${perPage}`;
 
-        const response = await fetch(url);
-        if (!response.ok) {
-          if (response.status === 401) {
-            throw new Error("AUTH_ERROR");
-          } else if (response.status === 429) {
-            throw new Error("RATE_LIMIT");
-          } else if (response.status >= 500) {
-            throw new Error("SERVER_ERROR");
-          } else {
-            throw new Error("API_ERROR");
+          const response = await fetch(url);
+          if (!response.ok) {
+            if (response.status === 401) {
+              throw new Error("AUTH_ERROR");
+            } else if (response.status === 429) {
+              throw new Error("RATE_LIMIT");
+            } else if (response.status >= 500) {
+              throw new Error("SERVER_ERROR");
+            } else {
+              throw new Error("API_ERROR");
+            }
           }
-        }
-        const data = await response.json();
-        let filteredData = data.filter(
-          (activity: StravaActivity) => activity.distance > 0,
-        );
-        if (!includeVirtualRides) {
-          filteredData = filteredData.filter(
-            (activity: StravaActivity) => activity.sport_type !== "VirtualRide",
+
+          const data = await response.json();
+          if (data.length === 0) break; // No more activities
+
+          let filteredBatch = data.filter(
+            (activity: StravaActivity) => activity.distance > 0,
           );
+
+          if (!includeVirtualRides) {
+            filteredBatch = filteredBatch.filter(
+              (activity: StravaActivity) =>
+                activity.sport_type !== "VirtualRide",
+            );
+          }
+
+          allActivities = [...allActivities, ...filteredBatch];
+          page++;
         }
-        setActivities(filteredData);
+
+        // Take only the first 20 activities
+        setActivities(allActivities.slice(0, targetCount));
       } catch (error) {
         console.error("Error fetching Strava activities:", error);
         if (error instanceof TypeError) {
@@ -254,14 +259,17 @@ export default function StravaActivities({
       }
     };
 
-    fetchActivities();
-  }, [accessToken, page, before, after]);
+    fetchInitialActivities();
+  }, [accessToken, includeVirtualRides]);
 
   const handleActivityClick = async (activityId: number) => {
     setActivityLoading(activityId);
     setError(null);
     try {
-      const activity = activities.find((a) => a.id === activityId);
+      // Find activity in either activities or search results
+      const activity = [...activities, ...searchResults].find(
+        (a) => a.id === activityId,
+      );
       if (!activity) {
         throw new Error("Activity not found");
       }
@@ -329,18 +337,8 @@ export default function StravaActivities({
     }
   };
 
-  // Determine which activities to display based on search mode
-  const displayActivities =
-    searchMode === "all" && searchQuery.trim()
-      ? comprehensiveActivities
-      : activities;
-
-  const filteredActivities =
-    searchMode === "current"
-      ? activities.filter((activity) =>
-          activity.name.toLowerCase().includes(searchQuery.toLowerCase()),
-        )
-      : displayActivities;
+  // Determine which activities to display
+  const displayActivities = searchQuery.trim() ? searchResults : activities;
 
   if (loading) {
     return (
@@ -362,36 +360,21 @@ export default function StravaActivities({
         </p>
       </div>
 
-      {/* Search and Filters */}
+      {/* Natural Language Search */}
       <div className="bg-white rounded-lg shadow-sm border border-slate-storm/10 p-6 mb-6">
         <div className="space-y-4">
-          {/* Search Mode Toggle */}
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-basalt font-trispace">
-              Search Activities
+              Search Your Activities
             </h3>
-            <div className="flex bg-slate-storm/5 rounded-lg p-1">
-              <button
-                onClick={() => setSearchMode("current")}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  searchMode === "current"
-                    ? "bg-summit-sage text-white"
-                    : "text-slate-storm hover:text-basalt"
-                }`}
-              >
-                Current Page
-              </button>
-              <button
-                onClick={() => setSearchMode("all")}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  searchMode === "all"
-                    ? "bg-summit-sage text-white"
-                    : "text-slate-storm hover:text-basalt"
-                }`}
-              >
-                All Activities
-              </button>
-            </div>
+            {totalActivitiesCount !== null && (
+              <div className="text-sm text-slate-storm">
+                Searching {totalActivitiesCount} activities
+                {hasMoreActivities && (
+                  <span className="ml-1 text-xs">+ more</span>
+                )}
+              </div>
+            )}
           </div>
 
           <div>
@@ -399,198 +382,86 @@ export default function StravaActivities({
               htmlFor="search"
               className="block text-sm font-semibold text-basalt mb-2"
             >
-              {searchMode === "current"
-                ? "Search by activity name..."
-                : "Search across all your activities..."}
+              Ask for activities using natural language
             </label>
             <div className="relative">
               <input
                 id="search"
                 type="text"
-                placeholder={
-                  searchMode === "current"
-                    ? "Search current page activities..."
-                    : "Search all activities by name, sport, or date..."
-                }
+                placeholder="Try: 'My longest ride', 'Rides from December 2021', 'LoToJa 2021'"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSuggestions(e.target.value.trim() !== "");
+                }}
+                onFocus={() => setShowSuggestions(searchQuery.trim() !== "")}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                 className="w-full px-4 py-3 border border-slate-storm/20 rounded-lg focus-ring focus:border-summit-sage text-basalt placeholder-slate-storm/60"
               />
-              {comprehensiveLoading && (
+              {searchLoading && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   <div className="w-5 h-5 border-2 border-summit-sage border-t-transparent rounded-full animate-spin"></div>
                 </div>
               )}
             </div>
 
-            {/* Search Scope Indicator */}
-            {searchMode === "all" && (
-              <div className="mt-2 text-sm text-slate-storm">
-                {totalActivitiesCount !== null && (
-                  <span className="flex items-center space-x-2">
-                    <span>
-                      Searching across {totalActivitiesCount} activities
-                    </span>
-                    {hasMoreActivities && (
-                      <span className="bg-alpine-mist text-basalt px-2 py-1 rounded-full text-xs font-medium">
-                        + more available
-                      </span>
-                    )}
+            {/* Search Suggestions */}
+            {showSuggestions && (
+              <div className="mt-2 bg-white border border-slate-storm/20 rounded-lg shadow-lg p-3 z-10">
+                <div className="text-xs text-slate-storm/70 mb-2 font-medium">
+                  Try these examples:
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {getSearchSuggestions(searchQuery).map(
+                    (suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSearchQuery(suggestion);
+                          setShowSuggestions(false);
+                        }}
+                        className="px-2 py-1 text-xs rounded-full border border-slate-storm/20 text-slate-storm hover:border-summit-sage hover:text-summit-sage transition-colors duration-200"
+                      >
+                        {suggestion}
+                      </button>
+                    ),
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Query Interpretation */}
+            {searchQuery.trim() && (
+              <div className="mt-2 text-sm">
+                <span className="text-slate-storm/70">
+                  {interpretQuery(searchQuery)}
+                </span>
+                {searchResults.length > 0 && (
+                  <span className="ml-2 text-summit-sage font-medium">
+                    ({searchResults.length} found)
                   </span>
                 )}
-                {(searchQuery.trim() || sportTypeFilter) &&
-                  comprehensiveActivities.length > 0 && (
-                    <div className="mt-1 text-summit-sage font-medium">
-                      Found {comprehensiveActivities.length} matching activities
-                    </div>
-                  )}
               </div>
             )}
           </div>
 
-          {/* Quick Filters and Sport Type Filter - Only for comprehensive search */}
-          {searchMode === "all" && (
-            <div className="space-y-3">
-              {/* Sport Type Filter */}
-              <div>
-                <label
-                  htmlFor="sportType"
-                  className="block text-sm font-semibold text-basalt mb-2"
-                >
-                  Filter by Sport
-                </label>
-                <select
-                  id="sportType"
-                  value={sportTypeFilter}
-                  onChange={(e) => setSportTypeFilter(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-storm/20 rounded-lg focus-ring focus:border-summit-sage text-basalt bg-white"
-                >
-                  <option value="">All Sports</option>
-                  <option value="Ride">🚴‍♂️ Cycling</option>
-                  <option value="Run">🏃‍♂️ Running</option>
-                  <option value="Hike">🥾 Hiking</option>
-                  <option value="Walk">🚶‍♂️ Walking</option>
-                  <option value="Swim">🏊‍♂️ Swimming</option>
-                  <option value="VirtualRide">🚴‍♂️ Virtual Ride</option>
-                  <option value="EBikeRide">🚴‍♂️ E-Bike Ride</option>
-                  <option value="MountainBikeRide">🚵‍♂️ Mountain Bike</option>
-                  <option value="Workout">💪 Workout</option>
-                  <option value="Yoga">🧘‍♂️ Yoga</option>
-                </select>
-              </div>
-
-              {/* Quick Filter Buttons */}
-              <div>
-                <label className="block text-sm font-semibold text-basalt mb-2">
-                  Quick Filters
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => {
-                      setSearchQuery("recent");
-                      setSportTypeFilter("");
-                    }}
-                    className="px-3 py-1 text-sm rounded-full border border-slate-storm/20 text-slate-storm hover:border-summit-sage hover:text-summit-sage transition-colors duration-200"
-                  >
-                    Recent Activities
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSearchQuery("");
-                      setSportTypeFilter("Ride");
-                    }}
-                    className="px-3 py-1 text-sm rounded-full border border-slate-storm/20 text-slate-storm hover:border-summit-sage hover:text-summit-sage transition-colors duration-200"
-                  >
-                    🚴‍♂️ Cycling Only
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSearchQuery("");
-                      setSportTypeFilter("Run");
-                    }}
-                    className="px-3 py-1 text-sm rounded-full border border-slate-storm/20 text-slate-storm hover:border-summit-sage hover:text-summit-sage transition-colors duration-200"
-                  >
-                    🏃‍♂️ Running Only
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSearchQuery("");
-                      setSportTypeFilter("Hike");
-                    }}
-                    className="px-3 py-1 text-sm rounded-full border border-slate-storm/20 text-slate-storm hover:border-summit-sage hover:text-summit-sage transition-colors duration-200"
-                  >
-                    🥾 Hiking Only
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSearchQuery("long");
-                      setSportTypeFilter("");
-                    }}
-                    className="px-3 py-1 text-sm rounded-full border border-slate-storm/20 text-slate-storm hover:border-summit-sage hover:text-summit-sage transition-colors duration-200"
-                  >
-                    Long Activities
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSearchQuery("");
-                      setSportTypeFilter("");
-                      setComprehensiveActivities([]);
-                    }}
-                    className="px-3 py-1 text-sm rounded-full border border-red-200 text-red-600 hover:border-red-400 hover:text-red-700 transition-colors duration-200"
-                  >
-                    Clear All
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="after"
-                className="block text-sm font-semibold text-basalt mb-2"
-              >
-                After Date
-              </label>
+          {/* Virtual Rides Toggle */}
+          <div className="pt-2 border-t border-slate-storm/10">
+            <div className="flex items-center">
               <input
-                type="date"
-                id="after"
-                value={after}
-                onChange={(e) => setAfter(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-storm/20 rounded-lg focus-ring focus:border-summit-sage text-basalt"
+                type="checkbox"
+                id="includeVirtualRides"
+                checked={includeVirtualRides}
+                onChange={(e) => setIncludeVirtualRides(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-summit-sage focus:ring-summit-sage"
               />
-            </div>
-            <div>
               <label
-                htmlFor="before"
-                className="block text-sm font-semibold text-basalt mb-2"
+                htmlFor="includeVirtualRides"
+                className="ml-2 block text-sm text-gray-900"
               >
-                Before Date
+                Include Virtual Activities
               </label>
-              <input
-                type="date"
-                id="before"
-                value={before}
-                onChange={(e) => setBefore(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-storm/20 rounded-lg focus-ring focus:border-summit-sage text-basalt"
-              />
             </div>
-          </div>
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="includeVirtualRides"
-              checked={includeVirtualRides}
-              onChange={(e) => setIncludeVirtualRides(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-summit-sage focus:ring-summit-sage"
-            />
-            <label
-              htmlFor="includeVirtualRides"
-              className="ml-2 block text-sm text-gray-900"
-            >
-              Include Virtual Rides
-            </label>
           </div>
         </div>
       </div>
@@ -671,9 +542,9 @@ export default function StravaActivities({
       )}
 
       {/* Activities List */}
-      {filteredActivities.length > 0 ? (
+      {displayActivities.length > 0 ? (
         <div className="space-y-3 mb-8">
-          {filteredActivities.map((activity) => (
+          {displayActivities.map((activity) => (
             <div
               key={activity.id}
               className="bg-white rounded-lg shadow-sm border border-slate-storm/10 hover:border-summit-sage/30 hover:shadow-md transition-all duration-200"
@@ -773,50 +644,25 @@ export default function StravaActivities({
             No Activities Found
           </h3>
           <p className="text-slate-storm">
-            {searchQuery || after || before
-              ? "Try adjusting your search criteria or date filters."
+            {searchQuery.trim()
+              ? "Try a different search query or check your spelling."
               : "You don't have any activities yet. Go create some adventures!"}
           </p>
         </div>
       )}
 
-      {/* Pagination - Only show for current page mode */}
-      {searchMode === "current" && (
-        <div className="flex justify-between items-center">
-          <button
-            onClick={() => setPage(page - 1)}
-            disabled={page === 1 || loading}
-            className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            ← Previous
-          </button>
-
-          <span className="text-sm text-slate-storm font-medium">
-            Page {page}
-          </span>
-
-          <button
-            onClick={() => setPage(page + 1)}
-            disabled={activities.length < 10 || loading}
-            className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next →
-          </button>
-        </div>
-      )}
-
-      {/* Comprehensive Search Results Info */}
-      {searchMode === "all" && searchQuery.trim() && (
+      {/* Search Results Info */}
+      {searchQuery.trim() && (
         <div className="text-center py-4">
           <div className="text-sm text-slate-storm">
-            {comprehensiveLoading ? (
+            {searchLoading ? (
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-4 h-4 border-2 border-summit-sage border-t-transparent rounded-full animate-spin"></div>
                 <span>Searching through your activities...</span>
               </div>
-            ) : comprehensiveActivities.length > 0 ? (
+            ) : searchResults.length > 0 ? (
               <span>
-                Showing {comprehensiveActivities.length} matching activities
+                Found {searchResults.length} matching activities
                 {totalActivitiesCount && (
                   <span className="text-basalt font-medium">
                     {" "}
@@ -824,7 +670,7 @@ export default function StravaActivities({
                   </span>
                 )}
               </span>
-            ) : searchQuery.trim() && !comprehensiveLoading ? (
+            ) : searchQuery.trim() && !searchLoading ? (
               <span className="text-slate-storm">
                 No activities found matching &quot;{searchQuery}&quot;
               </span>
