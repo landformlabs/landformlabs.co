@@ -245,10 +245,15 @@ export default function DesignConfigurator({
         };
         terrainImg.onerror = () => {
           console.warn("Failed to load terrain image, using fallback");
-          continueRendering();
         };
         terrainImg.src = terrainData.terrainImage;
-        return; // Exit early, let image loading handle the rest
+      } else {
+        // If no terrain data is available, draw a placeholder and do not draw the route
+        ctx.fillStyle = "#f8f9fa";
+        ctx.fillRect(0, 0, canvasSize, canvasSize);
+        ctx.fillStyle = "#a0aec0";
+        ctx.textAlign = "center";
+        ctx.fillText("Loading terrain...", canvasSize / 2, canvasSize / 2);
       }
 
       function continueRendering() {
@@ -277,12 +282,22 @@ export default function DesignConfigurator({
         if (!ctx) return;
 
         // Draw route
+        // Use terrain bounds if available for accurate positioning, otherwise use original bbox
+        const effectiveBounds = terrainData?.bounds
+          ? [
+              terrainData.bounds.minLng,
+              terrainData.bounds.minLat,
+              terrainData.bounds.maxLng,
+              terrainData.bounds.maxLat,
+            ]
+          : bbox;
+
         const filteredPoints = gpxData.points.filter(
           (p: any) =>
-            p.lat >= bbox[1] &&
-            p.lat <= bbox[3] &&
-            p.lon >= bbox[0] &&
-            p.lon <= bbox[2],
+            p.lat >= effectiveBounds[1] &&
+            p.lat <= effectiveBounds[3] &&
+            p.lon >= effectiveBounds[0] &&
+            p.lon <= effectiveBounds[2],
         );
         if (filteredPoints.length > 1) {
           ctx.strokeStyle = designConfig.routeColor;
@@ -295,10 +310,15 @@ export default function DesignConfigurator({
           ctx.shadowOffsetY = 1;
           ctx.beginPath();
           filteredPoints.forEach((p: any, i: number) => {
-            const x = ((p.lon - bbox[0]) / (bbox[2] - bbox[0])) * canvasSize;
+            const x =
+              ((p.lon - effectiveBounds[0]) /
+                (effectiveBounds[2] - effectiveBounds[0])) *
+              canvasSize;
             const y =
               canvasSize -
-              ((p.lat - bbox[1]) / (bbox[3] - bbox[1])) * canvasSize;
+              ((p.lat - effectiveBounds[1]) /
+                (effectiveBounds[3] - effectiveBounds[1])) *
+                canvasSize;
             if (i === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
           });
@@ -341,24 +361,6 @@ export default function DesignConfigurator({
           });
         }
       }
-
-      // Add subtle hillshade texture (fallback)
-      const gradient = ctx.createRadialGradient(
-        canvasSize * 0.3,
-        canvasSize * 0.3,
-        0,
-        canvasSize * 0.7,
-        canvasSize * 0.7,
-        canvasSize * 0.8,
-      );
-      gradient.addColorStop(0, "rgba(245, 245, 245, 0.3)");
-      gradient.addColorStop(0.5, "rgba(235, 235, 235, 0.2)");
-      gradient.addColorStop(1, "rgba(225, 225, 225, 0.1)");
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvasSize, canvasSize);
-
-      // Continue with rendering using fallback background
-      continueRendering();
     };
 
     redraw();
