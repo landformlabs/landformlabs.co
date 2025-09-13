@@ -22,6 +22,7 @@ interface MapViewerProps {
   boundingBox?: string;
   onConfirmSelection?: () => void;
   onRestart?: () => void;
+  isCapturingTerrain?: boolean;
 }
 
 export default function MapViewer({
@@ -30,6 +31,7 @@ export default function MapViewer({
   boundingBox,
   onConfirmSelection,
   onRestart,
+  isCapturingTerrain = false,
 }: MapViewerProps) {
   const [isClient, setIsClient] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -122,8 +124,19 @@ export default function MapViewer({
               {/* Confirm selection button */}
               {boundingBox && onConfirmSelection && (
                 <div className="mt-4 pt-3 border-t border-slate-storm/10">
-                  <button onClick={onConfirmSelection} className="btn-primary">
-                    Confirm Selection & Continue
+                  <button
+                    onClick={onConfirmSelection}
+                    className="btn-primary"
+                    disabled={isCapturingTerrain}
+                  >
+                    {isCapturingTerrain ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Capturing Terrain...</span>
+                      </div>
+                    ) : (
+                      "Confirm Selection & Continue"
+                    )}
                   </button>
                 </div>
               )}

@@ -7,6 +7,11 @@ import JSZip from "jszip";
 interface DesignConfiguratorProps {
   gpxData: any;
   boundingBox: string;
+  terrainData?: {
+    terrainImage: string;
+    bounds: { minLng: number; minLat: number; maxLng: number; maxLat: number };
+    dimensions: { width: number; height: number };
+  } | null;
   designConfig: {
     routeColor: string;
     printType: "tile" | "ornament";
@@ -46,6 +51,7 @@ interface DesignConfiguratorProps {
 export default function DesignConfigurator({
   gpxData,
   boundingBox,
+  terrainData,
   designConfig,
   onConfigChange,
   onRestart,
@@ -219,11 +225,124 @@ export default function DesignConfigurator({
     };
 
     const redraw = () => {
+      if (!ctx) return;
+
       // Clear and draw hillshade-style background
       ctx.fillStyle = "#f8f9fa";
       ctx.fillRect(0, 0, canvasSize, canvasSize);
 
-      // Add subtle hillshade texture
+      // Draw actual terrain background if available
+      if (terrainData && terrainData.terrainImage) {
+        const terrainImg = new Image();
+        terrainImg.onload = () => {
+          // Clear and draw terrain image
+          ctx.fillStyle = "#f8f9fa";
+          ctx.fillRect(0, 0, canvasSize, canvasSize);
+          ctx.drawImage(terrainImg, 0, 0, canvasSize, canvasSize);
+
+          // Continue with rest of rendering after terrain loads
+          continueRendering();
+        };
+        terrainImg.onerror = () => {
+          console.warn("Failed to load terrain image, using fallback");
+          continueRendering();
+        };
+        terrainImg.src = terrainData.terrainImage;
+        return; // Exit early, let image loading handle the rest
+      }
+
+      function continueRendering() {
+        if (!ctx) return;
+
+        // For ornaments, set up circular clipping
+        if (designConfig.printType === "ornament") {
+          const ornamentCircle = getOrnamentCircle();
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(
+            ornamentCircle.x,
+            ornamentCircle.y,
+            ornamentCircle.radius,
+            0,
+            2 * Math.PI,
+          );
+          ctx.clip();
+        }
+
+        // Draw route and continue with existing logic
+        drawRouteAndOrnaments();
+      }
+
+      function drawRouteAndOrnaments() {
+        if (!ctx) return;
+
+        // Draw route
+        const filteredPoints = gpxData.points.filter(
+          (p: any) =>
+            p.lat >= bbox[1] &&
+            p.lat <= bbox[3] &&
+            p.lon >= bbox[0] &&
+            p.lon <= bbox[2],
+        );
+        if (filteredPoints.length > 1) {
+          ctx.strokeStyle = designConfig.routeColor;
+          ctx.lineWidth = 4;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
+          ctx.shadowBlur = 2;
+          ctx.shadowOffsetX = 1;
+          ctx.shadowOffsetY = 1;
+          ctx.beginPath();
+          filteredPoints.forEach((p: any, i: number) => {
+            const x = ((p.lon - bbox[0]) / (bbox[2] - bbox[0])) * canvasSize;
+            const y =
+              canvasSize -
+              ((p.lat - bbox[1]) / (bbox[3] - bbox[1])) * canvasSize;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+        }
+
+        // Handle ornament-specific rendering
+        if (designConfig.printType === "ornament") {
+          ctx.restore(); // Restore from circular clipping
+
+          const ornamentCircle = getOrnamentCircle();
+
+          // Draw ornament circle border
+          ctx.strokeStyle = "#64748b";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(
+            ornamentCircle.x,
+            ornamentCircle.y,
+            ornamentCircle.radius,
+            0,
+            2 * Math.PI,
+          );
+          ctx.stroke();
+
+          // Draw ornament labels as curved text
+          designConfig.ornamentLabels.forEach((label: any) => {
+            const fontOption = fontFamilyOptions.find(
+              (f) => f.value === label.fontFamily,
+            );
+            drawCurvedText(
+              label.text,
+              label.angle,
+              label.radius,
+              label.size,
+              fontOption?.cssFont || "var(--font-trispace), monospace",
+              label.bold,
+              label.italic,
+            );
+          });
+        }
+      }
+
+      // Add subtle hillshade texture (fallback)
       const gradient = ctx.createRadialGradient(
         canvasSize * 0.3,
         canvasSize * 0.3,
@@ -238,84 +357,8 @@ export default function DesignConfigurator({
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvasSize, canvasSize);
 
-      // For ornaments, set up circular clipping
-      if (designConfig.printType === "ornament") {
-        const ornamentCircle = getOrnamentCircle();
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(
-          ornamentCircle.x,
-          ornamentCircle.y,
-          ornamentCircle.radius,
-          0,
-          2 * Math.PI,
-        );
-        ctx.clip();
-      }
-
-      // Draw route
-      const filteredPoints = gpxData.points.filter(
-        (p: any) =>
-          p.lat >= bbox[1] &&
-          p.lat <= bbox[3] &&
-          p.lon >= bbox[0] &&
-          p.lon <= bbox[2],
-      );
-      if (filteredPoints.length > 1) {
-        ctx.strokeStyle = designConfig.routeColor;
-        ctx.lineWidth = 4;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
-        ctx.shadowBlur = 2;
-        ctx.shadowOffsetX = 1;
-        ctx.shadowOffsetY = 1;
-        ctx.beginPath();
-        filteredPoints.forEach((p: any, i: number) => {
-          const x = ((p.lon - bbox[0]) / (bbox[2] - bbox[0])) * canvasSize;
-          const y =
-            canvasSize - ((p.lat - bbox[1]) / (bbox[3] - bbox[1])) * canvasSize;
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        });
-        ctx.stroke();
-      }
-
-      // Handle ornament-specific rendering
-      if (designConfig.printType === "ornament") {
-        ctx.restore(); // Restore from circular clipping
-
-        const ornamentCircle = getOrnamentCircle();
-
-        // Draw ornament circle border
-        ctx.strokeStyle = "#64748b";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(
-          ornamentCircle.x,
-          ornamentCircle.y,
-          ornamentCircle.radius,
-          0,
-          2 * Math.PI,
-        );
-        ctx.stroke();
-
-        // Draw ornament labels as curved text
-        designConfig.ornamentLabels.forEach((label: any) => {
-          const fontOption = fontFamilyOptions.find(
-            (f) => f.value === label.fontFamily,
-          );
-          drawCurvedText(
-            label.text,
-            label.angle,
-            label.radius,
-            label.size,
-            fontOption?.cssFont || "var(--font-trispace), monospace",
-            label.bold,
-            label.italic,
-          );
-        });
-      }
+      // Continue with rendering using fallback background
+      continueRendering();
     };
 
     redraw();
@@ -324,6 +367,7 @@ export default function DesignConfigurator({
     boundingBox,
     bbox,
     designConfig,
+    terrainData,
     getOrnamentCircle,
     fontFamilyOptions,
   ]);
@@ -539,6 +583,31 @@ export default function DesignConfigurator({
     const gpxString = gpxData.gpxString;
     zip.file("route-data.gpx", gpxString);
 
+    // Add terrain data if available
+    if (terrainData && terrainData.terrainImage) {
+      // Convert base64 terrain image to blob
+      const terrainImageData = terrainData.terrainImage.split(",")[1]; // Remove data:image/png;base64, prefix
+      const terrainBlob = new Blob(
+        [Uint8Array.from(atob(terrainImageData), (c) => c.charCodeAt(0))],
+        { type: "image/png" },
+      );
+      zip.file("terrain-background.png", terrainBlob);
+
+      // Add terrain metadata
+      const terrainMetadata = {
+        bounds: terrainData.bounds,
+        dimensions: terrainData.dimensions,
+        source: "Stamen Terrain via Stadia Maps",
+        captureTimestamp: new Date().toISOString(),
+        description:
+          "Hillshade terrain data for the selected bounding box area",
+      };
+      zip.file(
+        "terrain-metadata.json",
+        JSON.stringify(terrainMetadata, null, 2),
+      );
+    }
+
     // Create comprehensive order specifications
     const orderSpecs = {
       orderInfo: {
@@ -626,7 +695,12 @@ export default function DesignConfigurator({
     orderSummary += `- route-data.gpx: Original GPS route data\n`;
     orderSummary += `- design-preview.png: High-resolution design preview\n`;
     orderSummary += `- order-specifications.json: Machine-readable specifications\n`;
-    orderSummary += `- order-summary.txt: This human-readable summary\n\n`;
+    orderSummary += `- order-summary.txt: This human-readable summary\n`;
+    if (terrainData && terrainData.terrainImage) {
+      orderSummary += `- terrain-background.png: Hillshade terrain background image\n`;
+      orderSummary += `- terrain-metadata.json: Geographic bounds and terrain data details\n`;
+    }
+    orderSummary += `\n`;
     orderSummary += `To place your order, email this entire ZIP file to: orders@landformlabs.co\n`;
 
     zip.file("order-summary.txt", orderSummary);

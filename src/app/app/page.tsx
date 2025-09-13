@@ -16,6 +16,12 @@ export default function GPXDesignApp() {
   const [gpxData, setGpxData] = useState<any>(null);
   const [processedGpxData, setProcessedGpxData] = useState<any>(null);
   const [boundingBox, setBoundingBox] = useState<string>("");
+  const [terrainData, setTerrainData] = useState<{
+    terrainImage: string;
+    bounds: { minLng: number; minLat: number; maxLng: number; maxLat: number };
+    dimensions: { width: number; height: number };
+  } | null>(null);
+  const [isCapturingTerrain, setIsCapturingTerrain] = useState(false);
   const [designConfig, setDesignConfig] = useState({
     routeColor: "#2563eb",
     printType: "tile" as "tile" | "ornament",
@@ -118,15 +124,51 @@ export default function GPXDesignApp() {
     }
   };
 
-  const handleBoundingBoxConfirm = (bbox: string) => {
+  const handleBoundingBoxConfirm = async (bbox: string) => {
     setBoundingBox(bbox);
-    setCurrentStep("design");
+    setIsCapturingTerrain(true);
+
+    try {
+      // Capture terrain data for the selected bounding box
+      const response = await fetch("/api/terrain-capture", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          boundingBox: bbox,
+          width: 400,
+          height: 400,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTerrainData({
+          terrainImage: data.terrainImage,
+          bounds: data.bounds,
+          dimensions: data.dimensions,
+        });
+        console.log("Terrain data captured successfully");
+      } else {
+        console.error("Failed to capture terrain data:", response.statusText);
+        // Continue to design step even if terrain capture fails
+      }
+    } catch (error) {
+      console.error("Error capturing terrain data:", error);
+      // Continue to design step even if terrain capture fails
+    } finally {
+      setIsCapturingTerrain(false);
+      setCurrentStep("design");
+    }
   };
 
   const handleRestart = () => {
     setCurrentStep("upload");
     setGpxData(null);
     setBoundingBox("");
+    setTerrainData(null);
+    setIsCapturingTerrain(false);
     setDesignConfig({
       routeColor: "#2563eb",
       printType: "tile",
@@ -268,6 +310,7 @@ export default function GPXDesignApp() {
                 boundingBox={boundingBox}
                 onConfirmSelection={() => handleBoundingBoxConfirm(boundingBox)}
                 onRestart={handleRestart}
+                isCapturingTerrain={isCapturingTerrain}
               />
             )}
 
@@ -278,6 +321,7 @@ export default function GPXDesignApp() {
                 designConfig={designConfig}
                 onConfigChange={setDesignConfig}
                 onRestart={handleRestart}
+                terrainData={terrainData}
               />
             )}
           </div>

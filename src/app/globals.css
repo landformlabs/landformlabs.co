@@ -184,10 +184,10 @@ h6 {
     z-index: -1;
 }
 
-/* Light gray minimal hillshade styling for map tiles */
+/* Extreme contrast dramatic hillshade styling for route visualization */
 .hillshade-tiles {
-    filter: grayscale(100%) brightness(1.4) contrast(0.7);
-    opacity: 0.8;
+    filter: grayscale(100%) brightness(0.6) contrast(5) saturate(0);
+    opacity: 1;
 }
 
 /* Styles for Leaflet resize handles */
