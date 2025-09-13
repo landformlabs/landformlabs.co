@@ -552,11 +552,11 @@ export default function StravaActivities({
               <button
                 onClick={() => handleActivityClick(activity.id)}
                 disabled={activityLoading !== null}
-                className="w-full p-6 text-left disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="w-full p-6 text-left disabled:opacity-50 disabled:cursor-not-allowed group cursor-pointer hover:bg-slate-storm/5 transition-all duration-200"
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center">
                   {/* Left side: Sport icon and activity details */}
-                  <div className="flex items-center space-x-4 flex-1 min-w-0">
+                  <div className="flex items-center space-x-4 flex-1 min-w-0 pr-4">
                     {/* Sport Icon */}
                     <div className="flex-shrink-0 text-2xl">
                       {(() => {
@@ -610,26 +610,19 @@ export default function StravaActivities({
                     </div>
                   </div>
 
-                  {/* Right side: Loading state, thumbnail, and select indicator */}
-                  <div className="flex items-center space-x-4 flex-shrink-0">
+                  {/* Right side: Route thumbnail or loading state */}
+                  <div className="flex-shrink-0">
                     {activityLoading === activity.id ? (
-                      <div className="flex items-center text-summit-sage">
-                        <div className="w-5 h-5 border-2 border-summit-sage border-t-transparent rounded-full animate-spin mr-2"></div>
-                        <span className="text-sm font-medium">Loading...</span>
+                      <div className="flex items-center text-summit-sage w-16 justify-center">
+                        <div className="w-5 h-5 border-2 border-summit-sage border-t-transparent rounded-full animate-spin"></div>
                       </div>
                     ) : (
-                      <>
-                        {/* Route Thumbnail */}
+                      <div className="group-hover:scale-105 transition-transform duration-200">
                         <RouteThumbnail
                           polyline={activity.map?.summary_polyline}
                           sportType={activity.sport_type}
                         />
-
-                        {/* Select Indicator */}
-                        <div className="text-summit-sage opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                          <span className="text-sm font-medium">Select →</span>
-                        </div>
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>
