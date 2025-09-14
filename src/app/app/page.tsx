@@ -111,6 +111,20 @@ export default function GPXDesignApp() {
 
   const handleGPXUpload = (parsedGPX: any) => {
     setGpxData(parsedGPX);
+    // Reset design config when new route is selected
+    setDesignConfig({
+      routeColor: "#2563eb",
+      printType: "tile",
+      tileSize: "ridgeline",
+      labels: [],
+      ornamentLabels: [],
+      ornamentCircle: {
+        x: 200,
+        y: 200,
+        radius: 160,
+      },
+    });
+    setBoundingBox(""); // Also reset bounding box for new route
     if (parsedGPX) {
       setCurrentStep("map");
     } else {
@@ -121,6 +135,7 @@ export default function GPXDesignApp() {
   const handleBoundingBoxConfirm = (bbox: string) => {
     setBoundingBox(bbox);
     setCurrentStep("design");
+    // Note: Labels are preserved in designConfig - no need to reset them
   };
 
   const handleRestart = () => {

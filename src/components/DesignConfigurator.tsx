@@ -3,6 +3,12 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Rnd } from "react-rnd";
 import JSZip from "jszip";
+import {
+  convertDistance,
+  formatDuration,
+  isValueAvailable,
+  type UnitSystem,
+} from "../utils/unitConversion";
 
 interface DesignConfiguratorProps {
   gpxData: any;
@@ -73,6 +79,7 @@ export default function DesignConfigurator({
   const [selectedOrnamentLabelIndex, setSelectedOrnamentLabelIndex] = useState<
     number | null
   >(null);
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>("metric");
 
   // Parse bounding box coordinates
   const bbox = boundingBox.split(",").map(Number); // [minLng, minLat, maxLng, maxLat]
@@ -659,78 +666,111 @@ export default function DesignConfigurator({
               Activity Details
             </h3>
             <div className="space-y-2 text-sm text-slate-storm">
-              <div className="flex justify-between items-center">
-                <span className="font-semibold">Name:</span>
-                <div className="flex items-center">
-                  <span className="text-right mr-2">
-                    {gpxData.activityName || "N/A"}
-                  </span>
-                  <button
-                    onClick={() => quickAddLabel(gpxData.activityName)}
-                    className="text-xs bg-slate-200 px-2 py-1 rounded"
-                  >
-                    Add
-                  </button>
+              {/* Activity Name */}
+              {isValueAvailable(gpxData.activityName) && (
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Name:</span>
+                  <div className="flex items-center">
+                    <span className="text-right mr-2 max-w-32 truncate">
+                      {gpxData.activityName}
+                    </span>
+                    <button
+                      onClick={() => quickAddLabel(gpxData.activityName)}
+                      className="text-xs bg-slate-200 px-2 py-1 rounded hover:bg-slate-300 transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-semibold">Date:</span>
-                <div className="flex items-center">
-                  <span className="text-right mr-2">
-                    {gpxData.date
-                      ? new Date(gpxData.date).toLocaleDateString()
-                      : "N/A"}
-                  </span>
-                  <button
-                    onClick={() =>
-                      quickAddLabel(new Date(gpxData.date).toLocaleDateString())
-                    }
-                    className="text-xs bg-slate-200 px-2 py-1 rounded"
-                  >
-                    Add
-                  </button>
+              )}
+
+              {/* Date */}
+              {isValueAvailable(gpxData.date) && (
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Date:</span>
+                  <div className="flex items-center">
+                    <span className="text-right mr-2">
+                      {new Date(gpxData.date).toLocaleDateString()}
+                    </span>
+                    <button
+                      onClick={() =>
+                        quickAddLabel(
+                          new Date(gpxData.date).toLocaleDateString(),
+                        )
+                      }
+                      className="text-xs bg-slate-200 px-2 py-1 rounded hover:bg-slate-300 transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-semibold">Distance:</span>
-                <div className="flex items-center">
-                  <span className="text-right mr-2">
-                    {gpxData.distance
-                      ? `${(gpxData.distance / 1000).toFixed(2)} km`
-                      : "N/A"}
-                  </span>
-                  <button
-                    onClick={() =>
-                      quickAddLabel(
-                        `${(gpxData.distance / 1000).toFixed(2)} km`,
-                      )
-                    }
-                    className="text-xs bg-slate-200 px-2 py-1 rounded"
-                  >
-                    Add
-                  </button>
+              )}
+
+              {/* Distance */}
+              {isValueAvailable(gpxData.distance) && (
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-semibold">Distance:</span>
+                    <button
+                      onClick={() =>
+                        setUnitSystem(
+                          unitSystem === "metric" ? "imperial" : "metric",
+                        )
+                      }
+                      className="inline-flex items-center text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-full transition-colors"
+                      title={`Switch to ${unitSystem === "metric" ? "Imperial (miles)" : "Metric (kilometers)"}`}
+                    >
+                      <span
+                        className={`transition-opacity ${unitSystem === "metric" ? "opacity-100 font-medium" : "opacity-50"}`}
+                      >
+                        km
+                      </span>
+                      <span className="mx-1 text-slate-400">|</span>
+                      <span
+                        className={`transition-opacity ${unitSystem === "imperial" ? "opacity-100 font-medium" : "opacity-50"}`}
+                      >
+                        mi
+                      </span>
+                    </button>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-right mr-2">
+                      {convertDistance(gpxData.distance, unitSystem).formatted}
+                    </span>
+                    <button
+                      onClick={() =>
+                        quickAddLabel(
+                          convertDistance(gpxData.distance, unitSystem)
+                            .formatted,
+                        )
+                      }
+                      className="text-xs bg-slate-200 px-2 py-1 rounded hover:bg-slate-300 transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-semibold">Time:</span>
-                <div className="flex items-center">
-                  <span className="text-right mr-2">
-                    {gpxData.duration
-                      ? new Date(gpxData.duration).toISOString().substr(11, 8)
-                      : "N/A"}
-                  </span>
-                  <button
-                    onClick={() =>
-                      quickAddLabel(
-                        new Date(gpxData.duration).toISOString().substr(11, 8),
-                      )
-                    }
-                    className="text-xs bg-slate-200 px-2 py-1 rounded"
-                  >
-                    Add
-                  </button>
+              )}
+
+              {/* Duration */}
+              {isValueAvailable(gpxData.duration) && (
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Time:</span>
+                  <div className="flex items-center">
+                    <span className="text-right mr-2">
+                      {formatDuration(gpxData.duration / 1000)}
+                    </span>
+                    <button
+                      onClick={() =>
+                        quickAddLabel(formatDuration(gpxData.duration / 1000))
+                      }
+                      className="text-xs bg-slate-200 px-2 py-1 rounded hover:bg-slate-300 transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 

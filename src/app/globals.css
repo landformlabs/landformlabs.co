@@ -14,6 +14,11 @@
     --color-slate-storm: #4a5568;
     --color-alpine-mist: #f7f9f7;
     --color-basalt: #2d3142;
+
+    /* Font Family Variables */
+    --font-trispace: "Trispace", monospace;
+    --font-poppins: "Poppins", sans-serif;
+    --font-eb-garamond: "EB Garamond", serif;
 }
 
 body {
