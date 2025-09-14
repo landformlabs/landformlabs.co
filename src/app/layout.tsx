@@ -40,6 +40,13 @@ export const metadata: Metadata = {
       "Transform your favorite outdoor memories into beautiful, personalized proof of your epic adventures.",
     images: [
       {
+        url: "/logo-500.png",
+        width: 500,
+        height: 500,
+        alt: "Landform Labs Logo",
+        type: "image/png",
+      },
+      {
         url: "/route-tiles.webp",
         width: 1200,
         height: 630,
@@ -52,7 +59,7 @@ export const metadata: Metadata = {
     title: "Landform Labs - Turn Your Adventures Into Tangible Proof",
     description:
       "Transform your favorite outdoor memories into beautiful, personalized proof of your epic adventures.",
-    images: ["/route-tiles.webp"],
+    images: ["/logo-500.png"],
   },
   robots: {
     index: true,
@@ -130,7 +137,7 @@ export default function RootLayout({
               "@type": "Organization",
               name: "Landform Labs",
               url: "https://landformlabs.co",
-              logo: "https://landformlabs.co/square-500.svg",
+              logo: "https://landformlabs.co/logo-500.png",
               description:
                 "We create custom 3D printed proof that celebrates outdoor adventures, from route prints to mountain-shaped desk accessories.",
               foundingDate: "2024",
