@@ -210,6 +210,7 @@ export async function GET(request: NextRequest) {
     const excludeVirtual = searchParams.get("exclude_virtual") === "true";
     const limit = Math.min(parseInt(searchParams.get("limit") || "1000"), 2000);
     const forceRefresh = searchParams.get("refresh") === "true";
+    const isInitial = searchParams.get("initial") === "true";
 
     // Parse the natural language filter if provided
     let parsedFilter = null;
@@ -225,15 +226,19 @@ export async function GET(request: NextRequest) {
     // Create cache key based on access token (user-specific)
     const cacheKey = accessToken;
     const now = Date.now();
-    const cacheExpiry = 60 * 60 * 1000; // 1 hour
+    const cacheExpiry = 6 * 60 * 60 * 1000; // 6 hours - extended for better efficiency
 
     // Check cache
     let cached = activityCache.get(cacheKey);
+
+    // For initial loads, be more lenient with cache validation
+    const effectiveCacheExpiry = isInitial ? cacheExpiry * 2 : cacheExpiry; // 12 hours for initial loads
+
     const needsRefresh =
       !cached ||
       forceRefresh ||
-      now - cached.lastFetched > cacheExpiry ||
-      (cached.activities.length < limit && cached.hasMore);
+      now - cached.lastFetched > effectiveCacheExpiry ||
+      (cached.activities.length < limit && cached.hasMore && !isInitial); // Don't auto-fetch more for initial loads
 
     if (needsRefresh) {
       try {

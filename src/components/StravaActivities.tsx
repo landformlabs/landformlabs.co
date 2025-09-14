@@ -8,6 +8,18 @@ import {
   interpretQuery,
   type ParsedFilter,
 } from "../utils/naturalLanguageParser";
+import {
+  getCachedActivities,
+  setCachedActivities,
+  clearUserCache,
+  getCacheStats,
+} from "../utils/activityCache";
+import {
+  getCachedStream,
+  setCachedStream,
+  getStreamCacheStats,
+  preloadActivityStreams,
+} from "../utils/streamCache";
 
 interface StravaActivity {
   id: number;
@@ -57,6 +69,7 @@ export default function StravaActivities({
   >(null);
   const [hasMoreActivities, setHasMoreActivities] = useState(true);
   const [includeVirtualRides, setIncludeVirtualRides] = useState(false);
+  const [showCacheDebug, setShowCacheDebug] = useState(false);
 
   // Format activity date for display
   const formatActivityDate = (dateString: string) => {
@@ -168,7 +181,7 @@ export default function StravaActivities({
     return () => clearTimeout(timeoutId);
   }, [searchQuery, includeVirtualRides, performNaturalLanguageSearch]);
 
-  // Load initial activities when component mounts
+  // Load initial activities when component mounts using unified search API
   useEffect(() => {
     if (!accessToken) {
       setLoading(false);
@@ -178,84 +191,166 @@ export default function StravaActivities({
     const fetchInitialActivities = async () => {
       setLoading(true);
       setError(null);
+
       try {
-        let allActivities: StravaActivity[] = [];
-        let page = 1;
-        const targetCount = 20;
-        const maxPages = 5; // Safety limit to prevent infinite loops
+        // First, try to get cached activities
+        const cachedData = getCachedActivities(accessToken);
 
-        // Keep fetching until we have enough activities or hit our page limit
-        while (allActivities.length < targetCount && page <= maxPages) {
-          const perPage = includeVirtualRides ? 20 : 50; // Fetch more if filtering virtuals
-          let url = `https://www.strava.com/api/v3/athlete/activities?access_token=${accessToken}&page=${page}&per_page=${perPage}`;
-
-          const response = await fetch(url);
-          if (!response.ok) {
-            if (response.status === 401) {
-              throw new Error("AUTH_ERROR");
-            } else if (response.status === 429) {
-              throw new Error("RATE_LIMIT");
-            } else if (response.status >= 500) {
-              throw new Error("SERVER_ERROR");
-            } else {
-              throw new Error("API_ERROR");
-            }
-          }
-
-          const data = await response.json();
-          if (data.length === 0) break; // No more activities
-
-          let filteredBatch = data.filter(
-            (activity: StravaActivity) => activity.distance > 0,
+        if (
+          cachedData &&
+          Array.isArray(cachedData.activities) &&
+          cachedData.activities.length > 0
+        ) {
+          console.log(
+            `Loaded ${cachedData.activities.length} activities from cache`,
           );
 
+          // Filter cached activities based on current settings (activities are already decompressed by getCachedActivities)
+          let filteredActivities = (
+            cachedData.activities as StravaActivity[]
+          ).filter((activity: StravaActivity) => activity.distance > 0);
+
           if (!includeVirtualRides) {
-            filteredBatch = filteredBatch.filter(
+            filteredActivities = filteredActivities.filter(
               (activity: StravaActivity) =>
                 activity.sport_type !== "VirtualRide",
             );
           }
 
-          allActivities = [...allActivities, ...filteredBatch];
-          page++;
+          // Set activities from cache immediately for fast loading
+          const displayActivities = filteredActivities.slice(0, 20);
+          setActivities(displayActivities);
+          setTotalActivitiesCount(cachedData.totalFetched);
+          setHasMoreActivities(cachedData.hasMore);
+          setLoading(false);
+
+          // Preload streams for the first few visible activities
+          setTimeout(() => {
+            preloadActivityStreams(displayActivities.slice(0, 3), accessToken);
+          }, 1000); // Wait 1 second after loading to avoid overwhelming the UI
+
+          // Optionally refresh data in background if cache is getting old
+          const cacheAge = Date.now() - cachedData.lastFetched;
+          const refreshThreshold = 2 * 60 * 60 * 1000; // 2 hours
+
+          if (cacheAge > refreshThreshold) {
+            console.log("Cache is getting old, refreshing in background...");
+            // Don't await this - let it refresh in background
+            refreshActivitiesInBackground();
+          }
+
+          return;
         }
 
-        // Take only the first 20 activities
-        setActivities(allActivities.slice(0, targetCount));
+        // No cache available, fetch from API using unified search endpoint
+        console.log("No cache found, fetching activities from API...");
+        await fetchFromSearchAPI(true);
       } catch (error) {
-        console.error("Error fetching Strava activities:", error);
-        if (error instanceof TypeError) {
-          setError({
-            type: "network",
-            message:
-              "Network connection failed. Please check your internet connection and try again.",
-          });
-        } else if (error instanceof Error && error.message === "AUTH_ERROR") {
-          setError({
-            type: "auth",
-            message:
-              "Your Strava session has expired. Please reconnect your account.",
-          });
-        } else if (error instanceof Error && error.message === "RATE_LIMIT") {
-          setError({
-            type: "api",
-            message:
-              "Too many requests to Strava. Please wait a moment and try again.",
-          });
-        } else if (error instanceof Error && error.message === "SERVER_ERROR") {
-          setError({
-            type: "api",
-            message:
-              "Strava's servers are temporarily unavailable. Please try again in a few minutes.",
-          });
-        } else {
-          setError({
-            type: "general",
-            message: "Failed to load activities. Please try again later.",
-          });
+        console.error("Error loading initial activities:", error);
+        handleActivityError(error);
+      }
+    };
+
+    // Function to fetch activities using the unified search API
+    const fetchFromSearchAPI = async (isInitialLoad = false) => {
+      try {
+        const params = new URLSearchParams({
+          query: "", // Empty query for all activities
+          limit: "100", // Fetch more initially to populate cache
+          initial: "true", // Flag to indicate this is initial load
+        });
+
+        if (!includeVirtualRides) {
+          params.append("exclude_virtual", "true");
         }
-      } finally {
-        setLoading(false);
+
+        const response = await fetch(`/api/strava/activities/search?${params}`);
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error("AUTH_ERROR");
+          } else if (response.status === 429) {
+            throw new Error("RATE_LIMIT");
+          } else {
+            throw new Error("API_ERROR");
+          }
+        }
+
+        const data = await response.json();
+        let filteredData = data.activities.filter(
+          (activity: StravaActivity) => activity.distance > 0,
+        );
+
+        // Cache the fetched activities
+        if (filteredData.length > 0) {
+          setCachedActivities(
+            accessToken,
+            filteredData,
+            data.totalActivities || filteredData.length,
+            data.hasMore || false,
+          );
+        }
+
+        // Set state with first 20 activities for display
+        const displayActivities = filteredData.slice(0, 20);
+        setActivities(displayActivities);
+        setTotalActivitiesCount(data.totalActivities);
+        setHasMoreActivities(data.hasMore);
+
+        // Preload streams for the first few visible activities (only for initial loads)
+        if (isInitialLoad) {
+          setTimeout(() => {
+            preloadActivityStreams(displayActivities.slice(0, 3), accessToken);
+          }, 2000); // Wait 2 seconds after initial load
+        }
+
+        if (isInitialLoad) {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Error fetching from search API:", error);
+        if (isInitialLoad) {
+          handleActivityError(error);
+          setLoading(false);
+        }
+      }
+    };
+
+    // Background refresh function
+    const refreshActivitiesInBackground = async () => {
+      try {
+        await fetchFromSearchAPI(false);
+        console.log("Background refresh completed");
+      } catch (error) {
+        console.warn("Background refresh failed:", error);
+      }
+    };
+
+    // Error handling helper
+    const handleActivityError = (error: any) => {
+      if (error instanceof TypeError) {
+        setError({
+          type: "network",
+          message:
+            "Network connection failed. Please check your internet connection and try again.",
+        });
+      } else if (error instanceof Error && error.message === "AUTH_ERROR") {
+        setError({
+          type: "auth",
+          message:
+            "Your Strava session has expired. Please reconnect your account.",
+        });
+      } else if (error instanceof Error && error.message === "RATE_LIMIT") {
+        setError({
+          type: "api",
+          message:
+            "Too many requests to Strava. Please wait a moment and try again.",
+        });
+      } else {
+        setError({
+          type: "general",
+          message: "Failed to load activities. Please try again later.",
+        });
       }
     };
 
@@ -265,6 +360,7 @@ export default function StravaActivities({
   const handleActivityClick = async (activityId: number) => {
     setActivityLoading(activityId);
     setError(null);
+
     try {
       // Find activity in either activities or search results
       const activity = [...activities, ...searchResults].find(
@@ -273,6 +369,30 @@ export default function StravaActivities({
       if (!activity) {
         throw new Error("Activity not found");
       }
+
+      // First, try to get cached stream data
+      const cachedStreamData = getCachedStream(activityId);
+
+      if (cachedStreamData) {
+        console.log(`Using cached stream for activity "${activity.name}"`);
+
+        // Build GPX data from cached stream
+        const gpxData = {
+          ...cachedStreamData,
+          date: new Date(activity.start_date_local),
+          distance: activity.distance,
+          duration: activity.moving_time * 1000, // convert to ms
+        };
+
+        onActivitySelect(gpxData);
+        setActivityLoading(null);
+        return;
+      }
+
+      // No cached data, fetch from Strava API
+      console.log(
+        `Fetching stream for activity "${activity.name}" from Strava API`,
+      );
 
       const response = await fetch(
         `https://www.strava.com/api/v3/activities/${activityId}/streams?keys=latlng&key_by_type=true&access_token=${accessToken}`,
@@ -322,6 +442,10 @@ export default function StravaActivities({
             },
           },
         };
+
+        // Cache the processed GPX data for future use
+        setCachedStream(activityId, activity.name, gpxData);
+
         onActivitySelect(gpxData);
       } else {
         throw new Error("No latlng data in activity stream.");

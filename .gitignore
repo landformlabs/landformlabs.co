@@ -97,3 +97,6 @@ temp/
 # Build tools
 .gradle/
 .sass-cache/
+
+# Files for Strava integration
+.strava/
