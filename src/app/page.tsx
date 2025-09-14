@@ -3,6 +3,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HeroWireframe from "@/components/HeroWireframe";
+import ProductCarousel from "@/components/ProductCarousel";
 
 const features = [
   {
@@ -46,27 +47,35 @@ export default function Home() {
           <div className="max-w-7xl mx-auto">
             <div className="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:pb-28 xl:pb-32">
               <div className="pt-20 mx-auto max-w-7xl px-4 sm:pt-24 sm:px-6 md:pt-28 lg:pt-32 lg:px-8 xl:pt-40">
-                <div className="text-left">
-                  <h1 className="hero-mantra text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold mb-8">
-                    GET OUT THERE
-                  </h1>
-                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-headline font-bold text-basalt max-w-4xl leading-tight">
-                    Transform your adventures into personalized proof of your
-                    epic achievements
-                  </h2>
-                  <div className="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6">
-                    <Link
-                      href="/products"
-                      className="btn-primary text-lg px-8 py-4"
-                    >
-                      Shop
-                    </Link>
-                    <Link
-                      href="/about"
-                      className="btn-secondary text-lg px-8 py-4"
-                    >
-                      Our Story
-                    </Link>
+                <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+                  {/* Hero Text Content */}
+                  <div className="text-left">
+                    <h1 className="hero-mantra text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold mb-8">
+                      GET OUT THERE
+                    </h1>
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-headline font-bold text-basalt max-w-4xl leading-tight">
+                      Transform your adventures into personalized proof of your
+                      epic achievements
+                    </h2>
+                    <div className="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6">
+                      <Link
+                        href="/products"
+                        className="btn-primary text-lg px-8 py-4"
+                      >
+                        Shop
+                      </Link>
+                      <Link
+                        href="/about"
+                        className="btn-secondary text-lg px-8 py-4"
+                      >
+                        Our Story
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Product Carousel */}
+                  <div className="relative lg:justify-self-end">
+                    <ProductCarousel />
                   </div>
                 </div>
               </div>
