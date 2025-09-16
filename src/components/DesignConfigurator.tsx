@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Rnd } from "react-rnd";
 import JSZip from "jszip";
+import { logger } from "@/utils/logger";
+import { tileRequestThrottle } from "@/utils/requestThrottle";
 
 interface DesignConfiguratorProps {
   gpxData: any;
@@ -53,6 +55,8 @@ export default function DesignConfigurator({
   onRestart,
 }: DesignConfiguratorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isRenderingHillshade, setIsRenderingHillshade] = useState(false);
+  const [hillshadeError, setHillshadeError] = useState<string | null>(null);
   const [newLabel, setNewLabel] = useState({
     text: "",
     fontFamily: "Trispace" as "Garamond" | "Poppins" | "Trispace",
@@ -166,21 +170,24 @@ export default function DesignConfigurator({
 
   // Helper function to fetch and render hillshade background
   const renderHillshadeBackground = useCallback(async (ctx: CanvasRenderingContext2D, canvasSize: number) => {
-    console.log("🗻 Starting hillshade rendering...");
+    setIsRenderingHillshade(true);
+    setHillshadeError(null);
+    
+    logger.debug("🗻 Starting hillshade rendering...");
     try {
       // Start with white background
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvasSize, canvasSize);
 
-      console.log("🧩 Proceeding with tile fetching...");
-
       // Validate bounding box
       if (!bbox || bbox.length !== 4 || bbox[0] >= bbox[2] || bbox[1] >= bbox[3]) {
-        console.error("❌ Invalid bounding box:", bbox);
+        const errorMessage = "Invalid bounding box coordinates";
+        logger.error("❌ Invalid bounding box:", bbox);
+        setHillshadeError(errorMessage);
         return;
       }
 
-      console.log("📍 Bounding box:", bbox);
+      logger.debug("📍 Bounding box:", bbox);
 
       // Calculate appropriate zoom level based on bounding box size
       const latDiff = bbox[3] - bbox[1]; // maxLat - minLat
@@ -204,26 +211,30 @@ export default function DesignConfigurator({
 
       // If we have map metadata, override with exact zoom from selection page
       if (mapSnapshot && mapSnapshot.startsWith('data:application/json;base64,')) {
-        console.log("📸 Using map metadata for consistent rendering");
+        logger.debug("📸 Using map metadata for consistent rendering");
         try {
-          // Decode the metadata
+          // Browser compatibility check for atob
+          if (typeof atob === 'undefined') {
+            throw new Error('Base64 decoding not supported in this browser');
+          }
+          
           const base64Data = mapSnapshot.split(',')[1];
           const metadataJson = atob(base64Data);
           const metadata = JSON.parse(metadataJson);
           
-          console.log("🔍 Map metadata:", metadata);
+          logger.debug("🔍 Map metadata:", metadata);
           
           // Use the exact zoom level from the selection page
           const exactZoom = metadata.zoom;
-          console.log(`🎯 Using exact zoom level ${exactZoom} from selection page`);
+          logger.debug(`🎯 Using exact zoom level ${exactZoom} from selection page`);
           
           // Override the automatic zoom calculation
           const originalZoomCalculation = zoom;
           zoom = Math.round(exactZoom); // Use the exact zoom from selection
-          console.log(`🔄 Overriding calculated zoom ${originalZoomCalculation} with selection zoom ${zoom}`);
+          logger.debug(`🔄 Overriding calculated zoom ${originalZoomCalculation} with selection zoom ${zoom}`);
           
         } catch (error) {
-          console.warn("⚠️ Failed to parse map metadata, falling back to calculated zoom");
+          logger.warn("⚠️ Failed to parse map metadata, falling back to calculated zoom");
         }
       }
 
@@ -234,14 +245,14 @@ export default function DesignConfigurator({
       
       // Be more conservative with zoom levels outside main US coverage
       if (isOutsideMainUS && zoom > 14) {
-        console.log(`Area appears to be outside main US coverage, reducing max zoom from ${zoom} to 14`);
+        logger.debug(`Area appears to be outside main US coverage, reducing max zoom from ${zoom} to 14`);
         zoom = Math.min(zoom, 14);
       }
 
       // Clamp zoom to available range (USGS supports up to level 23)
       zoom = Math.max(3, Math.min(19, zoom));
 
-      console.log(`🔍 Using zoom level ${zoom} for bbox size ${maxDiff.toFixed(6)}`);
+      logger.debug(`🔍 Using zoom level ${zoom} for bbox size ${maxDiff.toFixed(6)}`);
 
       // Helper functions for tile coordinate conversion
       const lng2tile = (lng: number, zoom: number) => ((lng + 180) / 360) * Math.pow(2, zoom);
@@ -269,7 +280,7 @@ export default function DesignConfigurator({
       let validMinTileY = Math.max(0, Math.min(minTileY, maxTileY));
       let validMaxTileY = Math.min(n - 1, Math.max(minTileY, maxTileY));
 
-      console.log(`🧩 Initial tile range at zoom ${zoom}: X(${validMinTileX}-${validMaxTileX}), Y(${validMinTileY}-${validMaxTileY})`);
+      logger.debug(`🧩 Initial tile range at zoom ${zoom}: X(${validMinTileX}-${validMaxTileX}), Y(${validMinTileY}-${validMaxTileY})`);
 
       // Limit number of tiles to prevent excessive requests and potential grey rendering
       let tileCountX = validMaxTileX - validMinTileX + 1;
@@ -282,7 +293,7 @@ export default function DesignConfigurator({
       if (totalTiles > maxTiles) {
         // Use a lower zoom level
         zoom = Math.max(8, zoom - 1);
-        console.log(`Too many tiles (${totalTiles}), reducing zoom to ${zoom}`);
+        logger.debug(`Too many tiles (${totalTiles}), reducing zoom to ${zoom}`);
         
         // Recalculate with new zoom
         const newN = Math.pow(2, zoom);
@@ -300,44 +311,47 @@ export default function DesignConfigurator({
         tileCountY = validMaxTileY - validMinTileY + 1;
         totalTiles = tileCountX * tileCountY;
         
-        console.log(`Final tile range at zoom ${zoom}: X(${validMinTileX}-${validMaxTileX}), Y(${validMinTileY}-${validMaxTileY}) = ${totalTiles} tiles`);
+        logger.debug(`Final tile range at zoom ${zoom}: X(${validMinTileX}-${validMaxTileX}), Y(${validMinTileY}-${validMaxTileY}) = ${totalTiles} tiles`);
       }
 
-      // Create promises for tile images with better error handling
+      // Create promises for tile images with throttling and better error handling
       const tilePromises: Promise<{img: HTMLImageElement, tileX: number, tileY: number} | null>[] = [];
       
       for (let tileX = validMinTileX; tileX <= validMaxTileX; tileX++) {
         for (let tileY = validMinTileY; tileY <= validMaxTileY; tileY++) {
           const tileUrl = `https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer/tile/${zoom}/${tileY}/${tileX}`;
           
-          const promise = new Promise<{img: HTMLImageElement, tileX: number, tileY: number} | null>((resolve) => {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            
-            const timeout = setTimeout(() => {
-              console.warn(`Tile timeout: ${tileX}/${tileY}/${zoom}`);
-              resolve(null);
-            }, 3000);
-            
-            img.onload = () => {
-              clearTimeout(timeout);
-              // Check if image is actually loaded (not a grey placeholder)
-              if (img.width > 0 && img.height > 0) {
-                resolve({img, tileX, tileY});
-              } else {
-                console.warn(`Invalid tile dimensions: ${tileX}/${tileY}/${zoom}`);
+          // Use throttled request to be respectful to the USGS service
+          const promise = tileRequestThrottle.add(() => 
+            new Promise<{img: HTMLImageElement, tileX: number, tileY: number} | null>((resolve) => {
+              const img = new Image();
+              img.crossOrigin = "anonymous";
+              
+              const timeout = setTimeout(() => {
+                logger.warn(`Tile timeout: ${tileX}/${tileY}/${zoom}`);
                 resolve(null);
-              }
-            };
-            
-            img.onerror = (error) => {
-              clearTimeout(timeout);
-              console.warn(`Failed to load tile: ${tileX}/${tileY}/${zoom} - Tile not available`);
-              resolve(null);
-            };
-            
-            img.src = tileUrl;
-          });
+              }, 5000); // Increased timeout for throttled requests
+              
+              img.onload = () => {
+                clearTimeout(timeout);
+                // Check if image is actually loaded (not a grey placeholder)
+                if (img.width > 0 && img.height > 0) {
+                  resolve({img, tileX, tileY});
+                } else {
+                  logger.warn(`Invalid tile dimensions: ${tileX}/${tileY}/${zoom}`);
+                  resolve(null);
+                }
+              };
+              
+              img.onerror = () => {
+                clearTimeout(timeout);
+                logger.warn(`Failed to load tile: ${tileX}/${tileY}/${zoom} - Tile not available`);
+                resolve(null);
+              };
+              
+              img.src = tileUrl;
+            })
+          );
           
           tilePromises.push(promise);
         }
@@ -348,19 +362,20 @@ export default function DesignConfigurator({
       const validTiles = tilesResults.filter(result => result !== null);
       const failedCount = totalTiles - validTiles.length;
       
-      console.log(`✅ Loaded ${validTiles.length}/${totalTiles} tiles successfully (${failedCount} failed)`);
+      logger.debug(`✅ Loaded ${validTiles.length}/${totalTiles} tiles successfully (${failedCount} failed)`);
       
       // If more than half the tiles failed, this might be a coverage issue
       if (failedCount > totalTiles * 0.5 && zoom > 8) {
-        console.warn(`High tile failure rate (${failedCount}/${totalTiles}), area may be outside USGS coverage or zoom too high`);
-        console.log(`Consider reducing zoom level or checking if area is within US boundaries`);
+        const warningMessage = `High tile failure rate (${failedCount}/${totalTiles}), area may be outside USGS coverage`;
+        logger.warn(warningMessage);
+        setHillshadeError("Limited hillshade coverage for this area");
       }
 
       // If no tiles loaded at all, try a lower zoom level as fallback
       if (validTiles.length === 0 && zoom > 5) {
-        console.warn("⚠️ No hillshade tiles loaded successfully - trying lower zoom level");
+        logger.warn("⚠️ No hillshade tiles loaded successfully - trying lower zoom level");
         const fallbackZoom = Math.max(5, zoom - 2);
-        console.log(`🔄 Retrying with fallback zoom level ${fallbackZoom}`);
+        logger.debug(`🔄 Retrying with fallback zoom level ${fallbackZoom}`);
         
         // Recalculate tile coordinates with fallback zoom
         const fallbackN = Math.pow(2, fallbackZoom);
@@ -369,9 +384,9 @@ export default function DesignConfigurator({
         const fallbackMinTileY = Math.max(0, Math.floor(lat2tile(bbox[3], fallbackZoom)));
         const fallbackMaxTileY = Math.min(fallbackN - 1, Math.floor(lat2tile(bbox[1], fallbackZoom)));
         
-        console.log(`🧩 Fallback tile range at zoom ${fallbackZoom}: X(${fallbackMinTileX}-${fallbackMaxTileX}), Y(${fallbackMinTileY}-${fallbackMaxTileY})`);
+        logger.debug(`🧩 Fallback tile range at zoom ${fallbackZoom}: X(${fallbackMinTileX}-${fallbackMaxTileX}), Y(${fallbackMinTileY}-${fallbackMaxTileY})`);
         
-        // Create fallback tile promises
+        // Create fallback tile promises with throttling
         const fallbackPromises: Promise<{img: HTMLImageElement, tileX: number, tileY: number, zoom: number} | null>[] = [];
         
         for (let tileX = fallbackMinTileX; tileX <= fallbackMaxTileX; tileX++) {
@@ -412,7 +427,7 @@ export default function DesignConfigurator({
         const fallbackResults = await Promise.all(fallbackPromises);
         const fallbackTiles = fallbackResults.filter(result => result !== null);
         
-        console.log(`✅ Fallback loaded ${fallbackTiles.length}/${fallbackPromises.length} tiles`);
+        logger.debug(`✅ Fallback loaded ${fallbackTiles.length}/${fallbackPromises.length} tiles`);
         
         if (fallbackTiles.length > 0) {
           // Draw fallback tiles using the fallback zoom level
@@ -444,14 +459,16 @@ export default function DesignConfigurator({
             }
           });
           
-          console.log("🎯 Fallback hillshade rendering completed successfully");
+          logger.debug("🎯 Fallback hillshade rendering completed successfully");
           return; // Exit successfully with fallback tiles
         }
       }
       
-      // If still no tiles loaded at all, log this for debugging
+      // If still no tiles loaded at all, set error state
       if (validTiles.length === 0) {
-        console.warn("⚠️ No hillshade tiles loaded successfully - canvas will remain white");
+        const errorMessage = "No hillshade data available for this area";
+        logger.warn("⚠️ No hillshade tiles loaded successfully - canvas will remain white");
+        setHillshadeError(errorMessage);
         return; // Exit early since we already have white background
       }
 
@@ -488,14 +505,18 @@ export default function DesignConfigurator({
         }
       });
       
-      console.log("🎯 Hillshade rendering completed successfully");
+      logger.debug("🎯 Hillshade rendering completed successfully");
       
     } catch (error) {
-      console.error("❌ Error loading hillshade tiles:", error);
+      const errorMessage = "Failed to load hillshade data";
+      logger.error("❌ Error loading hillshade tiles:", error);
+      setHillshadeError(errorMessage);
       // Fallback to white background
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvasSize, canvasSize);
-      console.log("⚪ Fallback to white background due to error");
+      logger.debug("⚪ Fallback to white background due to error");
+    } finally {
+      setIsRenderingHillshade(false);
     }
   }, [bbox, mapSnapshot]);
 
@@ -1791,6 +1812,48 @@ export default function DesignConfigurator({
                 className="border border-slate-storm/20 rounded-lg shadow-sm absolute top-0 left-0"
                 style={{ width: "400px", height: "400px" }}
               />
+              
+              {/* Loading overlay */}
+              {isRenderingHillshade && (
+                <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-lg">
+                  <div className="text-center">
+                    <div className="w-8 h-8 border-2 border-summit-sage border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                    <p className="text-sm text-slate-600">Loading hillshade...</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Error overlay */}
+              {hillshadeError && !isRenderingHillshade && (
+                <div className="absolute top-2 left-2 right-2 bg-yellow-50 border border-yellow-200 rounded p-2">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-4 w-4 text-yellow-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-2">
+                      <p className="text-xs text-yellow-800">{hillshadeError}</p>
+                      <button
+                        onClick={() => {
+                          setHillshadeError(null);
+                          // Trigger re-render by updating a dependency
+                          const canvas = canvasRef.current;
+                          if (canvas) {
+                            const ctx = canvas.getContext('2d');
+                            if (ctx) {
+                              renderHillshadeBackground(ctx, 400);
+                            }
+                          }
+                        }}
+                        className="text-xs text-yellow-600 hover:text-yellow-800 underline mt-1"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               {designConfig.printType === "tile" &&
                 designConfig.labels.map((label, index) => (
                   <Rnd

@@ -10,6 +10,7 @@ import {
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
+import { logger } from "@/utils/logger";
 
 // Fix for default markers in react-leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -119,17 +120,17 @@ function MapController({
         tileServiceUrl: 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer/tile/{z}/{y}/{x}'
       };
       
-      console.log(`📸 Capturing map metadata: zoom=${currentZoom}, bounds=[${sw.join(',')}, ${ne.join(',')}]`);
+      logger.debug(`📸 Capturing map metadata: zoom=${currentZoom}, bounds=[${sw.join(',')}, ${ne.join(',')}]`);
       
       // Convert metadata to base64 JSON for transfer
       const metadataJson = JSON.stringify(mapMetadata);
       const metadataBase64 = 'data:application/json;base64,' + btoa(metadataJson);
       onMapSnapshotChange(metadataBase64);
       
-      console.log("✅ Map metadata captured successfully");
+      logger.debug("✅ Map metadata captured successfully");
       
     } catch (error) {
-      console.error("❌ Error capturing map metadata:", error);
+      logger.error("❌ Error capturing map metadata:", error);
       onMapSnapshotChange(null);
     }
   }, [map, onMapSnapshotChange]);
