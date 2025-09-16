@@ -82,8 +82,11 @@ export default function DesignConfigurator({
     number | null
   >(null);
 
-  // Parse bounding box coordinates
-  const bbox = boundingBox.split(",").map(Number); // [minLng, minLat, maxLng, maxLat]
+  // Parse bounding box coordinates (memoized to prevent unnecessary re-renders)
+  const bbox = useMemo(() => {
+    if (!boundingBox) return [];
+    return boundingBox.split(",").map(Number); // [minLng, minLat, maxLng, maxLat]
+  }, [boundingBox]);
 
   // Color options for routes
   const colorOptions = [
@@ -171,7 +174,7 @@ export default function DesignConfigurator({
   }, []);
 
   // Helper function to fetch and render hillshade background to cache canvas
-  const renderHillshadeBackground = useCallback(async (canvasSize: number) => {
+  const renderHillshadeBackground = useCallback(async (canvasSize: number, bboxData: number[], snapshotData?: string | null) => {
     setIsRenderingHillshade(true);
     setHillshadeError(null);
     setHillshadeReady(false);
@@ -200,18 +203,18 @@ export default function DesignConfigurator({
       ctx.fillRect(0, 0, canvasSize, canvasSize);
 
       // Validate bounding box
-      if (!bbox || bbox.length !== 4 || bbox[0] >= bbox[2] || bbox[1] >= bbox[3]) {
+      if (!bboxData || bboxData.length !== 4 || bboxData[0] >= bboxData[2] || bboxData[1] >= bboxData[3]) {
         const errorMessage = "Invalid bounding box coordinates";
-        logger.error("❌ Invalid bounding box:", bbox);
+        logger.error("❌ Invalid bounding box:", bboxData);
         setHillshadeError(errorMessage);
         return;
       }
 
-      logger.debug("📍 Bounding box:", bbox);
+      logger.debug("📍 Bounding box:", bboxData);
 
       // Calculate appropriate zoom level based on bounding box size
-      const latDiff = bbox[3] - bbox[1]; // maxLat - minLat
-      const lngDiff = bbox[2] - bbox[0]; // maxLng - minLng
+      const latDiff = bboxData[3] - bboxData[1]; // maxLat - minLat
+      const lngDiff = bboxData[2] - bboxData[0]; // maxLng - minLng
       const maxDiff = Math.max(latDiff, lngDiff);
       
       // Enhanced zoom level selection for better detail on small areas
@@ -230,7 +233,7 @@ export default function DesignConfigurator({
       else zoom = 8;
 
       // If we have map metadata, override with exact zoom from selection page
-      if (mapSnapshot && mapSnapshot.startsWith('data:application/json;base64,')) {
+      if (snapshotData && snapshotData.startsWith('data:application/json;base64,')) {
         logger.debug("📸 Using map metadata for consistent rendering");
         try {
           // Browser compatibility check for atob
@@ -238,7 +241,7 @@ export default function DesignConfigurator({
             throw new Error('Base64 decoding not supported in this browser');
           }
           
-          const base64Data = mapSnapshot.split(',')[1];
+          const base64Data = snapshotData.split(',')[1];
           const metadataJson = atob(base64Data);
           const metadata = JSON.parse(metadataJson);
           
@@ -259,8 +262,8 @@ export default function DesignConfigurator({
       }
 
       // Check if area might be outside main US coverage (rough bounds check)
-      const centerLat = (bbox[1] + bbox[3]) / 2;
-      const centerLng = (bbox[0] + bbox[2]) / 2;
+      const centerLat = (bboxData[1] + bboxData[3]) / 2;
+      const centerLng = (bboxData[0] + bboxData[2]) / 2;
       const isOutsideMainUS = centerLat < 24 || centerLat > 50 || centerLng < -125 || centerLng > -65;
       
       // Be more conservative with zoom levels outside main US coverage
@@ -289,10 +292,10 @@ export default function DesignConfigurator({
 
       // Calculate tile bounds more precisely
       const n = Math.pow(2, zoom);
-      const minTileX = Math.floor(lng2tile(bbox[0], zoom));
-      const maxTileX = Math.floor(lng2tile(bbox[2], zoom));
-      const minTileY = Math.floor(lat2tile(bbox[3], zoom)); // Note: Y is flipped
-      const maxTileY = Math.floor(lat2tile(bbox[1], zoom));
+      const minTileX = Math.floor(lng2tile(bboxData[0], zoom));
+      const maxTileX = Math.floor(lng2tile(bboxData[2], zoom));
+      const minTileY = Math.floor(lat2tile(bboxData[3], zoom)); // Note: Y is flipped
+      const maxTileY = Math.floor(lat2tile(bboxData[1], zoom));
 
       // Ensure valid tile ranges
       let validMinTileX = Math.max(0, Math.min(minTileX, maxTileX));
@@ -541,14 +544,18 @@ export default function DesignConfigurator({
     } finally {
       setIsRenderingHillshade(false);
     }
-  }, [bbox, mapSnapshot]);
+  }, []); // No dependencies since we pass parameters
 
   // Separate effect for hillshade rendering - only when bounding box or snapshot changes
   useEffect(() => {
+    logger.debug("🔄 Hillshade useEffect triggered", { bbox, mapSnapshot: !!mapSnapshot });
     if (bbox && bbox.length === 4) {
-      renderHillshadeBackground(400);
+      logger.debug("✅ Triggering hillshade background render");
+      renderHillshadeBackground(400, bbox, mapSnapshot);
+    } else {
+      logger.debug("❌ Invalid bbox, skipping hillshade render", bbox);
     }
-  }, [bbox, mapSnapshot, renderHillshadeBackground]);
+  }, [bbox, mapSnapshot, renderHillshadeBackground]); // Added back renderHillshadeBackground since it now has no dependencies
 
   // Canvas rendering - for route, labels, and composition
   useEffect(() => {
@@ -1875,7 +1882,9 @@ export default function DesignConfigurator({
                         onClick={() => {
                           setHillshadeError(null);
                           // Trigger hillshade re-render using the cached approach
-                          renderHillshadeBackground(400);
+                          if (bbox && bbox.length === 4) {
+                            renderHillshadeBackground(400, bbox, mapSnapshot);
+                          }
                         }}
                         className="text-xs text-yellow-600 hover:text-yellow-800 underline mt-1"
                       >
