@@ -55,8 +55,10 @@ export default function DesignConfigurator({
   onRestart,
 }: DesignConfiguratorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const hillshadeCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isRenderingHillshade, setIsRenderingHillshade] = useState(false);
   const [hillshadeError, setHillshadeError] = useState<string | null>(null);
+  const [hillshadeReady, setHillshadeReady] = useState(false);
   const [newLabel, setNewLabel] = useState({
     text: "",
     fontFamily: "Trispace" as "Garamond" | "Poppins" | "Trispace",
@@ -168,12 +170,30 @@ export default function DesignConfigurator({
     };
   }, []);
 
-  // Helper function to fetch and render hillshade background
-  const renderHillshadeBackground = useCallback(async (ctx: CanvasRenderingContext2D, canvasSize: number) => {
+  // Helper function to fetch and render hillshade background to cache canvas
+  const renderHillshadeBackground = useCallback(async (canvasSize: number) => {
     setIsRenderingHillshade(true);
     setHillshadeError(null);
+    setHillshadeReady(false);
     
     logger.debug("🗻 Starting hillshade rendering...");
+    
+    // Create or get the hillshade cache canvas
+    if (!hillshadeCanvasRef.current) {
+      hillshadeCanvasRef.current = document.createElement('canvas');
+    }
+    const hillshadeCanvas = hillshadeCanvasRef.current;
+    hillshadeCanvas.width = canvasSize;
+    hillshadeCanvas.height = canvasSize;
+    
+    const ctx = hillshadeCanvas.getContext('2d');
+    if (!ctx) {
+      logger.error("Failed to get hillshade canvas context");
+      setHillshadeError("Canvas not supported");
+      setIsRenderingHillshade(false);
+      return;
+    }
+    
     try {
       // Start with white background
       ctx.fillStyle = "#ffffff";
@@ -460,6 +480,7 @@ export default function DesignConfigurator({
           });
           
           logger.debug("🎯 Fallback hillshade rendering completed successfully");
+          setHillshadeReady(true);
           return; // Exit successfully with fallback tiles
         }
       }
@@ -506,6 +527,7 @@ export default function DesignConfigurator({
       });
       
       logger.debug("🎯 Hillshade rendering completed successfully");
+      setHillshadeReady(true);
       
     } catch (error) {
       const errorMessage = "Failed to load hillshade data";
@@ -515,12 +537,20 @@ export default function DesignConfigurator({
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvasSize, canvasSize);
       logger.debug("⚪ Fallback to white background due to error");
+      setHillshadeReady(true); // Mark as ready even with error (white background)
     } finally {
       setIsRenderingHillshade(false);
     }
   }, [bbox, mapSnapshot]);
 
-  // Canvas rendering
+  // Separate effect for hillshade rendering - only when bounding box or snapshot changes
+  useEffect(() => {
+    if (bbox && bbox.length === 4) {
+      renderHillshadeBackground(400);
+    }
+  }, [bbox, mapSnapshot, renderHillshadeBackground]);
+
+  // Canvas rendering - for route, labels, and composition
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -576,14 +606,21 @@ export default function DesignConfigurator({
       ctx.restore();
     };
 
-    const redraw = async () => {
+    const redraw = () => {
       if (!ctx) return;
 
       // Clear canvas first
       ctx.clearRect(0, 0, canvasSize, canvasSize);
 
-      // Draw hillshade background
-      await renderHillshadeBackground(ctx, canvasSize);
+      // Draw cached hillshade background if ready
+      if (hillshadeReady && hillshadeCanvasRef.current) {
+        ctx.drawImage(hillshadeCanvasRef.current, 0, 0);
+        logger.debug("🎨 Compositing cached hillshade");
+      } else {
+        // Fallback to white background while hillshade loads
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvasSize, canvasSize);
+      }
 
       // For ornaments, set up circular clipping
       if (designConfig.printType === "ornament") {
@@ -669,7 +706,7 @@ export default function DesignConfigurator({
     designConfig,
     getOrnamentCircle,
     fontFamilyOptions,
-    renderHillshadeBackground,
+    hillshadeReady, // Only re-render when hillshade cache status changes
   ]);
 
   const handleConfigChange = (updates: any) => {
@@ -1837,14 +1874,8 @@ export default function DesignConfigurator({
                       <button
                         onClick={() => {
                           setHillshadeError(null);
-                          // Trigger re-render by updating a dependency
-                          const canvas = canvasRef.current;
-                          if (canvas) {
-                            const ctx = canvas.getContext('2d');
-                            if (ctx) {
-                              renderHillshadeBackground(ctx, 400);
-                            }
-                          }
+                          // Trigger hillshade re-render using the cached approach
+                          renderHillshadeBackground(400);
                         }}
                         className="text-xs text-yellow-600 hover:text-yellow-800 underline mt-1"
                       >
