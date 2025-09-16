@@ -7,6 +7,7 @@ import JSZip from "jszip";
 interface DesignConfiguratorProps {
   gpxData: any;
   boundingBox: string;
+  mapSnapshot?: string | null;
   designConfig: {
     routeColor: string;
     printType: "tile" | "ornament";
@@ -46,6 +47,7 @@ interface DesignConfiguratorProps {
 export default function DesignConfigurator({
   gpxData,
   boundingBox,
+  mapSnapshot,
   designConfig,
   onConfigChange,
   onRestart,
@@ -162,6 +164,341 @@ export default function DesignConfigurator({
     };
   }, []);
 
+  // Helper function to fetch and render hillshade background
+  const renderHillshadeBackground = useCallback(async (ctx: CanvasRenderingContext2D, canvasSize: number) => {
+    console.log("🗻 Starting hillshade rendering...");
+    try {
+      // Start with white background
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+      console.log("🧩 Proceeding with tile fetching...");
+
+      // Validate bounding box
+      if (!bbox || bbox.length !== 4 || bbox[0] >= bbox[2] || bbox[1] >= bbox[3]) {
+        console.error("❌ Invalid bounding box:", bbox);
+        return;
+      }
+
+      console.log("📍 Bounding box:", bbox);
+
+      // Calculate appropriate zoom level based on bounding box size
+      const latDiff = bbox[3] - bbox[1]; // maxLat - minLat
+      const lngDiff = bbox[2] - bbox[0]; // maxLng - minLng
+      const maxDiff = Math.max(latDiff, lngDiff);
+      
+      // Enhanced zoom level selection for better detail on small areas
+      let zoom = 10;
+      if (maxDiff < 0.0002) zoom = 19;      // Ultra small areas - maximum detail
+      else if (maxDiff < 0.0004) zoom = 18; // Very small areas
+      else if (maxDiff < 0.0007) zoom = 17; // Tiny areas
+      else if (maxDiff < 0.001) zoom = 16;  // Small areas
+      else if (maxDiff < 0.002) zoom = 15;
+      else if (maxDiff < 0.005) zoom = 14;
+      else if (maxDiff < 0.01) zoom = 13;
+      else if (maxDiff < 0.02) zoom = 12;
+      else if (maxDiff < 0.05) zoom = 11;
+      else if (maxDiff < 0.1) zoom = 10;
+      else if (maxDiff < 0.5) zoom = 9;
+      else zoom = 8;
+
+      // If we have map metadata, override with exact zoom from selection page
+      if (mapSnapshot && mapSnapshot.startsWith('data:application/json;base64,')) {
+        console.log("📸 Using map metadata for consistent rendering");
+        try {
+          // Decode the metadata
+          const base64Data = mapSnapshot.split(',')[1];
+          const metadataJson = atob(base64Data);
+          const metadata = JSON.parse(metadataJson);
+          
+          console.log("🔍 Map metadata:", metadata);
+          
+          // Use the exact zoom level from the selection page
+          const exactZoom = metadata.zoom;
+          console.log(`🎯 Using exact zoom level ${exactZoom} from selection page`);
+          
+          // Override the automatic zoom calculation
+          const originalZoomCalculation = zoom;
+          zoom = Math.round(exactZoom); // Use the exact zoom from selection
+          console.log(`🔄 Overriding calculated zoom ${originalZoomCalculation} with selection zoom ${zoom}`);
+          
+        } catch (error) {
+          console.warn("⚠️ Failed to parse map metadata, falling back to calculated zoom");
+        }
+      }
+
+      // Check if area might be outside main US coverage (rough bounds check)
+      const centerLat = (bbox[1] + bbox[3]) / 2;
+      const centerLng = (bbox[0] + bbox[2]) / 2;
+      const isOutsideMainUS = centerLat < 24 || centerLat > 50 || centerLng < -125 || centerLng > -65;
+      
+      // Be more conservative with zoom levels outside main US coverage
+      if (isOutsideMainUS && zoom > 14) {
+        console.log(`Area appears to be outside main US coverage, reducing max zoom from ${zoom} to 14`);
+        zoom = Math.min(zoom, 14);
+      }
+
+      // Clamp zoom to available range (USGS supports up to level 23)
+      zoom = Math.max(3, Math.min(19, zoom));
+
+      console.log(`🔍 Using zoom level ${zoom} for bbox size ${maxDiff.toFixed(6)}`);
+
+      // Helper functions for tile coordinate conversion
+      const lng2tile = (lng: number, zoom: number) => ((lng + 180) / 360) * Math.pow(2, zoom);
+      const lat2tile = (lat: number, zoom: number) => {
+        const latRad = lat * Math.PI / 180;
+        return (1 - Math.asinh(Math.tan(latRad)) / Math.PI) / 2 * Math.pow(2, zoom);
+      };
+      
+      const tile2lng = (x: number, zoom: number) => (x / Math.pow(2, zoom)) * 360 - 180;
+      const tile2lat = (y: number, zoom: number) => {
+        const n = Math.PI - 2 * Math.PI * y / Math.pow(2, zoom);
+        return 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+      };
+
+      // Calculate tile bounds more precisely
+      const n = Math.pow(2, zoom);
+      const minTileX = Math.floor(lng2tile(bbox[0], zoom));
+      const maxTileX = Math.floor(lng2tile(bbox[2], zoom));
+      const minTileY = Math.floor(lat2tile(bbox[3], zoom)); // Note: Y is flipped
+      const maxTileY = Math.floor(lat2tile(bbox[1], zoom));
+
+      // Ensure valid tile ranges
+      let validMinTileX = Math.max(0, Math.min(minTileX, maxTileX));
+      let validMaxTileX = Math.min(n - 1, Math.max(minTileX, maxTileX));
+      let validMinTileY = Math.max(0, Math.min(minTileY, maxTileY));
+      let validMaxTileY = Math.min(n - 1, Math.max(minTileY, maxTileY));
+
+      console.log(`🧩 Initial tile range at zoom ${zoom}: X(${validMinTileX}-${validMaxTileX}), Y(${validMinTileY}-${validMaxTileY})`);
+
+      // Limit number of tiles to prevent excessive requests and potential grey rendering
+      let tileCountX = validMaxTileX - validMinTileX + 1;
+      let tileCountY = validMaxTileY - validMinTileY + 1;
+      let totalTiles = tileCountX * tileCountY;
+      
+      // Allow more tiles for higher zoom levels where detail matters
+      const maxTiles = zoom >= 16 ? 16 : 12;
+      
+      if (totalTiles > maxTiles) {
+        // Use a lower zoom level
+        zoom = Math.max(8, zoom - 1);
+        console.log(`Too many tiles (${totalTiles}), reducing zoom to ${zoom}`);
+        
+        // Recalculate with new zoom
+        const newN = Math.pow(2, zoom);
+        const newMinTileX = Math.floor(lng2tile(bbox[0], zoom));
+        const newMaxTileX = Math.floor(lng2tile(bbox[2], zoom));
+        const newMinTileY = Math.floor(lat2tile(bbox[3], zoom));
+        const newMaxTileY = Math.floor(lat2tile(bbox[1], zoom));
+        
+        validMinTileX = Math.max(0, Math.min(newMinTileX, newMaxTileX));
+        validMaxTileX = Math.min(newN - 1, Math.max(newMinTileX, newMaxTileX));
+        validMinTileY = Math.max(0, Math.min(newMinTileY, newMaxTileY));
+        validMaxTileY = Math.min(newN - 1, Math.max(newMinTileY, newMaxTileY));
+        
+        tileCountX = validMaxTileX - validMinTileX + 1;
+        tileCountY = validMaxTileY - validMinTileY + 1;
+        totalTiles = tileCountX * tileCountY;
+        
+        console.log(`Final tile range at zoom ${zoom}: X(${validMinTileX}-${validMaxTileX}), Y(${validMinTileY}-${validMaxTileY}) = ${totalTiles} tiles`);
+      }
+
+      // Create promises for tile images with better error handling
+      const tilePromises: Promise<{img: HTMLImageElement, tileX: number, tileY: number} | null>[] = [];
+      
+      for (let tileX = validMinTileX; tileX <= validMaxTileX; tileX++) {
+        for (let tileY = validMinTileY; tileY <= validMaxTileY; tileY++) {
+          const tileUrl = `https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer/tile/${zoom}/${tileY}/${tileX}`;
+          
+          const promise = new Promise<{img: HTMLImageElement, tileX: number, tileY: number} | null>((resolve) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            
+            const timeout = setTimeout(() => {
+              console.warn(`Tile timeout: ${tileX}/${tileY}/${zoom}`);
+              resolve(null);
+            }, 3000);
+            
+            img.onload = () => {
+              clearTimeout(timeout);
+              // Check if image is actually loaded (not a grey placeholder)
+              if (img.width > 0 && img.height > 0) {
+                resolve({img, tileX, tileY});
+              } else {
+                console.warn(`Invalid tile dimensions: ${tileX}/${tileY}/${zoom}`);
+                resolve(null);
+              }
+            };
+            
+            img.onerror = (error) => {
+              clearTimeout(timeout);
+              console.warn(`Failed to load tile: ${tileX}/${tileY}/${zoom} - Tile not available`);
+              resolve(null);
+            };
+            
+            img.src = tileUrl;
+          });
+          
+          tilePromises.push(promise);
+        }
+      }
+
+      // Wait for all tiles with proper timeout
+      const tilesResults = await Promise.all(tilePromises);
+      const validTiles = tilesResults.filter(result => result !== null);
+      const failedCount = totalTiles - validTiles.length;
+      
+      console.log(`✅ Loaded ${validTiles.length}/${totalTiles} tiles successfully (${failedCount} failed)`);
+      
+      // If more than half the tiles failed, this might be a coverage issue
+      if (failedCount > totalTiles * 0.5 && zoom > 8) {
+        console.warn(`High tile failure rate (${failedCount}/${totalTiles}), area may be outside USGS coverage or zoom too high`);
+        console.log(`Consider reducing zoom level or checking if area is within US boundaries`);
+      }
+
+      // If no tiles loaded at all, try a lower zoom level as fallback
+      if (validTiles.length === 0 && zoom > 5) {
+        console.warn("⚠️ No hillshade tiles loaded successfully - trying lower zoom level");
+        const fallbackZoom = Math.max(5, zoom - 2);
+        console.log(`🔄 Retrying with fallback zoom level ${fallbackZoom}`);
+        
+        // Recalculate tile coordinates with fallback zoom
+        const fallbackN = Math.pow(2, fallbackZoom);
+        const fallbackMinTileX = Math.max(0, Math.floor(lng2tile(bbox[0], fallbackZoom)));
+        const fallbackMaxTileX = Math.min(fallbackN - 1, Math.floor(lng2tile(bbox[2], fallbackZoom)));
+        const fallbackMinTileY = Math.max(0, Math.floor(lat2tile(bbox[3], fallbackZoom)));
+        const fallbackMaxTileY = Math.min(fallbackN - 1, Math.floor(lat2tile(bbox[1], fallbackZoom)));
+        
+        console.log(`🧩 Fallback tile range at zoom ${fallbackZoom}: X(${fallbackMinTileX}-${fallbackMaxTileX}), Y(${fallbackMinTileY}-${fallbackMaxTileY})`);
+        
+        // Create fallback tile promises
+        const fallbackPromises: Promise<{img: HTMLImageElement, tileX: number, tileY: number, zoom: number} | null>[] = [];
+        
+        for (let tileX = fallbackMinTileX; tileX <= fallbackMaxTileX; tileX++) {
+          for (let tileY = fallbackMinTileY; tileY <= fallbackMaxTileY; tileY++) {
+            const tileUrl = `https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer/tile/${fallbackZoom}/${tileY}/${tileX}`;
+            
+            const promise = new Promise<{img: HTMLImageElement, tileX: number, tileY: number, zoom: number} | null>((resolve) => {
+              const img = new Image();
+              img.crossOrigin = "anonymous";
+              
+              const timeout = setTimeout(() => {
+                console.warn(`Fallback tile timeout: ${tileX}/${tileY}/${fallbackZoom}`);
+                resolve(null);
+              }, 3000);
+              
+              img.onload = () => {
+                clearTimeout(timeout);
+                if (img.width > 0 && img.height > 0) {
+                  resolve({img, tileX, tileY, zoom: fallbackZoom});
+                } else {
+                  resolve(null);
+                }
+              };
+              
+              img.onerror = () => {
+                clearTimeout(timeout);
+                resolve(null);
+              };
+              
+              img.src = tileUrl;
+            });
+            
+            fallbackPromises.push(promise);
+          }
+        }
+        
+        // Try to load fallback tiles
+        const fallbackResults = await Promise.all(fallbackPromises);
+        const fallbackTiles = fallbackResults.filter(result => result !== null);
+        
+        console.log(`✅ Fallback loaded ${fallbackTiles.length}/${fallbackPromises.length} tiles`);
+        
+        if (fallbackTiles.length > 0) {
+          // Draw fallback tiles using the fallback zoom level
+          fallbackTiles.forEach(tile => {
+            if (!tile) return;
+            
+            const {img, tileX, tileY, zoom: tileZoom} = tile;
+            
+            const tileLng1 = tile2lng(tileX, tileZoom);
+            const tileLng2 = tile2lng(tileX + 1, tileZoom);
+            const tileLat1 = tile2lat(tileY, tileZoom);
+            const tileLat2 = tile2lat(tileY + 1, tileZoom);
+            
+            const canvasX1 = Math.max(0, ((tileLng1 - bbox[0]) / (bbox[2] - bbox[0])) * canvasSize);
+            const canvasX2 = Math.min(canvasSize, ((tileLng2 - bbox[0]) / (bbox[2] - bbox[0])) * canvasSize);
+            const canvasY1 = Math.max(0, ((bbox[3] - tileLat1) / (bbox[3] - bbox[1])) * canvasSize);
+            const canvasY2 = Math.min(canvasSize, ((bbox[3] - tileLat2) / (bbox[3] - bbox[1])) * canvasSize);
+            
+            const drawWidth = canvasX2 - canvasX1;
+            const drawHeight = canvasY2 - canvasY1;
+            
+            if (drawWidth > 0 && drawHeight > 0) {
+              const srcX = tileLng1 < bbox[0] ? ((bbox[0] - tileLng1) / (tileLng2 - tileLng1)) * 256 : 0;
+              const srcY = tileLat1 > bbox[3] ? ((tileLat1 - bbox[3]) / (tileLat1 - tileLat2)) * 256 : 0;
+              const srcWidth = Math.min(256, 256 * drawWidth / ((tileLng2 - tileLng1) / (bbox[2] - bbox[0]) * canvasSize));
+              const srcHeight = Math.min(256, 256 * drawHeight / ((tileLat1 - tileLat2) / (bbox[3] - bbox[1]) * canvasSize));
+              
+              ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, canvasX1, canvasY1, drawWidth, drawHeight);
+            }
+          });
+          
+          console.log("🎯 Fallback hillshade rendering completed successfully");
+          return; // Exit successfully with fallback tiles
+        }
+      }
+      
+      // If still no tiles loaded at all, log this for debugging
+      if (validTiles.length === 0) {
+        console.warn("⚠️ No hillshade tiles loaded successfully - canvas will remain white");
+        return; // Exit early since we already have white background
+      }
+
+      // Draw loaded tiles
+      validTiles.forEach(tile => {
+        if (!tile) return;
+        
+        const {img, tileX, tileY} = tile;
+        
+        // Calculate tile bounds in geographic coordinates
+        const tileLng1 = tile2lng(tileX, zoom);
+        const tileLng2 = tile2lng(tileX + 1, zoom);
+        const tileLat1 = tile2lat(tileY, zoom);
+        const tileLat2 = tile2lat(tileY + 1, zoom);
+        
+        // Calculate canvas coordinates with proper clipping
+        const canvasX1 = Math.max(0, ((tileLng1 - bbox[0]) / (bbox[2] - bbox[0])) * canvasSize);
+        const canvasX2 = Math.min(canvasSize, ((tileLng2 - bbox[0]) / (bbox[2] - bbox[0])) * canvasSize);
+        const canvasY1 = Math.max(0, ((bbox[3] - tileLat1) / (bbox[3] - bbox[1])) * canvasSize);
+        const canvasY2 = Math.min(canvasSize, ((bbox[3] - tileLat2) / (bbox[3] - bbox[1])) * canvasSize);
+        
+        const drawWidth = canvasX2 - canvasX1;
+        const drawHeight = canvasY2 - canvasY1;
+        
+        // Only draw if the tile has a reasonable size
+        if (drawWidth > 0 && drawHeight > 0) {
+          // Calculate source clipping if tile extends beyond canvas
+          const srcX = tileLng1 < bbox[0] ? ((bbox[0] - tileLng1) / (tileLng2 - tileLng1)) * 256 : 0;
+          const srcY = tileLat1 > bbox[3] ? ((tileLat1 - bbox[3]) / (tileLat1 - tileLat2)) * 256 : 0;
+          const srcWidth = Math.min(256, 256 * drawWidth / ((tileLng2 - tileLng1) / (bbox[2] - bbox[0]) * canvasSize));
+          const srcHeight = Math.min(256, 256 * drawHeight / ((tileLat1 - tileLat2) / (bbox[3] - bbox[1]) * canvasSize));
+          
+          ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, canvasX1, canvasY1, drawWidth, drawHeight);
+        }
+      });
+      
+      console.log("🎯 Hillshade rendering completed successfully");
+      
+    } catch (error) {
+      console.error("❌ Error loading hillshade tiles:", error);
+      // Fallback to white background
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvasSize, canvasSize);
+      console.log("⚪ Fallback to white background due to error");
+    }
+  }, [bbox, mapSnapshot]);
+
   // Canvas rendering
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -218,12 +555,14 @@ export default function DesignConfigurator({
       ctx.restore();
     };
 
-    const redraw = () => {
+    const redraw = async () => {
       if (!ctx) return;
 
-      // Clear and draw background
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvasSize, canvasSize);
+      // Clear canvas first
+      ctx.clearRect(0, 0, canvasSize, canvasSize);
+
+      // Draw hillshade background
+      await renderHillshadeBackground(ctx, canvasSize);
 
       // For ornaments, set up circular clipping
       if (designConfig.printType === "ornament") {
@@ -309,6 +648,7 @@ export default function DesignConfigurator({
     designConfig,
     getOrnamentCircle,
     fontFamilyOptions,
+    renderHillshadeBackground,
   ]);
 
   const handleConfigChange = (updates: any) => {

@@ -16,6 +16,7 @@ export default function GPXDesignApp() {
   const [gpxData, setGpxData] = useState<any>(null);
   const [processedGpxData, setProcessedGpxData] = useState<any>(null);
   const [boundingBox, setBoundingBox] = useState<string>("");
+  const [mapSnapshot, setMapSnapshot] = useState<string | null>(null); // Base64 image data
   const [designConfig, setDesignConfig] = useState({
     routeColor: "#2563eb",
     printType: "tile" as "tile" | "ornament",
@@ -265,6 +266,7 @@ export default function GPXDesignApp() {
               <MapViewer
                 gpxData={processedGpxData}
                 onBoundingBoxChange={setBoundingBox}
+                onMapSnapshotChange={setMapSnapshot}
                 boundingBox={boundingBox}
                 onConfirmSelection={() => handleBoundingBoxConfirm(boundingBox)}
                 onRestart={handleRestart}
@@ -275,6 +277,7 @@ export default function GPXDesignApp() {
               <DesignConfigurator
                 gpxData={processedGpxData}
                 boundingBox={boundingBox}
+                mapSnapshot={mapSnapshot}
                 designConfig={designConfig}
                 onConfigChange={setDesignConfig}
                 onRestart={handleRestart}

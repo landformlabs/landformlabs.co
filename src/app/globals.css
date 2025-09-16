@@ -214,3 +214,16 @@ h6 {
 .leaflet-resize-handle-se {
     cursor: nwse-resize;
 }
+
+/* Override Leaflet's default tile background */
+.leaflet-container {
+    background-color: #ffffff !important;
+}
+
+.leaflet-tile-pane {
+    background-color: #ffffff !important;
+}
+
+.leaflet-layer {
+    background-color: transparent !important;
+}
