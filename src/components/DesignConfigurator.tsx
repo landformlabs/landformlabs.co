@@ -320,10 +320,10 @@ export default function DesignConfigurator({
         
         // Recalculate with new zoom
         const newN = Math.pow(2, zoom);
-        const newMinTileX = Math.floor(lng2tile(bbox[0], zoom));
-        const newMaxTileX = Math.floor(lng2tile(bbox[2], zoom));
-        const newMinTileY = Math.floor(lat2tile(bbox[3], zoom));
-        const newMaxTileY = Math.floor(lat2tile(bbox[1], zoom));
+        const newMinTileX = Math.floor(lng2tile(bboxData[0], zoom));
+        const newMaxTileX = Math.floor(lng2tile(bboxData[2], zoom));
+        const newMinTileY = Math.floor(lat2tile(bboxData[3], zoom));
+        const newMaxTileY = Math.floor(lat2tile(bboxData[1], zoom));
         
         validMinTileX = Math.max(0, Math.min(newMinTileX, newMaxTileX));
         validMaxTileX = Math.min(newN - 1, Math.max(newMinTileX, newMaxTileX));
@@ -402,10 +402,10 @@ export default function DesignConfigurator({
         
         // Recalculate tile coordinates with fallback zoom
         const fallbackN = Math.pow(2, fallbackZoom);
-        const fallbackMinTileX = Math.max(0, Math.floor(lng2tile(bbox[0], fallbackZoom)));
-        const fallbackMaxTileX = Math.min(fallbackN - 1, Math.floor(lng2tile(bbox[2], fallbackZoom)));
-        const fallbackMinTileY = Math.max(0, Math.floor(lat2tile(bbox[3], fallbackZoom)));
-        const fallbackMaxTileY = Math.min(fallbackN - 1, Math.floor(lat2tile(bbox[1], fallbackZoom)));
+        const fallbackMinTileX = Math.max(0, Math.floor(lng2tile(bboxData[0], fallbackZoom)));
+        const fallbackMaxTileX = Math.min(fallbackN - 1, Math.floor(lng2tile(bboxData[2], fallbackZoom)));
+        const fallbackMinTileY = Math.max(0, Math.floor(lat2tile(bboxData[3], fallbackZoom)));
+        const fallbackMaxTileY = Math.min(fallbackN - 1, Math.floor(lat2tile(bboxData[1], fallbackZoom)));
         
         logger.debug(`🧩 Fallback tile range at zoom ${fallbackZoom}: X(${fallbackMinTileX}-${fallbackMaxTileX}), Y(${fallbackMinTileY}-${fallbackMaxTileY})`);
         
@@ -464,19 +464,19 @@ export default function DesignConfigurator({
             const tileLat1 = tile2lat(tileY, tileZoom);
             const tileLat2 = tile2lat(tileY + 1, tileZoom);
             
-            const canvasX1 = Math.max(0, ((tileLng1 - bbox[0]) / (bbox[2] - bbox[0])) * canvasSize);
-            const canvasX2 = Math.min(canvasSize, ((tileLng2 - bbox[0]) / (bbox[2] - bbox[0])) * canvasSize);
-            const canvasY1 = Math.max(0, ((bbox[3] - tileLat1) / (bbox[3] - bbox[1])) * canvasSize);
-            const canvasY2 = Math.min(canvasSize, ((bbox[3] - tileLat2) / (bbox[3] - bbox[1])) * canvasSize);
+            const canvasX1 = Math.max(0, ((tileLng1 - bboxData[0]) / (bboxData[2] - bboxData[0])) * canvasSize);
+            const canvasX2 = Math.min(canvasSize, ((tileLng2 - bboxData[0]) / (bboxData[2] - bboxData[0])) * canvasSize);
+            const canvasY1 = Math.max(0, ((bboxData[3] - tileLat1) / (bboxData[3] - bboxData[1])) * canvasSize);
+            const canvasY2 = Math.min(canvasSize, ((bboxData[3] - tileLat2) / (bboxData[3] - bboxData[1])) * canvasSize);
             
             const drawWidth = canvasX2 - canvasX1;
             const drawHeight = canvasY2 - canvasY1;
             
             if (drawWidth > 0 && drawHeight > 0) {
-              const srcX = tileLng1 < bbox[0] ? ((bbox[0] - tileLng1) / (tileLng2 - tileLng1)) * 256 : 0;
-              const srcY = tileLat1 > bbox[3] ? ((tileLat1 - bbox[3]) / (tileLat1 - tileLat2)) * 256 : 0;
-              const srcWidth = Math.min(256, 256 * drawWidth / ((tileLng2 - tileLng1) / (bbox[2] - bbox[0]) * canvasSize));
-              const srcHeight = Math.min(256, 256 * drawHeight / ((tileLat1 - tileLat2) / (bbox[3] - bbox[1]) * canvasSize));
+              const srcX = tileLng1 < bboxData[0] ? ((bboxData[0] - tileLng1) / (tileLng2 - tileLng1)) * 256 : 0;
+              const srcY = tileLat1 > bboxData[3] ? ((tileLat1 - bboxData[3]) / (tileLat1 - tileLat2)) * 256 : 0;
+              const srcWidth = Math.min(256, 256 * drawWidth / ((tileLng2 - tileLng1) / (bboxData[2] - bboxData[0]) * canvasSize));
+              const srcHeight = Math.min(256, 256 * drawHeight / ((tileLat1 - tileLat2) / (bboxData[3] - bboxData[1]) * canvasSize));
               
               ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, canvasX1, canvasY1, drawWidth, drawHeight);
             }
@@ -509,10 +509,10 @@ export default function DesignConfigurator({
         const tileLat2 = tile2lat(tileY + 1, zoom);
         
         // Calculate canvas coordinates with proper clipping
-        const canvasX1 = Math.max(0, ((tileLng1 - bbox[0]) / (bbox[2] - bbox[0])) * canvasSize);
-        const canvasX2 = Math.min(canvasSize, ((tileLng2 - bbox[0]) / (bbox[2] - bbox[0])) * canvasSize);
-        const canvasY1 = Math.max(0, ((bbox[3] - tileLat1) / (bbox[3] - bbox[1])) * canvasSize);
-        const canvasY2 = Math.min(canvasSize, ((bbox[3] - tileLat2) / (bbox[3] - bbox[1])) * canvasSize);
+        const canvasX1 = Math.max(0, ((tileLng1 - bboxData[0]) / (bboxData[2] - bboxData[0])) * canvasSize);
+        const canvasX2 = Math.min(canvasSize, ((tileLng2 - bboxData[0]) / (bboxData[2] - bboxData[0])) * canvasSize);
+        const canvasY1 = Math.max(0, ((bboxData[3] - tileLat1) / (bboxData[3] - bboxData[1])) * canvasSize);
+        const canvasY2 = Math.min(canvasSize, ((bboxData[3] - tileLat2) / (bboxData[3] - bboxData[1])) * canvasSize);
         
         const drawWidth = canvasX2 - canvasX1;
         const drawHeight = canvasY2 - canvasY1;
@@ -520,10 +520,10 @@ export default function DesignConfigurator({
         // Only draw if the tile has a reasonable size
         if (drawWidth > 0 && drawHeight > 0) {
           // Calculate source clipping if tile extends beyond canvas
-          const srcX = tileLng1 < bbox[0] ? ((bbox[0] - tileLng1) / (tileLng2 - tileLng1)) * 256 : 0;
-          const srcY = tileLat1 > bbox[3] ? ((tileLat1 - bbox[3]) / (tileLat1 - tileLat2)) * 256 : 0;
-          const srcWidth = Math.min(256, 256 * drawWidth / ((tileLng2 - tileLng1) / (bbox[2] - bbox[0]) * canvasSize));
-          const srcHeight = Math.min(256, 256 * drawHeight / ((tileLat1 - tileLat2) / (bbox[3] - bbox[1]) * canvasSize));
+          const srcX = tileLng1 < bboxData[0] ? ((bboxData[0] - tileLng1) / (tileLng2 - tileLng1)) * 256 : 0;
+          const srcY = tileLat1 > bboxData[3] ? ((tileLat1 - bboxData[3]) / (tileLat1 - tileLat2)) * 256 : 0;
+          const srcWidth = Math.min(256, 256 * drawWidth / ((tileLng2 - tileLng1) / (bboxData[2] - bboxData[0]) * canvasSize));
+          const srcHeight = Math.min(256, 256 * drawHeight / ((tileLat1 - tileLat2) / (bboxData[3] - bboxData[1]) * canvasSize));
           
           ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, canvasX1, canvasY1, drawWidth, drawHeight);
         }
