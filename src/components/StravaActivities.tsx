@@ -57,6 +57,8 @@ export default function StravaActivities({
   >(null);
   const [hasMoreActivities, setHasMoreActivities] = useState(true);
   const [includeVirtualRides, setIncludeVirtualRides] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginationLoading, setPaginationLoading] = useState(false);
 
   // Format activity date for display
   const formatActivityDate = (dateString: string) => {
@@ -168,99 +170,88 @@ export default function StravaActivities({
     return () => clearTimeout(timeoutId);
   }, [searchQuery, includeVirtualRides, performNaturalLanguageSearch]);
 
-  // Load initial activities when component mounts
-  useEffect(() => {
+  // Load activities for the current page
+  const loadActivities = useCallback(async (page: number, isInitialLoad = false) => {
     if (!accessToken) {
       setLoading(false);
       return;
     }
 
-    const fetchInitialActivities = async () => {
+    if (isInitialLoad) {
       setLoading(true);
-      setError(null);
-      try {
-        let allActivities: StravaActivity[] = [];
-        let page = 1;
-        const targetCount = 20;
-        const maxPages = 5; // Safety limit to prevent infinite loops
+    } else {
+      setPaginationLoading(true);
+    }
+    setError(null);
 
-        // Keep fetching until we have enough activities or hit our page limit
-        while (allActivities.length < targetCount && page <= maxPages) {
-          const perPage = includeVirtualRides ? 20 : 50; // Fetch more if filtering virtuals
-          let url = `https://www.strava.com/api/v3/athlete/activities?access_token=${accessToken}&page=${page}&per_page=${perPage}`;
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        per_page: "20",
+        include_virtual: includeVirtualRides.toString(),
+      });
 
-          const response = await fetch(url);
-          if (!response.ok) {
-            if (response.status === 401) {
-              throw new Error("AUTH_ERROR");
-            } else if (response.status === 429) {
-              throw new Error("RATE_LIMIT");
-            } else if (response.status >= 500) {
-              throw new Error("SERVER_ERROR");
-            } else {
-              throw new Error("API_ERROR");
-            }
-          }
+      const response = await fetch(`/api/strava/activities?${params}`);
 
-          const data = await response.json();
-          if (data.length === 0) break; // No more activities
-
-          let filteredBatch = data.filter(
-            (activity: StravaActivity) => activity.distance > 0,
-          );
-
-          if (!includeVirtualRides) {
-            filteredBatch = filteredBatch.filter(
-              (activity: StravaActivity) =>
-                activity.sport_type !== "VirtualRide",
-            );
-          }
-
-          allActivities = [...allActivities, ...filteredBatch];
-          page++;
-        }
-
-        // Take only the first 20 activities
-        setActivities(allActivities.slice(0, targetCount));
-      } catch (error) {
-        console.error("Error fetching Strava activities:", error);
-        if (error instanceof TypeError) {
-          setError({
-            type: "network",
-            message:
-              "Network connection failed. Please check your internet connection and try again.",
-          });
-        } else if (error instanceof Error && error.message === "AUTH_ERROR") {
-          setError({
-            type: "auth",
-            message:
-              "Your Strava session has expired. Please reconnect your account.",
-          });
-        } else if (error instanceof Error && error.message === "RATE_LIMIT") {
-          setError({
-            type: "api",
-            message:
-              "Too many requests to Strava. Please wait a moment and try again.",
-          });
-        } else if (error instanceof Error && error.message === "SERVER_ERROR") {
-          setError({
-            type: "api",
-            message:
-              "Strava's servers are temporarily unavailable. Please try again in a few minutes.",
-          });
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("AUTH_ERROR");
+        } else if (response.status === 429) {
+          throw new Error("RATE_LIMIT");
+        } else if (response.status >= 500) {
+          throw new Error("SERVER_ERROR");
         } else {
-          setError({
-            type: "general",
-            message: "Failed to load activities. Please try again later.",
-          });
+          throw new Error("API_ERROR");
         }
-      } finally {
-        setLoading(false);
       }
-    };
 
-    fetchInitialActivities();
+      const data = await response.json();
+      setActivities(data.activities);
+      setHasMoreActivities(data.hasMore);
+      setCurrentPage(page);
+    } catch (error) {
+      console.error("Error fetching Strava activities:", error);
+      if (error instanceof TypeError) {
+        setError({
+          type: "network",
+          message:
+            "Network connection failed. Please check your internet connection and try again.",
+        });
+      } else if (error instanceof Error && error.message === "AUTH_ERROR") {
+        setError({
+          type: "auth",
+          message:
+            "Your Strava session has expired. Please reconnect your account.",
+        });
+      } else if (error instanceof Error && error.message === "RATE_LIMIT") {
+        setError({
+          type: "api",
+          message:
+            "Too many requests to Strava. Please wait a moment and try again.",
+        });
+      } else if (error instanceof Error && error.message === "SERVER_ERROR") {
+        setError({
+          type: "api",
+          message:
+            "Strava's servers are temporarily unavailable. Please try again in a few minutes.",
+        });
+      } else {
+        setError({
+          type: "general",
+          message: "Failed to load activities. Please try again later.",
+        });
+      }
+    } finally {
+      setLoading(false);
+      setPaginationLoading(false);
+    }
   }, [accessToken, includeVirtualRides]);
+
+  // Load initial activities when component mounts or settings change
+  useEffect(() => {
+    setCurrentPage(1);
+    loadActivities(1, true);
+  }, [loadActivities]);
 
   const handleActivityClick = async (activityId: number) => {
     setActivityLoading(activityId);
@@ -641,6 +632,49 @@ export default function StravaActivities({
               ? "Try a different search query or check your spelling."
               : "You don't have any activities yet. Go create some adventures!"}
           </p>
+        </div>
+      )}
+
+      {/* Pagination Controls - only show when not searching */}
+      {!searchQuery.trim() && displayActivities.length > 0 && (
+        <div className="flex items-center justify-between py-6 border-t border-slate-storm/10">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => loadActivities(currentPage - 1)}
+              disabled={currentPage <= 1 || paginationLoading}
+              className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-slate-storm hover:text-summit-sage border border-slate-storm/20 rounded-lg hover:border-summit-sage/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-slate-storm disabled:hover:border-slate-storm/20 transition-all duration-200"
+            >
+              {paginationLoading ? (
+                <div className="w-4 h-4 border-2 border-summit-sage border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <span>←</span>
+              )}
+              <span>Previous</span>
+            </button>
+
+            <span className="text-sm text-slate-storm">
+              Page {currentPage}
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-slate-storm">
+              {displayActivities.length} activities
+            </span>
+
+            <button
+              onClick={() => loadActivities(currentPage + 1)}
+              disabled={!hasMoreActivities || paginationLoading}
+              className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-slate-storm hover:text-summit-sage border border-slate-storm/20 rounded-lg hover:border-summit-sage/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-slate-storm disabled:hover:border-slate-storm/20 transition-all duration-200"
+            >
+              <span>Next</span>
+              {paginationLoading ? (
+                <div className="w-4 h-4 border-2 border-summit-sage border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <span>→</span>
+              )}
+            </button>
+          </div>
         </div>
       )}
 
