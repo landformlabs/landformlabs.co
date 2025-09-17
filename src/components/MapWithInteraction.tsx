@@ -10,6 +10,7 @@ import {
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
+import { logger } from "@/utils/logger";
 
 // Fix for default markers in react-leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -22,6 +23,7 @@ L.Icon.Default.mergeOptions({
 interface MapWithInteractionProps {
   gpxData: any;
   onBoundingBoxChange: (bbox: string) => void;
+  onMapSnapshotChange?: (snapshot: string | null) => void;
 }
 
 interface BoundingBoxState {
@@ -42,6 +44,7 @@ interface InteractionState {
 function MapController({
   gpxData,
   onBoundingBoxChange,
+  onMapSnapshotChange,
 }: MapWithInteractionProps) {
   const map = useMap();
   const [isDrawing, setIsDrawing] = useState(false);
@@ -90,6 +93,48 @@ function MapController({
     [],
   );
 
+  // Capture map metadata for consistent rendering
+  const captureMapSnapshot = useCallback(async (bounds: [[number, number], [number, number]]) => {
+    if (!onMapSnapshotChange) return;
+    
+    try {
+      // Instead of capturing pixels, capture the current map state metadata
+      const [sw, ne] = bounds;
+      const currentZoom = map.getZoom();
+      const center = map.getCenter();
+      
+      // Get visible tile coordinates at current zoom
+      const tileLayer = map.eachLayer((layer: any) => {
+        if (layer._url && layer._url.includes('USGSShadedReliefOnly')) {
+          return layer;
+        }
+      });
+      
+      // Create metadata object that describes the current map state
+      const mapMetadata = {
+        type: 'map-metadata',
+        bounds: bounds,
+        zoom: currentZoom,
+        center: { lat: center.lat, lng: center.lng },
+        timestamp: Date.now(),
+        tileServiceUrl: 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer/tile/{z}/{y}/{x}'
+      };
+      
+      logger.debug(`📸 Capturing map metadata: zoom=${currentZoom}, bounds=[${sw.join(',')}, ${ne.join(',')}]`);
+      
+      // Convert metadata to base64 JSON for transfer
+      const metadataJson = JSON.stringify(mapMetadata);
+      const metadataBase64 = 'data:application/json;base64,' + btoa(metadataJson);
+      onMapSnapshotChange(metadataBase64);
+      
+      logger.debug("✅ Map metadata captured successfully");
+      
+    } catch (error) {
+      logger.error("❌ Error capturing map metadata:", error);
+      onMapSnapshotChange(null);
+    }
+  }, [map, onMapSnapshotChange]);
+
   // Handle finishing an interaction
   const endInteraction = useCallback(() => {
     setIsDrawing(false);
@@ -99,8 +144,11 @@ function MapController({
       const [sw, ne] = boundingBox.bounds;
       const coordString = `${sw[1].toFixed(5)},${sw[0].toFixed(5)},${ne[1].toFixed(5)},${ne[0].toFixed(5)}`;
       setBoundingBoxString(coordString);
+      
+      // Capture snapshot of the selected area
+      captureMapSnapshot(boundingBox.bounds);
     }
-  }, [map, boundingBox, setBoundingBoxString]);
+  }, [map, boundingBox, setBoundingBoxString, captureMapSnapshot]);
 
   // Main mouse event handler effect
   useEffect(() => {
@@ -286,6 +334,7 @@ function MapController({
 export default function MapWithInteraction({
   gpxData,
   onBoundingBoxChange,
+  onMapSnapshotChange,
 }: MapWithInteractionProps) {
   return (
     <MapContainer
@@ -295,12 +344,18 @@ export default function MapWithInteraction({
       className="rounded-lg"
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='USGS The National Map'
+        url="https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer/tile/{z}/{y}/{x}"
+        maxZoom={19}
+        minZoom={3}
+        opacity={1}
+        crossOrigin="anonymous"
+        errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAdgAAAHYBTnsmCAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAANTSURBVHic7cExAQAAAMKg9U9tCy+gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOALmYsAAQoU5fgAAAAASUVORK5CYII="
       />
       <MapController
         gpxData={gpxData}
         onBoundingBoxChange={onBoundingBoxChange}
+        onMapSnapshotChange={onMapSnapshotChange}
       />
     </MapContainer>
   );

@@ -19,6 +19,7 @@ const MapWithInteraction = dynamic(() => import("./MapWithInteraction"), {
 interface MapViewerProps {
   gpxData: any;
   onBoundingBoxChange: (bbox: string) => void;
+  onMapSnapshotChange?: (snapshot: string | null) => void;
   boundingBox?: string;
   onConfirmSelection?: () => void;
   onRestart?: () => void;
@@ -27,6 +28,7 @@ interface MapViewerProps {
 export default function MapViewer({
   gpxData,
   onBoundingBoxChange,
+  onMapSnapshotChange,
   boundingBox,
   onConfirmSelection,
   onRestart,
@@ -138,6 +140,7 @@ export default function MapViewer({
           <MapWithInteraction
             gpxData={gpxData}
             onBoundingBoxChange={onBoundingBoxChange}
+            onMapSnapshotChange={onMapSnapshotChange}
           />
         </div>
       </div>
