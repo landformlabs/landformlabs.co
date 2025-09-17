@@ -44,6 +44,7 @@ interface DesignConfiguratorProps {
   };
   onConfigChange: (config: any) => void;
   onRestart?: () => void;
+  designMode?: "route" | "geography";
 }
 
 export default function DesignConfigurator({
@@ -53,6 +54,7 @@ export default function DesignConfigurator({
   designConfig,
   onConfigChange,
   onRestart,
+  designMode = "route",
 }: DesignConfiguratorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const hillshadeCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -644,14 +646,17 @@ export default function DesignConfigurator({
         ctx.clip();
       }
 
-      // Draw route
-      const filteredPoints = gpxData.points.filter(
-        (p: any) =>
-          p.lat >= bbox[1] &&
-          p.lat <= bbox[3] &&
-          p.lon >= bbox[0] &&
-          p.lon <= bbox[2],
-      );
+      // Draw route (only if gpxData exists)
+      let filteredPoints: any[] = [];
+      if (gpxData && gpxData.points) {
+        filteredPoints = gpxData.points.filter(
+          (p: any) =>
+            p.lat >= bbox[1] &&
+            p.lat <= bbox[3] &&
+            p.lon >= bbox[0] &&
+            p.lon <= bbox[2],
+        );
+      }
       if (filteredPoints.length > 1) {
         ctx.strokeStyle = designConfig.routeColor;
         ctx.lineWidth = 3;
@@ -945,9 +950,11 @@ export default function DesignConfigurator({
       zip.file("design-preview.png", pngBlob);
     }
 
-    // Add GPX route data
-    const gpxString = gpxData.gpxString;
-    zip.file("route-data.gpx", gpxString);
+    // Add GPX route data (only if available)
+    if (gpxData && gpxData.gpxString) {
+      const gpxString = gpxData.gpxString;
+      zip.file("route-data.gpx", gpxString);
+    }
 
     // Create comprehensive order specifications
     const orderSpecs = {
@@ -957,7 +964,7 @@ export default function DesignConfigurator({
           designConfig.printType === "tile" ? designConfig.tileSize : undefined,
         routeColor: designConfig.routeColor,
         boundingBox: boundingBox,
-        stravaActivityUrl: gpxData.activityId
+        stravaActivityUrl: (gpxData && gpxData.activityId)
           ? `https://www.strava.com/activities/${gpxData.activityId}`
           : undefined,
         timestamp: new Date().toISOString(),
@@ -1058,92 +1065,142 @@ export default function DesignConfigurator({
             Customize Design
           </h3>
 
-          {/* Activity Details */}
-          <div>
-            <h3 className="text-xl font-headline font-bold text-basalt mb-3">
-              Activity Details
-            </h3>
-            <div className="space-y-2 text-sm text-slate-storm">
-              <div className="flex justify-between items-center">
-                <span className="font-semibold">Name:</span>
-                <div className="flex items-center">
-                  <span className="text-right mr-2">
-                    {gpxData.activityName || "N/A"}
-                  </span>
-                  <button
-                    onClick={() => quickAddLabel(gpxData.activityName)}
-                    className="text-xs bg-slate-200 px-2 py-1 rounded"
-                  >
-                    Add
-                  </button>
+          {/* Activity Details or Geography Mode */}
+          {gpxData ? (
+            <div>
+              <h3 className="text-xl font-headline font-bold text-basalt mb-3">
+                Activity Details
+              </h3>
+              <div className="space-y-2 text-sm text-slate-storm">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Name:</span>
+                  <div className="flex items-center">
+                    <span className="text-right mr-2">
+                      {gpxData.activityName || "N/A"}
+                    </span>
+                    {gpxData.activityName && (
+                      <button
+                        onClick={() => quickAddLabel(gpxData.activityName)}
+                        className="text-xs bg-slate-200 px-2 py-1 rounded"
+                      >
+                        Add
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-semibold">Date:</span>
-                <div className="flex items-center">
-                  <span className="text-right mr-2">
-                    {gpxData.date
-                      ? new Date(gpxData.date).toLocaleDateString()
-                      : "N/A"}
-                  </span>
-                  <button
-                    onClick={() =>
-                      quickAddLabel(new Date(gpxData.date).toLocaleDateString())
-                    }
-                    className="text-xs bg-slate-200 px-2 py-1 rounded"
-                  >
-                    Add
-                  </button>
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Date:</span>
+                  <div className="flex items-center">
+                    <span className="text-right mr-2">
+                      {gpxData.date
+                        ? new Date(gpxData.date).toLocaleDateString()
+                        : "N/A"}
+                    </span>
+                    {gpxData.date && (
+                      <button
+                        onClick={() =>
+                          quickAddLabel(new Date(gpxData.date).toLocaleDateString())
+                        }
+                        className="text-xs bg-slate-200 px-2 py-1 rounded"
+                      >
+                        Add
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-semibold">Distance:</span>
-                <div className="flex items-center">
-                  <span className="text-right mr-2">
-                    {gpxData.distance
-                      ? `${(gpxData.distance / 1000).toFixed(2)} km`
-                      : "N/A"}
-                  </span>
-                  <button
-                    onClick={() =>
-                      quickAddLabel(
-                        `${(gpxData.distance / 1000).toFixed(2)} km`,
-                      )
-                    }
-                    className="text-xs bg-slate-200 px-2 py-1 rounded"
-                  >
-                    Add
-                  </button>
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Distance:</span>
+                  <div className="flex items-center">
+                    <span className="text-right mr-2">
+                      {gpxData.distance
+                        ? `${(gpxData.distance / 1000).toFixed(2)} km`
+                        : "N/A"}
+                    </span>
+                    {gpxData.distance && (
+                      <button
+                        onClick={() =>
+                          quickAddLabel(
+                            `${(gpxData.distance / 1000).toFixed(2)} km`,
+                          )
+                        }
+                        className="text-xs bg-slate-200 px-2 py-1 rounded"
+                      >
+                        Add
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-semibold">Time:</span>
-                <div className="flex items-center">
-                  <span className="text-right mr-2">
-                    {gpxData.duration
-                      ? new Date(gpxData.duration).toISOString().substr(11, 8)
-                      : "N/A"}
-                  </span>
-                  <button
-                    onClick={() =>
-                      quickAddLabel(
-                        new Date(gpxData.duration).toISOString().substr(11, 8),
-                      )
-                    }
-                    className="text-xs bg-slate-200 px-2 py-1 rounded"
-                  >
-                    Add
-                  </button>
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Time:</span>
+                  <div className="flex items-center">
+                    <span className="text-right mr-2">
+                      {gpxData.duration
+                        ? new Date(gpxData.duration).toISOString().substr(11, 8)
+                        : "N/A"}
+                    </span>
+                    {gpxData.duration && (
+                      <button
+                        onClick={() =>
+                          quickAddLabel(
+                            new Date(gpxData.duration).toISOString().substr(11, 8),
+                          )
+                        }
+                        className="text-xs bg-slate-200 px-2 py-1 rounded"
+                      >
+                        Add
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <h3 className="text-xl font-headline font-bold text-basalt mb-3">
+                Free Design Mode
+              </h3>
+              <div className="text-sm text-slate-storm space-y-2">
+                <p>You&apos;re designing a topographical print without route data.</p>
+                <p>Add custom labels below to personalize your print.</p>
+                <div className="mt-4 pt-3 border-t border-slate-storm/20">
+                  <p className="font-medium text-basalt mb-2">Suggested Labels:</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => quickAddLabel("Topographic Print")}
+                      className="text-xs bg-slate-200 px-2 py-1 rounded hover:bg-slate-300"
+                    >
+                      + Topographic Print
+                    </button>
+                    <button
+                      onClick={() => quickAddLabel("Mountain Range")}
+                      className="text-xs bg-slate-200 px-2 py-1 rounded hover:bg-slate-300"
+                    >
+                      + Mountain Range
+                    </button>
+                    <button
+                      onClick={() => quickAddLabel(new Date().getFullYear().toString())}
+                      className="text-xs bg-slate-200 px-2 py-1 rounded hover:bg-slate-300"
+                    >
+                      + {new Date().getFullYear()}
+                    </button>
+                    <button
+                      onClick={() => quickAddLabel("Elevation Map")}
+                      className="text-xs bg-slate-200 px-2 py-1 rounded hover:bg-slate-300"
+                    >
+                      + Elevation Map
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
-          {/* Route Color */}
-          <div>
-            <label className="block text-sm font-headline font-semibold text-basalt mb-3">
-              Route Color
-            </label>
+          {/* Route Color - only show if there's route data */}
+          {gpxData && (
+            <div>
+              <label className="block text-sm font-headline font-semibold text-basalt mb-3">
+                Route Color
+              </label>
             <div className="grid grid-cols-3 gap-2">
               {colorOptions.map((color) => (
                 <button
@@ -1173,7 +1230,8 @@ export default function DesignConfigurator({
                 </button>
               ))}
             </div>
-          </div>
+            </div>
+          )}
 
           {/* Print Type */}
           <div>

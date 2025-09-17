@@ -72,6 +72,29 @@ function MapController({
     );
   }, [gpxData, map]);
 
+  // Handle search location events
+  useEffect(() => {
+    const handleSearchLocation = (event: any) => {
+      if (!map) return;
+      const { lat, lon, boundingbox } = event.detail;
+      
+      if (boundingbox) {
+        // Use the bounding box from search result
+        const bounds: [[number, number], [number, number]] = [
+          [parseFloat(boundingbox[0]), parseFloat(boundingbox[2])], // SW
+          [parseFloat(boundingbox[1]), parseFloat(boundingbox[3])]  // NE
+        ];
+        map.fitBounds(bounds, { padding: [50, 50] });
+      } else {
+        // Just center on the location
+        map.setView([lat, lon], 12);
+      }
+    };
+
+    window.addEventListener('searchLocation', handleSearchLocation);
+    return () => window.removeEventListener('searchLocation', handleSearchLocation);
+  }, [map]);
+
   // Create square bounding box
   const createSquareBounds = useCallback(
     (
@@ -288,7 +311,7 @@ function MapController({
 
   return (
     <>
-      {gpxData && (
+      {gpxData && gpxData.points && (
         <Polyline
           positions={gpxData.points.map((p: any) => [p.lat, p.lon])}
           pathOptions={{ color: "#2563eb", weight: 4, opacity: 0.9 }}
