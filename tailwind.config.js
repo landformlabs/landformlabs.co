@@ -24,6 +24,7 @@ module.exports = {
       fontFamily: {
         poppins: ["Poppins", "sans-serif"],
         trispace: ["Trispace", "monospace"],
+        "eb-garamond": ["EB Garamond", "serif"],
         sans: ["Trispace", "monospace"], // Override default sans-serif with body font
         headline: ["Trispace", "monospace"], // Semantic alias for headlines
         body: ["Trispace", "monospace"], // Semantic alias for body text
