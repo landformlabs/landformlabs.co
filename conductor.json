@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "setup": "# Copy configuration files\ncp \"$CONDUCTOR_ROOT_PATH/.env.local\" .\n\n# Install dependencies\n# pnpm install",
+    "run": "npm run dev"
+  }
+}
