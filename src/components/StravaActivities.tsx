@@ -8,6 +8,8 @@ import {
   interpretQuery,
   type ParsedFilter,
 } from "../utils/naturalLanguageParser";
+import { autoSimplifyGPXTrack, generateSimplifiedGPXString } from "@/lib/gpxSimplify";
+import { calculateDistance } from "@/lib/gpx";
 
 interface StravaActivity {
   id: number;
@@ -274,38 +276,64 @@ export default function StravaActivities({
       const stream = await response.json();
 
       if (stream.latlng) {
-        const totalPoints = stream.latlng.data.length;
-        const points = stream.latlng.data.map((point: [number, number]) => ({
+        const originalPoints = stream.latlng.data.map((point: [number, number]) => ({
           lat: point[0],
           lon: point[1],
         }));
 
-        let gpxString = `<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="Landform Labs">
-<trk>
-<name>${activity.name}</name>
-<trkseg>
-`;
-        points.forEach((p: any) => {
-          gpxString += `<trkpt lat="${p.lat}" lon="${p.lon}"></trkpt>\n`;
-        });
-        gpxString += `</trkseg>
-</trk>
-</gpx>`;
+        console.log('Original GPX points:', originalPoints.length);
+        
+        // Apply automatic simplification to the track points
+        const simplifyResult = autoSimplifyGPXTrack(originalPoints, 0.7);
+        console.log('GPX simplification result:', simplifyResult);
+
+        // Recalculate distance for simplified points
+        let simplifiedDistance = 0;
+        for (let i = 0; i < simplifyResult.simplifiedPoints.length - 1; i++) {
+          simplifiedDistance += calculateDistance(
+            simplifyResult.simplifiedPoints[i], 
+            simplifyResult.simplifiedPoints[i + 1]
+          );
+        }
+
+        // Calculate bounds for simplified points
+        const simplifiedLats = simplifyResult.simplifiedPoints.map(p => p.lat);
+        const simplifiedLons = simplifyResult.simplifiedPoints.map(p => p.lon);
+        const bounds = {
+          minLat: Math.min(...simplifiedLats),
+          maxLat: Math.max(...simplifiedLats),
+          minLon: Math.min(...simplifiedLons),
+          maxLon: Math.max(...simplifiedLons),
+        };
+
+        // Generate simplified GPX string for export
+        const simplifiedGPXString = generateSimplifiedGPXString(
+          simplifyResult.simplifiedPoints,
+          {
+            activityName: activity.name,
+            date: new Date(activity.start_date_local)
+          }
+        );
 
         const gpxData = {
           fileName: `${activity.name}.gpx`,
-          totalPoints,
-          fileSize: gpxString.length,
-          gpxString,
+          points: simplifyResult.simplifiedPoints, // Use simplified points
+          bounds,
+          totalPoints: simplifyResult.simplifiedCount,
+          originalTotalPoints: originalPoints.length,
+          fileSize: simplifiedGPXString.length,
+          gpxString: simplifiedGPXString, // Use simplified GPX string for export
           activityId: activity.id,
           activityName: activity.name,
           date: new Date(activity.start_date_local),
-          distance: activity.distance,
+          distance: simplifiedDistance, // Use simplified distance
           duration: activity.moving_time * 1000, // convert to ms
+          originalPoints: originalPoints, // Keep original for reference
+          simplificationResult: simplifyResult,
           gpx: {
             trk: {
               trkseg: {
-                trkpt: points.map((p: any) => ({
+                trkpt: simplifyResult.simplifiedPoints.map((p: any) => ({
                   "@_lat": p.lat,
                   "@_lon": p.lon,
                 })),
