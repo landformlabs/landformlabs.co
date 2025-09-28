@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { calculateDistance } from "@/lib/gpx";
+import { autoSimplifyGPXTrack, generateSimplifiedGPXString } from "@/lib/gpxSimplify";
 
 interface GPXUploaderProps {
   onGPXUpload: (parsedGPX: any) => void;
@@ -161,11 +162,50 @@ export default function GPXUploader({ onGPXUpload }: GPXUploaderProps) {
       // Parse the GPX data
       const parsedData = parseGPX(fileContent);
 
+      // Apply automatic simplification to the track points
+      console.log('Original GPX points:', parsedData.points.length);
+      const simplifyResult = autoSimplifyGPXTrack(parsedData.points, 0.7);
+      console.log('GPX simplification result:', simplifyResult);
+
+      // Recalculate distance and bounds for simplified points
+      let simplifiedDistance = 0;
+      for (let i = 0; i < simplifyResult.simplifiedPoints.length - 1; i++) {
+        simplifiedDistance += calculateDistance(
+          simplifyResult.simplifiedPoints[i], 
+          simplifyResult.simplifiedPoints[i + 1]
+        );
+      }
+
+      const simplifiedLats = simplifyResult.simplifiedPoints.map(p => p.lat);
+      const simplifiedLons = simplifyResult.simplifiedPoints.map(p => p.lon);
+      const simplifiedBounds = {
+        minLat: Math.min(...simplifiedLats),
+        maxLat: Math.max(...simplifiedLats),
+        minLon: Math.min(...simplifiedLons),
+        maxLon: Math.max(...simplifiedLons),
+      };
+
+      // Generate simplified GPX string for export
+      const simplifiedGPXString = generateSimplifiedGPXString(
+        simplifyResult.simplifiedPoints,
+        {
+          activityName: parsedData.activityName,
+          date: parsedData.date || undefined
+        }
+      );
+
       const gpxData = {
         ...parsedData,
+        points: simplifyResult.simplifiedPoints, // Use simplified points
+        bounds: simplifiedBounds,
+        distance: simplifiedDistance,
+        totalPoints: simplifyResult.simplifiedCount,
         fileName: file.name,
         fileSize: file.size,
-        gpxString: fileContent,
+        gpxString: simplifiedGPXString, // Use simplified GPX string for export
+        originalPoints: parsedData.points, // Keep original for reference
+        originalTotalPoints: parsedData.totalPoints,
+        simplificationResult: simplifyResult,
       };
 
       onGPXUpload(gpxData);
