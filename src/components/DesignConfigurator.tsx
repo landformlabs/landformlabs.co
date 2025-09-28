@@ -1222,22 +1222,15 @@ export default function DesignConfigurator({
       },
       routeData: {
         gpxData: {
-          originalGpxString: gpxData.gpxString,
+          originalGpxString: gpxData.gpxString, // This is already the simplified GPX string
           activityName: gpxData.activityName,
           points: gpxData.points.map((p: any) => ({
             lat: p.lat,
             lon: p.lon,
             ele: p.ele,
             time: p.time,
-          })),
-          // Include original points if GPX was simplified
-          originalPoints: gpxData.originalPoints ? gpxData.originalPoints.map((p: any) => ({
-            lat: p.lat,
-            lon: p.lon,
-            ele: p.ele,
-            time: p.time,
-          })) : undefined,
-          // Include simplification metadata if available
+          })), // These are the simplified points for manufacturing
+          // Include simplification metadata for reference (but not original points)
           simplificationResult: gpxData.simplificationResult ? {
             originalCount: gpxData.simplificationResult.originalCount,
             simplifiedCount: gpxData.simplificationResult.simplifiedCount,

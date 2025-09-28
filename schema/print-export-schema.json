@@ -70,7 +70,7 @@
           "properties": {
             "originalGpxString": {
               "type": "string",
-              "description": "Original GPX file content as string"
+              "description": "Simplified GPX file content as string, optimized for 3D printing manufacturing"
             },
             "activityName": {
               "type": "string",
@@ -78,7 +78,7 @@
             },
             "points": {
               "type": "array",
-              "description": "Array of GPS track points",
+              "description": "Array of simplified GPS track points, optimized for 3D printing manufacturing",
               "minItems": 2,
               "items": {
                 "type": "object",
@@ -166,13 +166,6 @@
                     "description": "Waypoint description"
                   }
                 }
-              }
-            },
-            "originalPoints": {
-              "type": "array",
-              "description": "Original GPS points before simplification (if simplification was applied)",
-              "items": {
-                "$ref": "#/properties/routeData/properties/gpxData/properties/points/items"
               }
             },
             "simplificationResult": {

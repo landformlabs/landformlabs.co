@@ -55,13 +55,12 @@ export interface SimplificationResult {
 }
 
 export interface GPXData {
-  originalGpxString: string;
+  originalGpxString: string; // Simplified GPX string optimized for manufacturing
   activityName?: string;
-  points: GPSPoint[];
+  points: GPSPoint[]; // Simplified GPS points optimized for 3D printing
   tracks?: Track[];
   waypoints?: Waypoint[];
-  // GPX Simplification data (if applied)
-  originalPoints?: GPSPoint[];
+  // Simplification metadata (original points NOT included to keep export focused on manufacturing)
   simplificationResult?: SimplificationResult;
 }
 
