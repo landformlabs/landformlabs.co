@@ -59,7 +59,7 @@
     "routeData": {
       "type": "object",
       "description": "Complete GPS route data and metadata",
-      "required": ["gpxData", "bounds", "statistics"],
+      "required": ["gpxData", "bounds", "selectedBounds", "statistics"],
       "additionalProperties": false,
       "properties": {
         "gpxData": {
