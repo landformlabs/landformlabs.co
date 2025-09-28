@@ -5,7 +5,8 @@ This document describes the comprehensive JSON schema for exporting 3D print dat
 ## Overview
 
 The export schema captures:
-- **Complete GPX data**: Original file content, parsed GPS points, elevation data, timestamps
+- **Optimized GPX data**: Simplified file content for 3D printing, GPS points optimized for manufacturing, elevation data, timestamps
+- **Route optimization**: Simplification statistics, original vs simplified point counts, tolerance metrics
 - **Route metadata**: Statistics, bounds, activity information
 - **Design configuration**: Labels, colors, print type, dimensions
 - **Manufacturing specs**: Material, dimensions, rendering settings, NFC configuration
@@ -20,7 +21,7 @@ The export schema captures:
 
 ## Key Improvements Over Legacy Format
 
-### 1. Complete GPX Data Structure
+### 1. Optimized GPX Data Structure for Manufacturing
 ```typescript
 // OLD: Only basic parsed data
 {
@@ -28,14 +29,21 @@ The export schema captures:
   points: Array<{lat: number, lon: number}>;
 }
 
-// NEW: Complete structured data
+// NEW: Simplified data optimized for 3D printing
 {
   gpxData: {
-    originalGpxString: string;
-    points: Array<{lat: number, lon: number, ele?: number, time?: string}>;
+    originalGpxString: string; // Simplified GPX optimized for manufacturing
+    points: Array<{lat: number, lon: number, ele?: number, time?: string}>; // Simplified points
     tracks?: Track[];
     waypoints?: Waypoint[];
     activityName?: string;
+    // Simplification metadata for quality tracking
+    simplificationResult?: {
+      originalCount: number;
+      simplifiedCount: number;
+      reductionPercentage: number;
+      toleranceUsed: number;
+    };
   }
 }
 ```
@@ -163,7 +171,7 @@ The enhanced export creates a ZIP file containing:
 
 ### Core Files
 - `print-specifications.json` - Complete technical specifications (new schema)
-- `route-data.gpx` - Original GPS route data
+- `route-data.gpx` - Simplified GPS route data optimized for 3D printing
 - `design-preview.png` - Standard resolution preview (400px)
 - `design-preview-hires.png` - High resolution for manufacturing (1200px)
 
@@ -216,10 +224,17 @@ const { gpxData, designConfig, boundingBox } = toLegacyFormat(exportData);
 ## Benefits for Manufacturing
 
 ### For 3D Printing
-- Precise material specifications
-- Exact dimensional requirements
-- Layer height and print settings
-- Post-processing instructions
+- **Route Optimization**: GPS tracks simplified for optimal print quality and performance
+- **Precise material specifications**: Exact material types and colors
+- **Exact dimensional requirements**: Millimeter-precise dimensions and tolerances
+- **Layer height and print settings**: Optimized settings for each print type
+- **Post-processing instructions**: Clear guidance for finishing steps
+
+### For Route Optimization
+- **Intelligent Simplification**: Routes simplified using proven algorithms to reduce complexity while preserving shape
+- **Quality Metrics**: Track original vs simplified point counts and reduction percentages
+- **Manufacturing Efficiency**: Fewer points = faster slicing, printing, and processing
+- **Print Quality**: Optimized point density improves print surface quality and reduces artifacts
 
 ### For Quality Control
 - Automated validation
