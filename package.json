@@ -28,6 +28,7 @@
     "react-leaflet": "^4.2.1",
     "react-rnd": "^10.5.2",
     "search-query-parser": "^1.6.0",
+    "simplify-js": "^1.2.4",
     "tailwindcss": "^3.4.10",
     "typescript": "^5"
   },
