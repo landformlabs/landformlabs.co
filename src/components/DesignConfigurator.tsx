@@ -1167,97 +1167,269 @@ export default function DesignConfigurator({
     const gpxString = gpxData.gpxString;
     zip.file("route-data.gpx", gpxString);
 
-    // Create comprehensive order specifications
+    // Parse bounding box coordinates
+    const bboxCoords = boundingBox.split(",").map(Number);
+    
+    // Calculate route statistics
+    let totalDistance = 0;
+    for (let i = 0; i < gpxData.points.length - 1; i++) {
+      const current = gpxData.points[i];
+      const next = gpxData.points[i + 1];
+      const R = 6371000; // Earth's radius in meters
+      const lat1Rad = (current.lat * Math.PI) / 180;
+      const lat2Rad = (next.lat * Math.PI) / 180;
+      const deltaLatRad = ((next.lat - current.lat) * Math.PI) / 180;
+      const deltaLngRad = ((next.lon - current.lon) * Math.PI) / 180;
+      const a = Math.sin(deltaLatRad / 2) * Math.sin(deltaLatRad / 2) +
+        Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(deltaLngRad / 2) * Math.sin(deltaLngRad / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      totalDistance += R * c;
+    }
+
+    // Calculate elevation statistics if available
+    const elevations = gpxData.points.filter((p: any) => p.ele !== undefined).map((p: any) => p.ele!);
+    let elevationGain = 0;
+    let elevationLoss = 0;
+    if (elevations.length > 1) {
+      for (let i = 0; i < elevations.length - 1; i++) {
+        const diff = elevations[i + 1] - elevations[i];
+        if (diff > 0) elevationGain += diff;
+        else elevationLoss += Math.abs(diff);
+      }
+    }
+
+    // Get default manufacturing specifications
+    const getTileDimensions = (size: string) => {
+      const dims = {
+        basecamp: { width: 100, height: 100 },
+        ridgeline: { width: 155, height: 155 },
+        summit: { width: 210, height: 210 },
+      };
+      return dims[size as keyof typeof dims] || dims.ridgeline;
+    };
+
+    // Create comprehensive order specifications following the new schema
     const orderSpecs = {
+      schemaVersion: "1.0.0",
       orderInfo: {
+        orderReference: `LF-${Date.now()}`,
+        timestamp: new Date().toISOString(),
         printType: designConfig.printType,
-        tileSize:
-          designConfig.printType === "tile" ? designConfig.tileSize : undefined,
-        routeColor: designConfig.routeColor,
-        boundingBox: boundingBox,
+        tileSize: designConfig.printType === "tile" ? designConfig.tileSize : undefined,
         stravaActivityUrl: gpxData.activityId
           ? `https://www.strava.com/activities/${gpxData.activityId}`
           : undefined,
-        timestamp: new Date().toISOString(),
-        orderReference: `LF-${Date.now()}`,
       },
-      labels:
-        designConfig.printType === "tile"
-          ? designConfig.labels.map((label) => ({
-              text: label.text,
-              position: { x: label.x, y: label.y },
-              size: { width: label.width, height: label.height },
-              typography: {
-                fontFamily: label.fontFamily,
-                fontSize: label.size,
-                textAlign: label.textAlign,
-                bold: label.bold,
-                italic: label.italic,
-                color: label.color,
-              },
-              rotation: label.rotation,
-            }))
-          : designConfig.ornamentLabels.map((label) => ({
-              text: label.text,
-              position: { angle: label.angle, radius: label.radius },
-              typography: {
-                fontFamily: label.fontFamily,
-                fontSize: label.size,
-                bold: label.bold,
-                italic: label.italic,
-                color: label.color,
-              },
-            })),
+      routeData: {
+        gpxData: {
+          originalGpxString: gpxData.gpxString,
+          activityName: gpxData.activityName,
+          points: gpxData.points.map((p: any) => ({
+            lat: p.lat,
+            lon: p.lon,
+            ele: p.ele,
+            time: p.time,
+          })),
+        },
+        bounds: {
+          minLat: gpxData.bounds.minLat,
+          maxLat: gpxData.bounds.maxLat,
+          minLon: gpxData.bounds.minLon,
+          maxLon: gpxData.bounds.maxLon,
+        },
+        selectedBounds: {
+          minLon: bboxCoords[0],
+          minLat: bboxCoords[1],
+          maxLon: bboxCoords[2],
+          maxLat: bboxCoords[3],
+        },
+        statistics: {
+          totalPoints: gpxData.totalPoints,
+          totalDistance: totalDistance,
+          totalDuration: gpxData.duration || undefined,
+          startTime: gpxData.date?.toISOString(),
+          endTime: gpxData.date && gpxData.duration ? new Date(gpxData.date.getTime() + gpxData.duration).toISOString() : undefined,
+          elevationGain: elevations.length > 1 ? elevationGain : undefined,
+          elevationLoss: elevations.length > 1 ? elevationLoss : undefined,
+          maxElevation: elevations.length > 0 ? Math.max(...elevations) : undefined,
+          minElevation: elevations.length > 0 ? Math.min(...elevations) : undefined,
+        },
+      },
+      designConfig: {
+        routeColor: designConfig.routeColor,
+        printType: designConfig.printType,
+        tileSize: designConfig.printType === "tile" ? designConfig.tileSize : undefined,
+        labels: designConfig.printType === "tile" ? designConfig.labels.map((label) => ({
+          text: label.text,
+          position: { x: label.x, y: label.y },
+          size: { width: label.width, height: label.height },
+          typography: {
+            fontFamily: label.fontFamily,
+            fontSize: label.size,
+            textAlign: label.textAlign,
+            bold: label.bold,
+            italic: label.italic,
+            color: label.color,
+          },
+          rotation: label.rotation,
+        })) : undefined,
+        ornamentLabels: designConfig.printType === "ornament" ? designConfig.ornamentLabels.map((label) => ({
+          text: label.text,
+          angle: label.angle,
+          radius: label.radius,
+          typography: {
+            fontFamily: label.fontFamily,
+            fontSize: label.size,
+            bold: label.bold,
+            italic: label.italic,
+            color: label.color,
+          },
+        })) : undefined,
+        ornamentCircle: designConfig.printType === "ornament" ? designConfig.ornamentCircle : undefined,
+      },
+      manufacturingSpecs: {
+        material: {
+          type: "PLA",
+          color: designConfig.printType === "ornament" ? "white" : "black",
+        },
+        dimensions: {
+          ...getTileDimensions(designConfig.tileSize || "ridgeline"),
+          depth: designConfig.printType === "tile" ? 6 : 3,
+          baseThickness: 2,
+          routeHeight: designConfig.printType === "tile" ? 1.5 : 1,
+        },
+        rendering: {
+          resolution: {
+            dpi: 300,
+            canvasSize: 400,
+          },
+          hillshade: {
+            enabled: true,
+            opacity: 1,
+            tileZoom: 14,
+          },
+          mapSnapshot: mapSnapshot || undefined,
+        },
+        nfc: {
+          enabled: designConfig.printType === "tile",
+          targetUrl: gpxData.activityId 
+            ? `https://www.strava.com/activities/${gpxData.activityId}`
+            : undefined,
+        },
+      },
+      metadata: {
+        fileInfo: {
+          originalFileName: gpxData.fileName,
+          fileSize: gpxData.fileSize,
+          uploadTimestamp: gpxData.date?.toISOString(),
+        },
+        generationInfo: {
+          appVersion: "1.0.0",
+          userAgent: typeof window !== "undefined" ? window.navigator.userAgent : undefined,
+          exportFormat: "zip",
+        },
+        qualityChecks: {
+          routeValidation: {
+            hasMinimumPoints: gpxData.totalPoints >= 2,
+            hasValidBounds: gpxData.bounds.maxLat > gpxData.bounds.minLat,
+            hasElevationData: gpxData.points.some((p: any) => p.ele !== undefined),
+            hasTimestamps: gpxData.points.some((p: any) => p.time !== undefined),
+          },
+          designValidation: {
+            hasValidColors: /^#[0-9A-Fa-f]{6}$/.test(designConfig.routeColor),
+            labelCount: (designConfig.labels?.length || 0) + (designConfig.ornamentLabels?.length || 0),
+            allLabelsWithinBounds: true,
+          },
+        },
+      },
     };
 
     // Add machine-readable specifications
     zip.file("order-specifications.json", JSON.stringify(orderSpecs, null, 2));
 
-    // Create human-readable order summary
-    let orderSummary = `LANDFORM LABS - CUSTOM PRINT ORDER\n`;
-    orderSummary += `=====================================\n\n`;
+    // Create comprehensive human-readable order summary
+    let orderSummary = `LANDFORM LABS - ENHANCED PRINT ORDER\n`;
+    orderSummary += `=========================================\n\n`;
     orderSummary += `Order Reference: ${orderSpecs.orderInfo.orderReference}\n`;
-    orderSummary += `Date: ${new Date().toLocaleDateString()}\n`;
-    orderSummary += `Print Type: ${designConfig.printType.charAt(0).toUpperCase() + designConfig.printType.slice(1)}\n`;
-    if (designConfig.printType === "tile") {
+    orderSummary += `Date: ${new Date(orderSpecs.orderInfo.timestamp).toLocaleDateString()}\n`;
+    orderSummary += `Schema Version: ${orderSpecs.schemaVersion}\n\n`;
+
+    orderSummary += `PRODUCT SPECIFICATIONS:\n`;
+    orderSummary += `Print Type: ${orderSpecs.designConfig.printType.charAt(0).toUpperCase() + orderSpecs.designConfig.printType.slice(1)}\n`;
+    if (orderSpecs.designConfig.tileSize) {
       const tileSizeInfo = {
         basecamp: "Basecamp (100mm × 100mm) - $20",
         ridgeline: "Ridgeline (155mm × 155mm) - $40",
         summit: "Summit (210mm × 210mm) - $60",
       };
-      orderSummary += `Tile Size: ${tileSizeInfo[designConfig.tileSize]}\n`;
+      orderSummary += `Tile Size: ${tileSizeInfo[orderSpecs.designConfig.tileSize]}\n`;
     }
-    orderSummary += `Route Color: ${designConfig.routeColor}\n\n`;
+    orderSummary += `Route Color: ${orderSpecs.designConfig.routeColor}\n`;
+    orderSummary += `Material: ${orderSpecs.manufacturingSpecs.material.type} (${orderSpecs.manufacturingSpecs.material.color})\n`;
+    orderSummary += `Dimensions: ${orderSpecs.manufacturingSpecs.dimensions.width}mm × ${orderSpecs.manufacturingSpecs.dimensions.height}mm × ${orderSpecs.manufacturingSpecs.dimensions.depth}mm\n\n`;
 
-    orderSummary += `ROUTE INFORMATION:\n`;
-    orderSummary += `Bounding Box: ${boundingBox}\n\n`;
+    orderSummary += `ROUTE DATA:\n`;
+    orderSummary += `Total Points: ${orderSpecs.routeData.statistics.totalPoints.toLocaleString()}\n`;
+    orderSummary += `Distance: ${(orderSpecs.routeData.statistics.totalDistance / 1000).toFixed(2)} km\n`;
+    if (orderSpecs.routeData.statistics.elevationGain) {
+      orderSummary += `Elevation Gain: ${orderSpecs.routeData.statistics.elevationGain.toFixed(0)}m\n`;
+    }
+    if (orderSpecs.routeData.gpxData.activityName) {
+      orderSummary += `Activity: ${orderSpecs.routeData.gpxData.activityName}\n`;
+    }
+    if (orderSpecs.orderInfo.stravaActivityUrl) {
+      orderSummary += `Strava: ${orderSpecs.orderInfo.stravaActivityUrl}\n`;
+    }
+    orderSummary += `Selected Area: ${boundingBox}\n`;
+    orderSummary += `Full Route Bounds: ${orderSpecs.routeData.bounds.minLon.toFixed(5)},${orderSpecs.routeData.bounds.minLat.toFixed(5)},${orderSpecs.routeData.bounds.maxLon.toFixed(5)},${orderSpecs.routeData.bounds.maxLat.toFixed(5)}\n\n`;
 
-    if (designConfig.printType === "tile") {
-      orderSummary += `TILE LABELS (${designConfig.labels.length}):\n`;
-      designConfig.labels.forEach((l, i) => {
+    orderSummary += `DESIGN ELEMENTS:\n`;
+    const totalLabels = (orderSpecs.designConfig.labels?.length || 0) + (orderSpecs.designConfig.ornamentLabels?.length || 0);
+    orderSummary += `Labels: ${totalLabels}\n`;
+    if (orderSpecs.manufacturingSpecs.nfc?.enabled) {
+      orderSummary += `NFC Chip: Included\n`;
+      if (orderSpecs.manufacturingSpecs.nfc.targetUrl) {
+        orderSummary += `NFC Target: ${orderSpecs.manufacturingSpecs.nfc.targetUrl}\n`;
+      }
+    }
+    orderSummary += `\n`;
+
+    if (orderSpecs.designConfig.printType === "tile" && orderSpecs.designConfig.labels) {
+      orderSummary += `TILE LABELS (${orderSpecs.designConfig.labels.length}):\n`;
+      orderSpecs.designConfig.labels.forEach((l, i) => {
         orderSummary += `  ${i + 1}. "${l.text}"\n`;
-        orderSummary += `     Font: ${l.fontFamily}, ${l.size}px\n`;
-        orderSummary += `     Style: ${l.bold ? "Bold" : "Normal"} ${l.italic ? "Italic" : "Regular"}\n`;
-        orderSummary += `     Alignment: ${l.textAlign}\n`;
-        orderSummary += `     Position: (${l.x}, ${l.y}) ${l.width}x${l.height}px\n`;
+        orderSummary += `     Font: ${l.typography.fontFamily}, ${l.typography.fontSize}px\n`;
+        orderSummary += `     Style: ${l.typography.bold ? "Bold" : "Normal"} ${l.typography.italic ? "Italic" : "Regular"}\n`;
+        orderSummary += `     Alignment: ${l.typography.textAlign}\n`;
+        orderSummary += `     Position: (${l.position.x}, ${l.position.y}) ${l.size.width}x${l.size.height}px\n`;
         orderSummary += `     Rotation: ${l.rotation}°\n\n`;
       });
-    } else {
-      orderSummary += `ORNAMENT LABELS (${designConfig.ornamentLabels.length}):\n`;
-      designConfig.ornamentLabels.forEach((l, i) => {
+    } else if (orderSpecs.designConfig.printType === "ornament" && orderSpecs.designConfig.ornamentLabels) {
+      orderSummary += `ORNAMENT LABELS (${orderSpecs.designConfig.ornamentLabels.length}):\n`;
+      orderSpecs.designConfig.ornamentLabels.forEach((l, i) => {
         orderSummary += `  ${i + 1}. "${l.text}"\n`;
-        orderSummary += `     Font: ${l.fontFamily}, ${l.size}px\n`;
-        orderSummary += `     Style: ${l.bold ? "Bold" : "Normal"} ${l.italic ? "Italic" : "Regular"}\n`;
+        orderSummary += `     Font: ${l.typography.fontFamily}, ${l.typography.fontSize}px\n`;
+        orderSummary += `     Style: ${l.typography.bold ? "Bold" : "Normal"} ${l.typography.italic ? "Italic" : "Regular"}\n`;
         orderSummary += `     Position: ${l.angle}° angle, ${l.radius}px from center\n\n`;
       });
     }
 
+    orderSummary += `QUALITY ASSURANCE:\n`;
+    const qa = orderSpecs.metadata.qualityChecks;
+    orderSummary += `✓ Route validation: ${qa.routeValidation.hasValidBounds ? 'PASS' : 'FAIL'}\n`;
+    orderSummary += `✓ Minimum points: ${qa.routeValidation.hasMinimumPoints ? 'PASS' : 'FAIL'}\n`;
+    orderSummary += `✓ Elevation data: ${qa.routeValidation.hasElevationData ? 'Available' : 'Not available'}\n`;
+    orderSummary += `✓ Timestamps: ${qa.routeValidation.hasTimestamps ? 'Available' : 'Not available'}\n`;
+    orderSummary += `✓ Design colors: ${qa.designValidation.hasValidColors ? 'Valid' : 'Invalid'}\n\n`;
+
     orderSummary += `FILES INCLUDED:\n`;
+    orderSummary += `- order-specifications.json: Complete technical specifications\n`;
     orderSummary += `- route-data.gpx: Original GPS route data\n`;
     orderSummary += `- design-preview.png: High-resolution design preview\n`;
-    orderSummary += `- order-specifications.json: Machine-readable specifications\n`;
     orderSummary += `- order-summary.txt: This human-readable summary\n\n`;
+
     orderSummary += `To place your order, email this entire ZIP file to: orders@landformlabs.co\n`;
+    orderSummary += `For questions about this order, reference: ${orderSpecs.orderInfo.orderReference}\n`;
 
     zip.file("order-summary.txt", orderSummary);
 

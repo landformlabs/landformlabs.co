@@ -1,0 +1,654 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://landformlabs.co/schemas/print-export-v1.json",
+  "title": "Landform Labs Print Export Schema",
+  "description": "Complete schema for 3D print export data containing GPS route, design configuration, and manufacturing specifications",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "orderInfo",
+    "routeData",
+    "designConfig",
+    "manufacturingSpecs"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Version of this schema"
+    },
+    "orderInfo": {
+      "type": "object",
+      "description": "Order and customer information",
+      "required": ["orderReference", "timestamp", "printType"],
+      "additionalProperties": false,
+      "properties": {
+        "orderReference": {
+          "type": "string",
+          "pattern": "^LF-[0-9]+$",
+          "description": "Unique order reference number"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Order creation timestamp in ISO 8601 format"
+        },
+        "printType": {
+          "type": "string",
+          "enum": ["tile", "ornament"],
+          "description": "Type of 3D print product"
+        },
+        "tileSize": {
+          "type": "string",
+          "enum": ["basecamp", "ridgeline", "summit"],
+          "description": "Size category for tile prints (required if printType is 'tile')"
+        },
+        "stravaActivityUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the original Strava activity (if available)"
+        },
+        "customerNotes": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Optional customer notes or special instructions"
+        }
+      }
+    },
+    "routeData": {
+      "type": "object",
+      "description": "Complete GPS route data and metadata",
+      "required": ["gpxData", "bounds", "statistics"],
+      "additionalProperties": false,
+      "properties": {
+        "gpxData": {
+          "type": "object",
+          "description": "Parsed GPX data structure",
+          "required": ["points", "originalGpxString"],
+          "additionalProperties": false,
+          "properties": {
+            "originalGpxString": {
+              "type": "string",
+              "description": "Original GPX file content as string"
+            },
+            "activityName": {
+              "type": "string",
+              "description": "Name/title of the activity from GPX metadata"
+            },
+            "points": {
+              "type": "array",
+              "description": "Array of GPS track points",
+              "minItems": 2,
+              "items": {
+                "type": "object",
+                "required": ["lat", "lon"],
+                "additionalProperties": false,
+                "properties": {
+                  "lat": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90,
+                    "description": "Latitude in decimal degrees"
+                  },
+                  "lon": {
+                    "type": "number", 
+                    "minimum": -180,
+                    "maximum": 180,
+                    "description": "Longitude in decimal degrees"
+                  },
+                  "ele": {
+                    "type": "number",
+                    "description": "Elevation in meters (optional)"
+                  },
+                  "time": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Timestamp for this point (optional)"
+                  }
+                }
+              }
+            },
+            "tracks": {
+              "type": "array",
+              "description": "Track segments from GPX",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Track name"
+                  },
+                  "segments": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "points": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/properties/routeData/properties/gpxData/properties/points/items"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "waypoints": {
+              "type": "array",
+              "description": "Waypoints from GPX",
+              "items": {
+                "type": "object",
+                "required": ["lat", "lon"],
+                "properties": {
+                  "lat": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90
+                  },
+                  "lon": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Waypoint name"
+                  },
+                  "ele": {
+                    "type": "number",
+                    "description": "Elevation in meters"
+                  },
+                  "desc": {
+                    "type": "string",
+                    "description": "Waypoint description"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "bounds": {
+          "type": "object",
+          "description": "Bounding box of the complete route",
+          "required": ["minLat", "maxLat", "minLon", "maxLon"],
+          "additionalProperties": false,
+          "properties": {
+            "minLat": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90
+            },
+            "maxLat": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90
+            },
+            "minLon": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "maxLon": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            }
+          }
+        },
+        "selectedBounds": {
+          "type": "object",
+          "description": "User-selected bounding box for the print area",
+          "required": ["minLat", "maxLat", "minLon", "maxLon"],
+          "additionalProperties": false,
+          "properties": {
+            "minLat": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90
+            },
+            "maxLat": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90
+            },
+            "minLon": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "maxLon": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            }
+          }
+        },
+        "statistics": {
+          "type": "object",
+          "description": "Route statistics and metadata",
+          "required": ["totalPoints", "totalDistance"],
+          "additionalProperties": false,
+          "properties": {
+            "totalPoints": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Total number of GPS points"
+            },
+            "totalDistance": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Total distance in meters"
+            },
+            "totalDuration": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Total duration in milliseconds (if available)"
+            },
+            "startTime": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Activity start time (if available)"
+            },
+            "endTime": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Activity end time (if available)"
+            },
+            "elevationGain": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Total elevation gain in meters (if available)"
+            },
+            "elevationLoss": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Total elevation loss in meters (if available)"
+            },
+            "maxElevation": {
+              "type": "number",
+              "description": "Maximum elevation in meters (if available)"
+            },
+            "minElevation": {
+              "type": "number",
+              "description": "Minimum elevation in meters (if available)"
+            }
+          }
+        }
+      }
+    },
+    "designConfig": {
+      "type": "object",
+      "description": "Visual design configuration",
+      "required": ["routeColor", "printType"],
+      "additionalProperties": false,
+      "properties": {
+        "routeColor": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "description": "Route color in hex format"
+        },
+        "printType": {
+          "type": "string",
+          "enum": ["tile", "ornament"],
+          "description": "Type of print design"
+        },
+        "tileSize": {
+          "type": "string",
+          "enum": ["basecamp", "ridgeline", "summit"],
+          "description": "Tile size (required if printType is 'tile')"
+        },
+        "labels": {
+          "type": "array",
+          "description": "Text labels for tile prints",
+          "items": {
+            "type": "object",
+            "required": ["text", "position", "size", "typography"],
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string",
+                "maxLength": 200,
+                "description": "Label text content"
+              },
+              "position": {
+                "type": "object",
+                "required": ["x", "y"],
+                "properties": {
+                  "x": {
+                    "type": "number",
+                    "description": "X coordinate in canvas units"
+                  },
+                  "y": {
+                    "type": "number",
+                    "description": "Y coordinate in canvas units"
+                  }
+                }
+              },
+              "size": {
+                "type": "object",
+                "required": ["width", "height"],
+                "properties": {
+                  "width": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Label width in canvas units"
+                  },
+                  "height": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Label height in canvas units"
+                  }
+                }
+              },
+              "typography": {
+                "type": "object",
+                "required": ["fontFamily", "fontSize"],
+                "properties": {
+                  "fontFamily": {
+                    "type": "string",
+                    "enum": ["Garamond", "Poppins", "Trispace"],
+                    "description": "Font family"
+                  },
+                  "fontSize": {
+                    "type": "number",
+                    "minimum": 1,
+                    "description": "Font size in points"
+                  },
+                  "textAlign": {
+                    "type": "string",
+                    "enum": ["left", "center", "right"],
+                    "default": "center",
+                    "description": "Text alignment"
+                  },
+                  "bold": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Bold text"
+                  },
+                  "italic": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Italic text"
+                  },
+                  "color": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-Fa-f]{6}$",
+                    "default": "#1f2937",
+                    "description": "Text color in hex format"
+                  }
+                }
+              },
+              "rotation": {
+                "type": "number",
+                "minimum": -360,
+                "maximum": 360,
+                "default": 0,
+                "description": "Rotation angle in degrees"
+              }
+            }
+          }
+        },
+        "ornamentLabels": {
+          "type": "array",
+          "description": "Curved labels for ornament prints",
+          "items": {
+            "type": "object",
+            "required": ["text", "angle", "radius", "typography"],
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string",
+                "maxLength": 100,
+                "description": "Label text content"
+              },
+              "angle": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 360,
+                "description": "Position around circle in degrees (0 = top)"
+              },
+              "radius": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Distance from center"
+              },
+              "typography": {
+                "$ref": "#/properties/designConfig/properties/labels/items/properties/typography"
+              }
+            }
+          }
+        },
+        "ornamentCircle": {
+          "type": "object",
+          "description": "Ornament circle configuration",
+          "required": ["x", "y", "radius"],
+          "properties": {
+            "x": {
+              "type": "number",
+              "description": "Center X coordinate"
+            },
+            "y": {
+              "type": "number",
+              "description": "Center Y coordinate"
+            },
+            "radius": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Circle radius"
+            }
+          }
+        }
+      }
+    },
+    "manufacturingSpecs": {
+      "type": "object",
+      "description": "3D printing and manufacturing specifications",
+      "required": ["material", "dimensions", "rendering"],
+      "additionalProperties": false,
+      "properties": {
+        "material": {
+          "type": "object",
+          "required": ["type", "color"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["PLA", "PETG", "ABS"],
+              "default": "PLA",
+              "description": "3D printing material"
+            },
+            "color": {
+              "type": "string",
+              "description": "Material color specification"
+            }
+          }
+        },
+        "dimensions": {
+          "type": "object",
+          "description": "Physical dimensions and specifications",
+          "required": ["width", "height"],
+          "properties": {
+            "width": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Print width in millimeters"
+            },
+            "height": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Print height in millimeters"
+            },
+            "depth": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Print depth/thickness in millimeters"
+            },
+            "baseThickness": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Base thickness in millimeters"
+            },
+            "routeHeight": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Route extrusion height in millimeters"
+            }
+          }
+        },
+        "rendering": {
+          "type": "object",
+          "description": "Rendering and visual specifications",
+          "required": ["resolution"],
+          "properties": {
+            "resolution": {
+              "type": "object",
+              "required": ["dpi", "canvasSize"],
+              "properties": {
+                "dpi": {
+                  "type": "number",
+                  "minimum": 72,
+                  "description": "Design resolution in DPI"
+                },
+                "canvasSize": {
+                  "type": "number",
+                  "minimum": 100,
+                  "description": "Canvas size in pixels"
+                }
+              }
+            },
+            "hillshade": {
+              "type": "object",
+              "description": "Hillshade rendering settings",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "opacity": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 1
+                },
+                "tileZoom": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 18,
+                  "description": "Map tile zoom level used for hillshade"
+                }
+              }
+            },
+            "mapSnapshot": {
+              "type": "string",
+              "description": "Base64 encoded map snapshot image (optional)"
+            }
+          }
+        },
+        "nfc": {
+          "type": "object",
+          "description": "NFC chip configuration (optional)",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "targetUrl": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL to be programmed into NFC chip"
+            },
+            "chipType": {
+              "type": "string",
+              "description": "NFC chip model/type"
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata and file information",
+      "additionalProperties": false,
+      "properties": {
+        "fileInfo": {
+          "type": "object",
+          "properties": {
+            "originalFileName": {
+              "type": "string",
+              "description": "Original GPX file name"
+            },
+            "fileSize": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Original file size in bytes"
+            },
+            "uploadTimestamp": {
+              "type": "string",
+              "format": "date-time",
+              "description": "File upload timestamp"
+            }
+          }
+        },
+        "generationInfo": {
+          "type": "object",
+          "properties": {
+            "appVersion": {
+              "type": "string",
+              "description": "Version of the design app used"
+            },
+            "userAgent": {
+              "type": "string",
+              "description": "Browser user agent string"
+            },
+            "exportFormat": {
+              "type": "string",
+              "enum": ["zip", "json"],
+              "default": "zip",
+              "description": "Export format used"
+            }
+          }
+        },
+        "qualityChecks": {
+          "type": "object",
+          "description": "Data quality and validation results",
+          "properties": {
+            "routeValidation": {
+              "type": "object",
+              "properties": {
+                "hasMinimumPoints": {
+                  "type": "boolean"
+                },
+                "hasValidBounds": {
+                  "type": "boolean"
+                },
+                "hasElevationData": {
+                  "type": "boolean"
+                },
+                "hasTimestamps": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "designValidation": {
+              "type": "object",
+              "properties": {
+                "hasValidColors": {
+                  "type": "boolean"
+                },
+                "labelCount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "allLabelsWithinBounds": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
