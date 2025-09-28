@@ -1230,6 +1230,20 @@ export default function DesignConfigurator({
             ele: p.ele,
             time: p.time,
           })),
+          // Include original points if GPX was simplified
+          originalPoints: gpxData.originalPoints ? gpxData.originalPoints.map((p: any) => ({
+            lat: p.lat,
+            lon: p.lon,
+            ele: p.ele,
+            time: p.time,
+          })) : undefined,
+          // Include simplification metadata if available
+          simplificationResult: gpxData.simplificationResult ? {
+            originalCount: gpxData.simplificationResult.originalCount,
+            simplifiedCount: gpxData.simplificationResult.simplifiedCount,
+            reductionPercentage: gpxData.simplificationResult.reductionPercentage,
+            toleranceUsed: gpxData.simplificationResult.toleranceUsed,
+          } : undefined,
         },
         bounds: {
           minLat: gpxData.bounds.minLat,
@@ -1370,6 +1384,10 @@ export default function DesignConfigurator({
 
     orderSummary += `ROUTE DATA:\n`;
     orderSummary += `Total Points: ${orderSpecs.routeData.statistics.totalPoints.toLocaleString()}\n`;
+    if (orderSpecs.routeData.gpxData.simplificationResult) {
+      orderSummary += `Original Points: ${orderSpecs.routeData.gpxData.simplificationResult.originalCount.toLocaleString()}\n`;
+      orderSummary += `Simplified: ${orderSpecs.routeData.gpxData.simplificationResult.reductionPercentage.toFixed(1)}% reduction for optimal 3D printing\n`;
+    }
     orderSummary += `Distance: ${(orderSpecs.routeData.statistics.totalDistance / 1000).toFixed(2)} km\n`;
     if (orderSpecs.routeData.statistics.elevationGain) {
       orderSummary += `Elevation Gain: ${orderSpecs.routeData.statistics.elevationGain.toFixed(0)}m\n`;

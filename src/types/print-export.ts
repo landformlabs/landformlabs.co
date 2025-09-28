@@ -47,12 +47,22 @@ export interface RouteStatistics {
   minElevation?: number;
 }
 
+export interface SimplificationResult {
+  originalCount: number;
+  simplifiedCount: number;
+  reductionPercentage: number;
+  toleranceUsed: number;
+}
+
 export interface GPXData {
   originalGpxString: string;
   activityName?: string;
   points: GPSPoint[];
   tracks?: Track[];
   waypoints?: Waypoint[];
+  // GPX Simplification data (if applied)
+  originalPoints?: GPSPoint[];
+  simplificationResult?: SimplificationResult;
 }
 
 export interface RouteData {

@@ -167,6 +167,41 @@
                   }
                 }
               }
+            },
+            "originalPoints": {
+              "type": "array",
+              "description": "Original GPS points before simplification (if simplification was applied)",
+              "items": {
+                "$ref": "#/properties/routeData/properties/gpxData/properties/points/items"
+              }
+            },
+            "simplificationResult": {
+              "type": "object",
+              "description": "Track simplification metadata (if simplification was applied)",
+              "required": ["originalCount", "simplifiedCount", "reductionPercentage", "toleranceUsed"],
+              "properties": {
+                "originalCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Number of points in original track"
+                },
+                "simplifiedCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Number of points after simplification"
+                },
+                "reductionPercentage": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100,
+                  "description": "Percentage of points removed during simplification"
+                },
+                "toleranceUsed": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Tolerance value used for simplification algorithm"
+                }
+              }
             }
           }
         },
