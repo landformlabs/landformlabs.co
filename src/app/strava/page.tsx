@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { AlertTriangle, Check } from "lucide-react";
 
 function StravaPageContent() {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -54,7 +55,9 @@ function StravaPageContent() {
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg mb-6">
               <div className="flex items-center">
-                <div className="w-5 h-5 text-red-500 mr-3">⚠️</div>
+                <div className="w-5 h-5 text-red-500 mr-3">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
                 <p>{error}</p>
               </div>
             </div>
@@ -67,7 +70,9 @@ function StravaPageContent() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-6">
               <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 text-summit-sage mt-1">✓</div>
+                <div className="w-6 h-6 text-summit-sage mt-1">
+                  <Check className="w-6 h-6" />
+                </div>
                 <div>
                   <h3 className="font-semibold text-basalt text-sm">
                     No Manual Uploads
@@ -78,7 +83,9 @@ function StravaPageContent() {
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 text-summit-sage mt-1">✓</div>
+                <div className="w-6 h-6 text-summit-sage mt-1">
+                  <Check className="w-6 h-6" />
+                </div>
                 <div>
                   <h3 className="font-semibold text-basalt text-sm">
                     Easy Activity Selection
@@ -89,7 +96,9 @@ function StravaPageContent() {
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 text-summit-sage mt-1">✓</div>
+                <div className="w-6 h-6 text-summit-sage mt-1">
+                  <Check className="w-6 h-6" />
+                </div>
                 <div>
                   <h3 className="font-semibold text-basalt text-sm">
                     Secure Connection
@@ -100,7 +109,9 @@ function StravaPageContent() {
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 text-summit-sage mt-1">✓</div>
+                <div className="w-6 h-6 text-summit-sage mt-1">
+                  <Check className="w-6 h-6" />
+                </div>
                 <div>
                   <h3 className="font-semibold text-basalt text-sm">
                     Automatic Updates

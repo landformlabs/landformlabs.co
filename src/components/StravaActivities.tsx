@@ -10,6 +10,21 @@ import {
 } from "../utils/naturalLanguageParser";
 import { autoSimplifyGPXTrack, generateSimplifiedGPXString } from "@/lib/gpxSimplify";
 import { calculateDistance } from "@/lib/gpx";
+import { 
+  Bike, 
+  Footprints, 
+  Mountain, 
+  PersonStanding,
+  Waves,
+  Dumbbell,
+  User,
+  Zap,
+  AlertTriangle,
+  Globe,
+  Lock,
+  TreePine,
+  Activity
+} from "lucide-react";
 
 interface StravaActivity {
   id: number;
@@ -490,13 +505,15 @@ export default function StravaActivities({
         <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg mb-6">
           <div className="flex items-start space-x-3">
             <div className="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0">
-              {error.type === "auth"
-                ? "🔒"
-                : error.type === "network"
-                  ? "🌐"
-                  : error.type === "api"
-                    ? "⚡"
-                    : "⚠️"}
+              {error.type === "auth" ? (
+                <Lock className="w-6 h-6" />
+              ) : error.type === "network" ? (
+                <Globe className="w-6 h-6" />
+              ) : error.type === "api" ? (
+                <Zap className="w-6 h-6" />
+              ) : (
+                <AlertTriangle className="w-6 h-6" />
+              )}
             </div>
             <div className="flex-1">
               <h4 className="font-semibold text-red-800 mb-1">
@@ -577,21 +594,33 @@ export default function StravaActivities({
                   {/* Left side: Sport icon and activity details */}
                   <div className="flex items-center space-x-4 flex-1 min-w-0 pr-4">
                     {/* Sport Icon */}
-                    <div className="flex-shrink-0 text-2xl">
+                    <div className="flex-shrink-0 text-slate-storm">
                       {(() => {
-                        const icons: { [key: string]: string } = {
-                          Ride: "🚴‍♂️",
-                          Run: "🏃‍♂️",
-                          Hike: "🥾",
-                          Walk: "🚶‍♂️",
-                          Swim: "🏊‍♂️",
-                          Workout: "💪",
-                          Yoga: "🧘‍♂️",
-                          VirtualRide: "🚴‍♂️",
-                          EBikeRide: "🚴‍♂️",
-                          MountainBikeRide: "🚵‍♂️",
+                        const getSportIcon = (sportType: string) => {
+                          switch (sportType) {
+                            case "Ride":
+                            case "VirtualRide":
+                            case "EBikeRide":
+                              return <Bike className="w-6 h-6" />;
+                            case "MountainBikeRide":
+                              return <Mountain className="w-6 h-6" />;
+                            case "Run":
+                              return <Footprints className="w-6 h-6" />;
+                            case "Hike":
+                              return <TreePine className="w-6 h-6" />;
+                            case "Walk":
+                              return <PersonStanding className="w-6 h-6" />;
+                            case "Swim":
+                              return <Waves className="w-6 h-6" />;
+                            case "Workout":
+                              return <Dumbbell className="w-6 h-6" />;
+                            case "Yoga":
+                              return <Activity className="w-6 h-6" />;
+                            default:
+                              return <Footprints className="w-6 h-6" />;
+                          }
                         };
-                        return icons[activity.sport_type] || "🏃‍♂️";
+                        return getSportIcon(activity.sport_type);
                       })()}
                     </div>
 
@@ -651,7 +680,9 @@ export default function StravaActivities({
         </div>
       ) : (
         <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-slate-storm/10">
-          <div className="text-6xl mb-4">🚴‍♂️</div>
+          <div className="text-slate-storm mb-4">
+            <Bike className="w-16 h-16 mx-auto" />
+          </div>
           <h3 className="text-lg font-semibold text-basalt mb-2">
             No Activities Found
           </h3>
