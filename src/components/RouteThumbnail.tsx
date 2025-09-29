@@ -1,4 +1,15 @@
 import React from "react";
+import { 
+  Bike, 
+  Footprints, 
+  Mountain, 
+  PersonStanding,
+  Waves,
+  Dumbbell,
+  User,
+  TreePine,
+  Activity
+} from "lucide-react";
 
 interface RouteThumbnailProps {
   polyline?: string | null;
@@ -93,20 +104,31 @@ export default function RouteThumbnail({
   };
 
   // Get sport type icon
-  const getSportIcon = (sport: string): string => {
-    const icons: { [key: string]: string } = {
-      Ride: "🚴‍♂️",
-      Run: "🏃‍♂️",
-      Hike: "🥾",
-      Walk: "🚶‍♂️",
-      Swim: "🏊‍♂️",
-      Workout: "💪",
-      Yoga: "🧘‍♂️",
-      VirtualRide: "🚴‍♂️",
-      EBikeRide: "🚴‍♂️",
-      MountainBikeRide: "🚵‍♂️",
-    };
-    return icons[sport] || "🏃‍♂️";
+  const getSportIcon = (sport: string): React.ReactElement => {
+    const iconProps = { className: "w-8 h-8 text-slate-storm" };
+    
+    switch (sport) {
+      case "Ride":
+      case "VirtualRide":
+      case "EBikeRide":
+        return <Bike {...iconProps} />;
+      case "MountainBikeRide":
+        return <Mountain {...iconProps} />;
+      case "Run":
+        return <Footprints {...iconProps} />;
+      case "Hike":
+        return <TreePine {...iconProps} />;
+      case "Walk":
+        return <PersonStanding {...iconProps} />;
+      case "Swim":
+        return <Waves {...iconProps} />;
+      case "Workout":
+        return <Dumbbell {...iconProps} />;
+      case "Yoga":
+        return <Activity {...iconProps} />;
+      default:
+        return <Footprints {...iconProps} />;
+    }
   };
 
   const coordinates = polyline ? decodePolyline(polyline) : [];
@@ -116,7 +138,7 @@ export default function RouteThumbnail({
     // Fallback to sport icon when no route data
     return (
       <div
-        className={`w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center text-2xl ${className}`}
+        className={`w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center ${className}`}
       >
         {getSportIcon(sportType)}
       </div>

@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { calculateDistance } from "@/lib/gpx";
 import { autoSimplifyGPXTrack, generateSimplifiedGPXString } from "@/lib/gpxSimplify";
+import { Check } from "lucide-react";
 
 interface GPXUploaderProps {
   onGPXUpload: (parsedGPX: any) => void;
@@ -330,11 +331,26 @@ export default function GPXUploader({ onGPXUpload }: GPXUploaderProps) {
             You can export your GPX file from the following sources
           </h3>
           <div className="text-xs text-slate-storm space-y-1">
-            <p>✓ Strava (or connect directly below)</p>
-            <p>✓ Garmin Connect</p>
-            <p>✓ Komoot</p>
-            <p>✓ AllTrails</p>
-            <p>✓ Most GPS devices and fitness apps</p>
+            <div className="flex items-center gap-1">
+              <Check className="w-3 h-3 text-summit-sage" />
+              <span>Strava (or connect directly below)</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Check className="w-3 h-3 text-summit-sage" />
+              <span>Garmin Connect</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Check className="w-3 h-3 text-summit-sage" />
+              <span>Komoot</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Check className="w-3 h-3 text-summit-sage" />
+              <span>AllTrails</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Check className="w-3 h-3 text-summit-sage" />
+              <span>Most GPS devices and fitness apps</span>
+            </div>
           </div>
         </div>
       </div>
