@@ -1266,6 +1266,15 @@ export default function DesignConfigurator({
         routeColor: designConfig.routeColor,
         printType: designConfig.printType,
         tileSize: designConfig.printType === "tile" ? designConfig.tileSize : undefined,
+        // Include physical dimensions for manufacturing clarity
+        dimensions: designConfig.printType === "tile" ? {
+          ...getTileDimensions(designConfig.tileSize || "ridgeline"),
+          sizeName: designConfig.tileSize || "ridgeline"
+        } : {
+          width: 100,
+          height: 100,
+          sizeName: "standard"
+        },
         labels: designConfig.printType === "tile" ? designConfig.labels.map((label) => ({
           text: label.text,
           position: { x: label.x, y: label.y },
@@ -1370,6 +1379,9 @@ export default function DesignConfigurator({
         summit: "Summit (210mm × 210mm) - $60",
       };
       orderSummary += `Tile Size: ${tileSizeInfo[orderSpecs.designConfig.tileSize]}\n`;
+    }
+    if (orderSpecs.designConfig.dimensions) {
+      orderSummary += `Print Dimensions: ${orderSpecs.designConfig.dimensions.width}mm × ${orderSpecs.designConfig.dimensions.height}mm (${orderSpecs.designConfig.dimensions.sizeName})\n`;
     }
     orderSummary += `Route Color: ${orderSpecs.designConfig.routeColor}\n`;
     orderSummary += `Material: ${orderSpecs.manufacturingSpecs.material.type} (${orderSpecs.manufacturingSpecs.material.color})\n`;

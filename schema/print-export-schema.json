@@ -328,6 +328,28 @@
           "enum": ["basecamp", "ridgeline", "summit"],
           "description": "Tile size (required if printType is 'tile')"
         },
+        "dimensions": {
+          "type": "object",
+          "description": "Physical dimensions of the print",
+          "required": ["width", "height", "sizeName"],
+          "additionalProperties": false,
+          "properties": {
+            "width": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Print width in millimeters"
+            },
+            "height": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Print height in millimeters"
+            },
+            "sizeName": {
+              "type": "string",
+              "description": "Human-readable size name (e.g., 'ridgeline', 'standard')"
+            }
+          }
+        },
         "labels": {
           "type": "array",
           "description": "Text labels for tile prints",

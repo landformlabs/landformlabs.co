@@ -121,6 +121,11 @@ export interface DesignConfig {
   routeColor: string; // hex color
   printType: PrintType;
   tileSize?: TileSize;
+  dimensions?: {
+    width: number; // millimeters
+    height: number; // millimeters
+    sizeName: string; // human-readable size name
+  };
   labels?: TileLabel[];
   ornamentLabels?: OrnamentLabel[];
   ornamentCircle?: OrnamentCircle;
