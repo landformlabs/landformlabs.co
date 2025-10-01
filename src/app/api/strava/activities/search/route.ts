@@ -108,6 +108,40 @@ function searchActivities(
       );
     }
 
+    // Apply distance range filter
+    if (parsedFilter.distanceRange) {
+      filtered = filtered.filter((activity) => {
+        if (parsedFilter.distanceRange.min && activity.distance < parsedFilter.distanceRange.min) {
+          return false;
+        }
+        if (parsedFilter.distanceRange.max && activity.distance > parsedFilter.distanceRange.max) {
+          return false;
+        }
+        return true;
+      });
+    }
+
+    // Apply duration range filter
+    if (parsedFilter.durationRange) {
+      filtered = filtered.filter((activity) => {
+        if (parsedFilter.durationRange.min && activity.moving_time < parsedFilter.durationRange.min) {
+          return false;
+        }
+        if (parsedFilter.durationRange.max && activity.moving_time > parsedFilter.durationRange.max) {
+          return false;
+        }
+        return true;
+      });
+    }
+
+    // Apply location filter (search in activity name)
+    if (parsedFilter.location) {
+      const locationTerm = parsedFilter.location.toLowerCase();
+      filtered = filtered.filter((activity) =>
+        activity.name.toLowerCase().includes(locationTerm),
+      );
+    }
+
     // Apply text search filter
     if (parsedFilter.textSearch) {
       const searchTerm = parsedFilter.textSearch.toLowerCase();
