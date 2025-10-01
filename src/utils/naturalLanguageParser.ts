@@ -22,6 +22,15 @@ export interface ParsedFilter {
   activityType?: string;
   textSearch?: string;
   interpretation?: string;
+  distanceRange?: {
+    min?: number; // in meters
+    max?: number; // in meters
+  };
+  durationRange?: {
+    min?: number; // in seconds
+    max?: number; // in seconds
+  };
+  location?: string;
 }
 
 interface StravaActivity {
@@ -36,22 +45,31 @@ interface StravaActivity {
 
 const SPORT_ALIASES: Record<string, string> = {
   bike: "Ride",
+  bikes: "Ride",
   biking: "Ride",
   cycling: "Ride",
   cycle: "Ride",
+  cycles: "Ride",
   ride: "Ride",
+  rides: "Ride",
   riding: "Ride",
   running: "Run",
   run: "Run",
+  runs: "Run",
   jog: "Run",
+  jogs: "Run",
   jogging: "Run",
   hike: "Hike",
+  hikes: "Hike",
   hiking: "Hike",
   walk: "Walk",
+  walks: "Walk",
   walking: "Walk",
   swim: "Swim",
+  swims: "Swim",
   swimming: "Swim",
   workout: "Workout",
+  workouts: "Workout",
   yoga: "Yoga",
   virtual: "VirtualRide",
   "e-bike": "EBikeRide",
@@ -73,6 +91,30 @@ const SUPERLATIVE_PATTERNS = {
   highest: { field: "elevation" as const, direction: "desc" },
   lowest: { field: "elevation" as const, direction: "asc" },
 };
+
+// Distance patterns with conversions to meters
+// IMPORTANT: Order matters! Longer patterns first to avoid partial matches
+const DISTANCE_PATTERNS: Record<string, { min: number; max?: number; description: string }> = {
+  "metric century": { min: 95000, max: 110000, description: "metric century (100 km)" }, // 95-110 km tolerance
+  "half century": { min: 75000, max: 90000, description: "half century (50 miles)" }, // 75-90 km tolerance
+  "half marathon": { min: 19000, max: 23000, description: "half marathon (13.1 miles)" }, // ~19-23 km tolerance
+  "half-marathon": { min: 19000, max: 23000, description: "half marathon (13.1 miles)" }, // ~19-23 km tolerance
+  century: { min: 155000, max: 170000, description: "century (100 miles)" }, // 155-170 km tolerance
+  marathon: { min: 40000, max: 44000, description: "marathon (26.2 miles)" }, // 40-44 km tolerance
+  ultra: { min: 80000, max: undefined, description: "ultra (50+ miles)" }, // 50+ miles (no max)
+  "10k": { min: 9000, max: 11000, description: "10K" }, // ~10 km with tolerance
+  "5k": { min: 4500, max: 5500, description: "5K" }, // ~5 km with tolerance
+};
+
+// Location keywords
+const LOCATION_KEYWORDS = [
+  "in",
+  "near",
+  "at",
+  "around",
+  "from",
+  "to",
+];
 
 export function parseNaturalLanguageQuery(query: string): ParsedFilter {
   const result: ParsedFilter = {};
@@ -228,6 +270,148 @@ export function parseNaturalLanguageQuery(query: string): ParsedFilter {
     }
   }
 
+  // Parse numeric distance patterns (e.g., "over 100 miles", "longer than 50km", "between 10 and 20 miles")
+  const numericDistancePatterns = [
+    // "X+ miles/km" (e.g., "25+ miles")
+    /(\d+(?:\.\d+)?)\+\s*(miles?|mi|km|kilometers?|k)/i,
+    // "over X miles/km" or "more than X miles/km" or "> X miles/km"
+    /(?:over|more\s+than|greater\s+than|>)\s+(\d+(?:\.\d+)?)\s*(miles?|mi|km|kilometers?|k)/i,
+    // "under X miles/km" or "less than X miles/km" or "< X miles/km"
+    /(?:under|less\s+than|shorter\s+than|<)\s+(\d+(?:\.\d+)?)\s*(miles?|mi|km|kilometers?|k)/i,
+    // "between X and Y miles/km"
+    /between\s+(\d+(?:\.\d+)?)\s+and\s+(\d+(?:\.\d+)?)\s*(miles?|mi|km|kilometers?|k)/i,
+    // "X-Y miles/km" (but not matching "X+ miles")
+    /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*(miles?|mi|km|kilometers?|k)/i,
+    // "at least X miles/km"
+    /at\s+least\s+(\d+(?:\.\d+)?)\s*(miles?|mi|km|kilometers?|k)/i,
+  ];
+
+  for (const pattern of numericDistancePatterns) {
+    const match = normalizedQuery.match(pattern);
+    if (match) {
+      const isMiles = match[match.length - 1].toLowerCase().startsWith('mi');
+      const isKm = match[match.length - 1].toLowerCase().startsWith('k');
+
+      if (pattern.source.includes('\\+')) {
+        // "X+" pattern (e.g., "25+ miles")
+        const num = parseFloat(match[1]);
+        result.distanceRange = {
+          min: isMiles ? num * 1609.34 : (isKm ? num * 1000 : num),
+        };
+        interpretationParts.push(`${num}+ ${isMiles ? 'miles' : 'km'}`);
+      } else if (pattern.source.includes('between') || (pattern.source.includes('-') && !pattern.source.includes('\\+'))) {
+        // Range query
+        const num1 = parseFloat(match[1]);
+        const num2 = parseFloat(match[2]);
+        const min = Math.min(num1, num2);
+        const max = Math.max(num1, num2);
+
+        result.distanceRange = {
+          min: isMiles ? min * 1609.34 : (isKm ? min * 1000 : min),
+          max: isMiles ? max * 1609.34 : (isKm ? max * 1000 : max),
+        };
+        interpretationParts.push(`${min}-${max} ${isMiles ? 'miles' : 'km'}`);
+      } else if (pattern.source.includes('under') || pattern.source.includes('less') || pattern.source.includes('shorter') || pattern.source.includes('<')) {
+        // Maximum distance
+        const num = parseFloat(match[1]);
+        result.distanceRange = {
+          max: isMiles ? num * 1609.34 : (isKm ? num * 1000 : num),
+        };
+        interpretationParts.push(`under ${num} ${isMiles ? 'miles' : 'km'}`);
+      } else {
+        // Minimum distance (over, more than, at least, >)
+        const num = parseFloat(match[1]);
+        result.distanceRange = {
+          min: isMiles ? num * 1609.34 : (isKm ? num * 1000 : num),
+        };
+        interpretationParts.push(`over ${num} ${isMiles ? 'miles' : 'km'}`);
+      }
+      break;
+    }
+  }
+
+  // Parse numeric duration patterns FIRST (before distance and activity type)
+  // This prevents "longer than" from interfering with activity type detection
+  const numericDurationPatterns = [
+    // "over/longer than/more than X hours/minutes"
+    /(?:over|longer\s+than|more\s+than|greater\s+than|>)\s+(\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?|m)/i,
+    // "under/shorter than/less than X hours/minutes"
+    /(?:under|shorter\s+than|less\s+than|<)\s+(\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?|m)/i,
+    // "between X and Y hours/minutes"
+    /between\s+(\d+(?:\.\d+)?)\s+and\s+(\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?|m)/i,
+    // "X-Y hours/minutes"
+    /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?|m)/i,
+    // "at least X hours/minutes"
+    /at\s+least\s+(\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?|m)/i,
+  ];
+
+  for (const pattern of numericDurationPatterns) {
+    const match = normalizedQuery.match(pattern);
+    if (match) {
+      const unit = match[match.length - 1].toLowerCase();
+      const isHours = unit.startsWith('h');
+      const isMinutes = unit.startsWith('m');
+
+      if (pattern.source.includes('between') || pattern.source.includes('-')) {
+        // Range query
+        const num1 = parseFloat(match[1]);
+        const num2 = parseFloat(match[2]);
+        const min = Math.min(num1, num2);
+        const max = Math.max(num1, num2);
+
+        result.durationRange = {
+          min: isHours ? min * 3600 : (isMinutes ? min * 60 : min),
+          max: isHours ? max * 3600 : (isMinutes ? max * 60 : max),
+        };
+        interpretationParts.push(`${min}-${max} ${isHours ? 'hours' : 'minutes'}`);
+      } else if (pattern.source.includes('under') || pattern.source.includes('less') || pattern.source.includes('shorter') || pattern.source.includes('<')) {
+        // Maximum duration
+        const num = parseFloat(match[1]);
+        result.durationRange = {
+          max: isHours ? num * 3600 : (isMinutes ? num * 60 : num),
+        };
+        interpretationParts.push(`under ${num} ${isHours ? 'hours' : 'minutes'}`);
+      } else {
+        // Minimum duration (over, more than, at least, >)
+        const num = parseFloat(match[1]);
+        result.durationRange = {
+          min: isHours ? num * 3600 : (isMinutes ? num * 60 : num),
+        };
+        interpretationParts.push(`over ${num} ${isHours ? 'hours' : 'minutes'}`);
+      }
+      break;
+    }
+  }
+
+  // Parse named distance patterns (century, marathon, etc.)
+  if (!result.distanceRange) {
+    for (const [pattern, config] of Object.entries(DISTANCE_PATTERNS)) {
+      if (normalizedQuery.includes(pattern)) {
+        result.distanceRange = {
+          min: config.min,
+          max: config.max,
+        };
+        interpretationParts.push(config.description);
+
+        // Infer activity type from distance pattern if not already specified
+        if (!result.activityType) {
+          // Marathon/half-marathon typically means running
+          if (pattern.includes("marathon") || pattern === "5k" || pattern === "10k") {
+            result.activityType = "Run";
+            interpretationParts.push("run activities");
+          }
+          // Century typically means cycling
+          else if (pattern.includes("century")) {
+            result.activityType = "Ride";
+            interpretationParts.push("ride activities");
+          }
+        }
+
+        break;
+      }
+    }
+  }
+
   // Parse activity types
   for (const [alias, sportType] of Object.entries(SPORT_ALIASES)) {
     if (normalizedQuery.includes(alias)) {
@@ -239,8 +423,74 @@ export function parseNaturalLanguageQuery(query: string): ParsedFilter {
     }
   }
 
+  // Parse location (but avoid matching dates)
+  const dateWords = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december", "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "oct", "nov", "dec", "last", "this", "next", "week", "month", "year", "day", "today", "yesterday", "tomorrow"];
+
+  for (const keyword of LOCATION_KEYWORDS) {
+    const regex = new RegExp(`\\b${keyword}\\s+([a-zA-Z\\s]+?)(?:\\s+(?:on|from|in|during|with|activities|activity|last|this|next)|$)`, "i");
+    const match = normalizedQuery.match(regex);
+    if (match && match[1]) {
+      const potentialLocation = match[1].trim().toLowerCase();
+      // Skip if it looks like a date reference
+      const isDateReference = dateWords.some(dateWord => potentialLocation.includes(dateWord));
+      if (!isDateReference) {
+        result.location = match[1].trim();
+        interpretationParts.push(`in/near ${result.location}`);
+        break;
+      }
+    }
+  }
+
   // Extract remaining text for name searching (remove parsed parts)
   let remainingText = normalizedQuery;
+
+  // Remove duration pattern words FIRST (they contain words like "longer" that might confuse other parsing)
+  if (result.durationRange) {
+    const numericDurationRemovalPatterns = [
+      /(?:over|longer\s+than|more\s+than|greater\s+than|>)\s+\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m)/gi,
+      /(?:under|shorter\s+than|less\s+than|<)\s+\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m)/gi,
+      /between\s+\d+(?:\.\d+)?\s+and\s+\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m)/gi,
+      /\d+(?:\.\d+)?\s*-\s*\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m)/gi,
+      /at\s+least\s+\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m)/gi,
+    ];
+
+    for (const pattern of numericDurationRemovalPatterns) {
+      remainingText = remainingText.replace(pattern, "").trim();
+    }
+  }
+
+  // Remove distance pattern words
+  if (result.distanceRange) {
+    // Remove named patterns
+    for (const pattern of Object.keys(DISTANCE_PATTERNS)) {
+      remainingText = remainingText.replace(pattern, "").trim();
+    }
+
+    // Remove numeric distance patterns
+    const numericDistanceRemovalPatterns = [
+      /\d+(?:\.\d+)?\+\s*(?:miles?|mi|km|kilometers?|k)/gi,
+      /(?:over|more\s+than|greater\s+than|>)\s+\d+(?:\.\d+)?\s*(?:miles?|mi|km|kilometers?|k)/gi,
+      /(?:under|less\s+than|shorter\s+than|<)\s+\d+(?:\.\d+)?\s*(?:miles?|mi|km|kilometers?|k)/gi,
+      /between\s+\d+(?:\.\d+)?\s+and\s+\d+(?:\.\d+)?\s*(?:miles?|mi|km|kilometers?|k)/gi,
+      /\d+(?:\.\d+)?\s*-\s*\d+(?:\.\d+)?\s*(?:miles?|mi|km|kilometers?|k)/gi,
+      /at\s+least\s+\d+(?:\.\d+)?\s*(?:miles?|mi|km|kilometers?|k)/gi,
+    ];
+
+    for (const pattern of numericDistanceRemovalPatterns) {
+      remainingText = remainingText.replace(pattern, "").trim();
+    }
+  }
+
+  // Remove activity type words EARLY (before date removal which might leave fragments)
+  if (result.activityType) {
+    for (const [alias, sportType] of Object.entries(SPORT_ALIASES)) {
+      if (sportType === result.activityType) {
+        // Use word boundary regex to avoid partial matches
+        const aliasRegex = new RegExp(`\\b${alias}\\b`, "gi");
+        remainingText = remainingText.replace(aliasRegex, "").trim();
+      }
+    }
+  }
 
   // Remove date references
   if (dateResults.length > 0) {
@@ -258,13 +508,11 @@ export function parseNaturalLanguageQuery(query: string): ParsedFilter {
     remainingText = remainingText.replace(result.superlative.type, "").trim();
   }
 
-  // Remove activity type words
-  if (result.activityType) {
-    for (const [alias, sportType] of Object.entries(SPORT_ALIASES)) {
-      if (sportType === result.activityType) {
-        remainingText = remainingText.replace(alias, "").trim();
-        break;
-      }
+  // Remove location words
+  if (result.location) {
+    for (const keyword of LOCATION_KEYWORDS) {
+      const regex = new RegExp(`\\b${keyword}\\s+${result.location}\\b`, "gi");
+      remainingText = remainingText.replace(regex, "").trim();
     }
   }
 
@@ -278,6 +526,10 @@ export function parseNaturalLanguageQuery(query: string): ParsedFilter {
     "on",
     "activities",
     "activity",
+    "near",
+    "at",
+    "around",
+    "to",
   ];
   filterWords.forEach((word) => {
     remainingText = remainingText
@@ -335,6 +587,40 @@ export function applyParsedFilter(
   if (filter.activityType) {
     filtered = filtered.filter(
       (activity) => activity.sport_type === filter.activityType,
+    );
+  }
+
+  // Apply distance range filter
+  if (filter.distanceRange) {
+    filtered = filtered.filter((activity) => {
+      if (filter.distanceRange!.min && activity.distance < filter.distanceRange!.min) {
+        return false;
+      }
+      if (filter.distanceRange!.max && activity.distance > filter.distanceRange!.max) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  // Apply duration range filter
+  if (filter.durationRange) {
+    filtered = filtered.filter((activity) => {
+      if (filter.durationRange!.min && activity.moving_time < filter.durationRange!.min) {
+        return false;
+      }
+      if (filter.durationRange!.max && activity.moving_time > filter.durationRange!.max) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  // Apply location filter (search in activity name)
+  if (filter.location) {
+    const locationTerm = filter.location.toLowerCase();
+    filtered = filtered.filter((activity) =>
+      activity.name.toLowerCase().includes(locationTerm),
     );
   }
 
@@ -402,19 +688,24 @@ export function applyParsedFilter(
 export function getSearchSuggestions(query: string): string[] {
   const suggestions: string[] = [
     "My longest ride",
+    "Fastest century ride",
     "Rides from December 2021",
-    "LoToJa 2021",
+    "Marathon runs",
     "Running activities last month",
     "Fastest cycling this year",
     "Recent hikes",
     "Longest run last week",
-    "Virtual rides",
+    "Runs in Saint George",
+    "Century rides in October",
+    "My fastest marathon",
+    "Half marathon races",
     "Mountain bike rides",
-    "Century",
-    "Marathon",
+    "Virtual rides",
     "Bike commute",
     "Weekend rides",
     "Morning runs",
+    "Metric century",
+    "Ultra runs",
   ];
 
   if (!query.trim()) {
@@ -451,6 +742,15 @@ export function interpretQuery(query: string): string {
     interpretation += `${parsed.superlative.type} `;
   }
 
+  if (parsed.distanceRange) {
+    const distanceDesc = Object.values(DISTANCE_PATTERNS).find(
+      (p) => p.min === parsed.distanceRange?.min
+    )?.description;
+    if (distanceDesc) {
+      interpretation += `${distanceDesc} `;
+    }
+  }
+
   if (parsed.activityType) {
     const activityName =
       Object.keys(SPORT_ALIASES).find(
@@ -475,6 +775,10 @@ export function interpretQuery(query: string): string {
     } else if (parsed.dateRange.before) {
       interpretation += `before ${formatDateSafe(parsed.dateRange.before)}`;
     }
+  }
+
+  if (parsed.location) {
+    interpretation += ` in/near ${parsed.location}`;
   }
 
   if (parsed.textSearch) {

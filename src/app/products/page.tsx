@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { Check } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Products - Custom 3D Printed Adventure Mementos",
@@ -179,7 +180,7 @@ export default function Products() {
                       <ul className="mt-2 space-y-2">
                         {product.features.map((feature, featureIndex) => (
                           <li key={featureIndex} className="flex items-start">
-                            <span className="text-summit-sage mr-2">✓</span>
+                            <Check className="w-4 h-4 text-summit-sage mr-2" />
                             <span className="text-slate-storm text-sm">
                               {feature}
                             </span>

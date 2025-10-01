@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import RouteThumbnail from "./RouteThumbnail";
 import {
   parseNaturalLanguageQuery,
@@ -8,8 +8,32 @@ import {
   interpretQuery,
   type ParsedFilter,
 } from "../utils/naturalLanguageParser";
+import {
+  createActivitySearchIndex,
+  searchActivities as miniSearchActivities,
+  rankSearchResults,
+  getAutoSuggestions,
+} from "../utils/activitySearch";
 import { autoSimplifyGPXTrack, generateSimplifiedGPXString } from "@/lib/gpxSimplify";
 import { calculateDistance } from "@/lib/gpx";
+import {
+  Bike,
+  Footprints,
+  Mountain,
+  PersonStanding,
+  Waves,
+  Dumbbell,
+  User,
+  Zap,
+  AlertTriangle,
+  Globe,
+  Lock,
+  TreePine,
+  Activity,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown
+} from "lucide-react";
 
 interface StravaActivity {
   id: number;
@@ -61,24 +85,30 @@ export default function StravaActivities({
   const [includeVirtualRides, setIncludeVirtualRides] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [paginationLoading, setPaginationLoading] = useState(false);
+  const [searchIndexReady, setSearchIndexReady] = useState(false);
+  const [sortBy, setSortBy] = useState<"name" | "date" | "distance" | "time">("date");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   // Format activity date for display
   const formatActivityDate = (dateString: string) => {
     const date = new Date(dateString);
-    const now = new Date();
-    const diffDays = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
-    );
-
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
-      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+      year: "numeric",
     });
+  };
+
+  // Format duration (moving_time in seconds) to HH:MM:SS or MM:SS
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
   // Natural language search function
@@ -130,6 +160,30 @@ export default function StravaActivities({
         let filteredData = data.activities.filter(
           (activity: StravaActivity) => activity.distance > 0,
         );
+
+        // Initialize MiniSearch index with all activities for better fuzzy search
+        if (data.activities.length > 0) {
+          try {
+            createActivitySearchIndex(data.activities);
+            setSearchIndexReady(true);
+          } catch (error) {
+            console.error("Failed to create search index:", error);
+          }
+        }
+
+        // If we have remaining text search and MiniSearch is ready, apply fuzzy matching
+        if (parsed.textSearch && data.activities.length > 0) {
+          try {
+            // Use MiniSearch to rank results by fuzzy match relevance
+            const rankedResults = rankSearchResults(filteredData, parsed.textSearch, {
+              preferRecent: parsed.superlative?.type === 'recent',
+            });
+            filteredData = rankedResults;
+          } catch (error) {
+            console.error("MiniSearch ranking error:", error);
+            // Fall back to original results if ranking fails
+          }
+        }
 
         setSearchResults(filteredData);
         setTotalActivitiesCount(data.totalActivities);
@@ -356,8 +410,52 @@ export default function StravaActivities({
     }
   };
 
-  // Determine which activities to display
-  const displayActivities = searchQuery.trim() ? searchResults : activities;
+  // Handle column header click for sorting
+  const handleSort = (column: "name" | "date" | "distance" | "time") => {
+    if (sortBy === column) {
+      // Toggle direction if clicking the same column
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // Set new column and default to descending (except for name)
+      setSortBy(column);
+      setSortDirection(column === "name" ? "asc" : "desc");
+    }
+  };
+
+  // Sort activities based on selected sort option and direction
+  const sortActivities = useCallback((activitiesToSort: StravaActivity[]) => {
+    const sorted = [...activitiesToSort];
+
+    sorted.sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortBy) {
+        case "name":
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case "distance":
+          comparison = a.distance - b.distance;
+          break;
+        case "time":
+          comparison = a.moving_time - b.moving_time;
+          break;
+        case "date":
+        default:
+          comparison = new Date(a.start_date_local).getTime() - new Date(b.start_date_local).getTime();
+          break;
+      }
+
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    return sorted;
+  }, [sortBy, sortDirection]);
+
+  // Determine which activities to display and sort them
+  const displayActivities = useMemo(() => {
+    const activitiesToDisplay = searchQuery.trim() ? searchResults : activities;
+    return sortActivities(activitiesToDisplay);
+  }, [searchQuery, searchResults, activities, sortActivities]);
 
   if (loading) {
     return (
@@ -369,7 +467,7 @@ export default function StravaActivities({
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="container mx-auto px-4 max-w-[1400px]">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-basalt mb-2 font-trispace">
           Your Strava Activities
@@ -407,7 +505,7 @@ export default function StravaActivities({
               <input
                 id="search"
                 type="text"
-                placeholder="Try: 'My longest ride', 'Rides from December 2021', 'LoToJa 2021'"
+                placeholder="Try: 'Fastest century ride', 'My fastest marathon', 'Runs in Saint George'"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -425,29 +523,35 @@ export default function StravaActivities({
             </div>
 
             {/* Search Suggestions */}
-            {showSuggestions && (
-              <div className="mt-2 bg-white border border-slate-storm/20 rounded-lg shadow-lg p-3 z-10">
-                <div className="text-xs text-slate-storm/70 mb-2 font-medium">
-                  Try these examples:
+            {showSuggestions && (() => {
+              const suggestions = getSearchSuggestions(searchQuery);
+              const autoSuggestions = searchIndexReady ? getAutoSuggestions(searchQuery, 3) : [];
+              const allSuggestions = Array.from(new Set([...autoSuggestions, ...suggestions])).slice(0, 8);
+
+              return (
+                <div className="mt-2 bg-white border border-slate-storm/20 rounded-lg shadow-lg p-3 z-10">
+                  <div className="text-xs text-slate-storm/70 mb-2 font-medium">
+                    {autoSuggestions.length > 0 ? "Suggestions from your activities:" : "Try these examples:"}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {allSuggestions.map(
+                      (suggestion, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setSearchQuery(suggestion);
+                            setShowSuggestions(false);
+                          }}
+                          className="px-2 py-1 text-xs rounded-full border border-slate-storm/20 text-slate-storm hover:border-summit-sage hover:text-summit-sage transition-colors duration-200"
+                        >
+                          {suggestion}
+                        </button>
+                      ),
+                    )}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {getSearchSuggestions(searchQuery).map(
-                    (suggestion, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          setSearchQuery(suggestion);
-                          setShowSuggestions(false);
-                        }}
-                        className="px-2 py-1 text-xs rounded-full border border-slate-storm/20 text-slate-storm hover:border-summit-sage hover:text-summit-sage transition-colors duration-200"
-                      >
-                        {suggestion}
-                      </button>
-                    ),
-                  )}
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Query Interpretation */}
             {searchQuery.trim() && (
@@ -490,13 +594,15 @@ export default function StravaActivities({
         <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg mb-6">
           <div className="flex items-start space-x-3">
             <div className="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0">
-              {error.type === "auth"
-                ? "🔒"
-                : error.type === "network"
-                  ? "🌐"
-                  : error.type === "api"
-                    ? "⚡"
-                    : "⚠️"}
+              {error.type === "auth" ? (
+                <Lock className="w-6 h-6" />
+              ) : error.type === "network" ? (
+                <Globe className="w-6 h-6" />
+              ) : error.type === "api" ? (
+                <Zap className="w-6 h-6" />
+              ) : (
+                <AlertTriangle className="w-6 h-6" />
+              )}
             </div>
             <div className="flex-1">
               <h4 className="font-semibold text-red-800 mb-1">
@@ -560,83 +666,113 @@ export default function StravaActivities({
         </div>
       )}
 
-      {/* Activities List */}
-      {displayActivities.length > 0 ? (
-        <div className="space-y-3 mb-8">
-          {displayActivities.map((activity) => (
-            <div
-              key={activity.id}
-              className="bg-white rounded-lg shadow-sm border border-slate-storm/10 hover:border-summit-sage/30 hover:shadow-md transition-all duration-200"
-            >
+      {/* Sort Controls - Mobile Only */}
+      {displayActivities.length > 0 && (
+        <div className="md:hidden mb-4">
+          <div className="bg-white rounded-lg shadow-sm border border-slate-storm/10 p-4">
+            <label className="block text-sm font-semibold text-basalt mb-2">
+              Sort by
+            </label>
+            <div className="flex gap-2 flex-wrap">
               <button
-                onClick={() => handleActivityClick(activity.id)}
-                disabled={activityLoading !== null}
-                className="w-full p-6 text-left disabled:opacity-50 disabled:cursor-not-allowed group cursor-pointer hover:bg-slate-storm/5 transition-all duration-200"
+                onClick={() => handleSort("date")}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
+                  sortBy === "date"
+                    ? "bg-summit-sage text-white"
+                    : "bg-slate-50 text-slate-storm hover:bg-slate-100"
+                }`}
               >
-                <div className="flex items-center">
-                  {/* Left side: Sport icon and activity details */}
-                  <div className="flex items-center space-x-4 flex-1 min-w-0 pr-4">
-                    {/* Sport Icon */}
-                    <div className="flex-shrink-0 text-2xl">
-                      {(() => {
-                        const icons: { [key: string]: string } = {
-                          Ride: "🚴‍♂️",
-                          Run: "🏃‍♂️",
-                          Hike: "🥾",
-                          Walk: "🚶‍♂️",
-                          Swim: "🏊‍♂️",
-                          Workout: "💪",
-                          Yoga: "🧘‍♂️",
-                          VirtualRide: "🚴‍♂️",
-                          EBikeRide: "🚴‍♂️",
-                          MountainBikeRide: "🚵‍♂️",
-                        };
-                        return icons[activity.sport_type] || "🏃‍♂️";
-                      })()}
-                    </div>
+                Date
+                {sortBy === "date" && (
+                  sortDirection === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                )}
+              </button>
+              <button
+                onClick={() => handleSort("distance")}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
+                  sortBy === "distance"
+                    ? "bg-summit-sage text-white"
+                    : "bg-slate-50 text-slate-storm hover:bg-slate-100"
+                }`}
+              >
+                Distance
+                {sortBy === "distance" && (
+                  sortDirection === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                )}
+              </button>
+              <button
+                onClick={() => handleSort("time")}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
+                  sortBy === "time"
+                    ? "bg-summit-sage text-white"
+                    : "bg-slate-50 text-slate-storm hover:bg-slate-100"
+                }`}
+              >
+                Duration
+                {sortBy === "time" && (
+                  sortDirection === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                )}
+              </button>
+              <button
+                onClick={() => handleSort("name")}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
+                  sortBy === "name"
+                    ? "bg-summit-sage text-white"
+                    : "bg-slate-50 text-slate-storm hover:bg-slate-100"
+                }`}
+              >
+                Name
+                {sortBy === "name" && (
+                  sortDirection === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-                    {/* Activity Details */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-basalt group-hover:text-summit-sage transition-colors duration-200 truncate mb-1">
-                        {activity.name}
-                      </h3>
+      {/* Activities - Mobile Card View */}
+      {displayActivities.length > 0 ? (
+        <>
+          <div className="md:hidden space-y-3 mb-8">
+            {displayActivities.map((activity) => {
+              const getSportIcon = (sportType: string) => {
+                switch (sportType) {
+                  case "Ride":
+                  case "VirtualRide":
+                  case "EBikeRide":
+                    return <Bike className="w-5 h-5" />;
+                  case "MountainBikeRide":
+                    return <Mountain className="w-5 h-5" />;
+                  case "Run":
+                    return <Footprints className="w-5 h-5" />;
+                  case "Hike":
+                    return <TreePine className="w-5 h-5" />;
+                  case "Walk":
+                    return <PersonStanding className="w-5 h-5" />;
+                  case "Swim":
+                    return <Waves className="w-5 h-5" />;
+                  case "Workout":
+                    return <Dumbbell className="w-5 h-5" />;
+                  case "Yoga":
+                    return <Activity className="w-5 h-5" />;
+                  default:
+                    return <Footprints className="w-5 h-5" />;
+                }
+              };
 
-                      <div className="flex items-center space-x-4 text-sm text-slate-storm">
-                        <span className="flex items-center">
-                          <span className="font-medium text-xs text-slate-storm/70 mr-1">
-                            Distance:
-                          </span>
-                          {(activity.distance / 1000).toFixed(2)} km
-                        </span>
-
-                        <span className="flex items-center">
-                          <span className="font-medium text-xs text-slate-storm/70 mr-1">
-                            Date:
-                          </span>
-                          {formatActivityDate(activity.start_date_local)}
-                        </span>
-
-                        {activity.photos?.count &&
-                          activity.photos.count > 0 && (
-                            <span className="flex items-center">
-                              <span className="font-medium text-xs text-slate-storm/70 mr-1">
-                                Photos:
-                              </span>
-                              {activity.photos.count}
-                            </span>
-                          )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right side: Route thumbnail or loading state */}
-                  <div className="flex-shrink-0">
+              return (
+                <div
+                  key={activity.id}
+                  onClick={() => handleActivityClick(activity.id)}
+                  className="bg-white rounded-lg shadow-sm border border-slate-storm/10 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                >
+                  {/* Route Preview - Full Width Top Section */}
+                  <div className="relative bg-slate-50 h-40 flex items-center justify-center">
                     {activityLoading === activity.id ? (
-                      <div className="flex items-center text-summit-sage w-16 justify-center">
-                        <div className="w-5 h-5 border-2 border-summit-sage border-t-transparent rounded-full animate-spin"></div>
-                      </div>
+                      <div className="w-8 h-8 border-2 border-summit-sage border-t-transparent rounded-full animate-spin"></div>
                     ) : (
-                      <div className="group-hover:scale-105 transition-transform duration-200">
+                      <div className="scale-150">
                         <RouteThumbnail
                           polyline={activity.map?.summary_polyline}
                           sportType={activity.sport_type}
@@ -644,14 +780,201 @@ export default function StravaActivities({
                       </div>
                     )}
                   </div>
+
+                  {/* Activity Details */}
+                  <div className="p-4">
+                    <div className="flex items-start gap-2 mb-3">
+                      <div className="flex-shrink-0 text-slate-storm mt-0.5">
+                        {getSportIcon(activity.sport_type)}
+                      </div>
+                      <h3 className="font-medium text-basalt line-clamp-2 flex-1">
+                        {activity.name}
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs text-slate-storm">
+                      <div>
+                        <div className="font-semibold text-basalt">Distance</div>
+                        <div>{(activity.distance / 1000).toFixed(2)} km</div>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-basalt">Duration</div>
+                        <div>{formatDuration(activity.moving_time)}</div>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-basalt">Date</div>
+                        <div>{formatActivityDate(activity.start_date_local)}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </button>
+              );
+            })}
+          </div>
+
+          {/* Activities Table - Desktop Only */}
+          <div className="hidden md:block bg-white rounded-lg shadow-sm border border-slate-storm/10 overflow-hidden mb-8">
+            <div className="overflow-x-auto">
+              <table className="w-full table-fixed">
+                <colgroup>
+                  <col className="w-[40%]" /> {/* Activity name */}
+                  <col className="w-[13%]" /> {/* Distance */}
+                  <col className="w-[13%]" /> {/* Duration */}
+                  <col className="w-[14%]" /> {/* Date */}
+                  <col className="w-[20%]" /> {/* Route thumbnail */}
+                </colgroup>
+                <thead className="bg-slate-50 border-b border-slate-storm/10">
+                  <tr>
+                    <th className="px-6 py-3 text-left">
+                      <button
+                        onClick={() => handleSort("name")}
+                        className="flex items-center gap-1 text-sm font-semibold text-basalt hover:text-summit-sage transition-colors"
+                      >
+                        Activity
+                        {sortBy === "name" ? (
+                          sortDirection === "asc" ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )
+                        ) : (
+                          <ChevronsUpDown className="w-4 h-4 opacity-30" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-left">
+                      <button
+                        onClick={() => handleSort("distance")}
+                        className="flex items-center gap-1 text-sm font-semibold text-basalt hover:text-summit-sage transition-colors"
+                      >
+                        Distance
+                        {sortBy === "distance" ? (
+                          sortDirection === "asc" ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )
+                        ) : (
+                          <ChevronsUpDown className="w-4 h-4 opacity-30" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-left">
+                      <button
+                        onClick={() => handleSort("time")}
+                        className="flex items-center gap-1 text-sm font-semibold text-basalt hover:text-summit-sage transition-colors"
+                      >
+                        Duration
+                        {sortBy === "time" ? (
+                          sortDirection === "asc" ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )
+                        ) : (
+                          <ChevronsUpDown className="w-4 h-4 opacity-30" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-left">
+                      <button
+                        onClick={() => handleSort("date")}
+                        className="flex items-center gap-1 text-sm font-semibold text-basalt hover:text-summit-sage transition-colors"
+                      >
+                        Date
+                        {sortBy === "date" ? (
+                          sortDirection === "asc" ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )
+                        ) : (
+                          <ChevronsUpDown className="w-4 h-4 opacity-30" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-center text-sm font-semibold text-basalt">
+                      Route
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-storm/5">
+                  {displayActivities.map((activity) => (
+                    <tr
+                      key={activity.id}
+                      onClick={() => handleActivityClick(activity.id)}
+                      className="hover:bg-slate-storm/5 cursor-pointer transition-colors group"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex-shrink-0 text-slate-storm">
+                            {(() => {
+                              const getSportIcon = (sportType: string) => {
+                                switch (sportType) {
+                                  case "Ride":
+                                  case "VirtualRide":
+                                  case "EBikeRide":
+                                    return <Bike className="w-5 h-5" />;
+                                  case "MountainBikeRide":
+                                    return <Mountain className="w-5 h-5" />;
+                                  case "Run":
+                                    return <Footprints className="w-5 h-5" />;
+                                  case "Hike":
+                                    return <TreePine className="w-5 h-5" />;
+                                  case "Walk":
+                                    return <PersonStanding className="w-5 h-5" />;
+                                  case "Swim":
+                                    return <Waves className="w-5 h-5" />;
+                                  case "Workout":
+                                    return <Dumbbell className="w-5 h-5" />;
+                                  case "Yoga":
+                                    return <Activity className="w-5 h-5" />;
+                                  default:
+                                    return <Footprints className="w-5 h-5" />;
+                                }
+                              };
+                              return getSportIcon(activity.sport_type);
+                            })()}
+                          </div>
+                          <span className="font-medium text-basalt group-hover:text-summit-sage transition-colors truncate">
+                            {activity.name}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-storm">
+                        {(activity.distance / 1000).toFixed(2)} km
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-storm">
+                        {formatDuration(activity.moving_time)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-storm">
+                        {formatActivityDate(activity.start_date_local)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex justify-center">
+                          {activityLoading === activity.id ? (
+                            <div className="w-5 h-5 border-2 border-summit-sage border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <div className="group-hover:scale-105 transition-transform duration-200">
+                              <RouteThumbnail
+                                polyline={activity.map?.summary_polyline}
+                                sportType={activity.sport_type}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ))}
-        </div>
+          </div>
+        </>
       ) : (
         <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-slate-storm/10">
-          <div className="text-6xl mb-4">🚴‍♂️</div>
+          <div className="text-slate-storm mb-4">
+            <Bike className="w-16 h-16 mx-auto" />
+          </div>
           <h3 className="text-lg font-semibold text-basalt mb-2">
             No Activities Found
           </h3>
