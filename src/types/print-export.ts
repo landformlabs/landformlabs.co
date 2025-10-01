@@ -1,6 +1,14 @@
 /**
  * Landform Labs Print Export Type Definitions
  * Generated from print-export-schema.json v1.0.0
+ *
+ * Simplified schema focused on manufacturing essentials:
+ * - Bounding box details
+ * - GPX data (simplified)
+ * - Label information (text, size, font, location)
+ * - Print size and type
+ * - NFC details
+ * - Route details (color)
  */
 
 // GPS and Route Data Types
@@ -8,24 +16,6 @@ export interface GPSPoint {
   lat: number;
   lon: number;
   ele?: number;
-  time?: string; // ISO 8601 date-time
-}
-
-export interface Waypoint {
-  lat: number;
-  lon: number;
-  name?: string;
-  ele?: number;
-  desc?: string;
-}
-
-export interface TrackSegment {
-  points: GPSPoint[];
-}
-
-export interface Track {
-  name?: string;
-  segments: TrackSegment[];
 }
 
 export interface Bounds {
@@ -35,40 +25,15 @@ export interface Bounds {
   maxLon: number;
 }
 
-export interface RouteStatistics {
-  totalPoints: number;
-  totalDistance: number;
-  totalDuration?: number;
-  startTime?: string; // ISO 8601 date-time
-  endTime?: string; // ISO 8601 date-time
-  elevationGain?: number;
-  elevationLoss?: number;
-  maxElevation?: number;
-  minElevation?: number;
-}
-
-export interface SimplificationResult {
-  originalCount: number;
-  simplifiedCount: number;
-  reductionPercentage: number;
-  toleranceUsed: number;
-}
-
 export interface GPXData {
   originalGpxString: string; // Simplified GPX string optimized for manufacturing
-  activityName?: string;
   points: GPSPoint[]; // Simplified GPS points optimized for 3D printing
-  tracks?: Track[];
-  waypoints?: Waypoint[];
-  // Simplification metadata (original points NOT included to keep export focused on manufacturing)
-  simplificationResult?: SimplificationResult;
 }
 
 export interface RouteData {
   gpxData: GPXData;
   bounds: Bounds;
   selectedBounds: Bounds;
-  statistics: RouteStatistics;
 }
 
 // Design Configuration Types
@@ -119,141 +84,29 @@ export interface OrnamentCircle {
 
 export interface DesignConfig {
   routeColor: string; // hex color
-  printType: PrintType;
-  tileSize?: TileSize;
-  dimensions?: {
+  dimensions: {
     width: number; // millimeters
     height: number; // millimeters
-    sizeName: string; // human-readable size name
+    sizeName: string; // human-readable size name (e.g., 'ridgeline', 'basecamp', 'summit', 'standard')
   };
   labels?: TileLabel[];
   ornamentLabels?: OrnamentLabel[];
   ornamentCircle?: OrnamentCircle;
 }
 
-// Manufacturing and Technical Specifications
-export type MaterialType = "PLA" | "PETG" | "ABS";
-
-export interface Material {
-  type: MaterialType;
-  color: string;
-}
-
-export interface Dimensions {
-  width: number; // millimeters
-  height: number; // millimeters
-  depth?: number; // millimeters
-  baseThickness?: number; // millimeters
-  routeHeight?: number; // millimeters
-}
-
-export interface Resolution {
-  dpi: number;
-  canvasSize: number; // pixels
-}
-
-export interface HillshadeSettings {
-  enabled?: boolean;
-  opacity?: number; // 0-1
-  tileZoom?: number; // 1-18
-}
-
-export interface RenderingConfig {
-  resolution: Resolution;
-  hillshade?: HillshadeSettings;
-  mapSnapshot?: string; // base64 encoded image
-}
-
+// NFC Configuration
 export interface NFCConfig {
-  enabled?: boolean;
-  targetUrl?: string;
-  chipType?: string;
-}
-
-export interface ManufacturingSpecs {
-  material: Material;
-  dimensions: Dimensions;
-  rendering: RenderingConfig;
-  nfc?: NFCConfig;
-}
-
-// Order and Metadata Types
-export interface OrderInfo {
-  orderReference: string; // format: LF-{timestamp}
-  timestamp: string; // ISO 8601 date-time
-  printType: PrintType;
-  tileSize?: TileSize;
-  stravaActivityUrl?: string;
-  customerNotes?: string;
-}
-
-export interface FileInfo {
-  originalFileName?: string;
-  fileSize?: number; // bytes
-  uploadTimestamp?: string; // ISO 8601 date-time
-}
-
-export interface GenerationInfo {
-  appVersion?: string;
-  userAgent?: string;
-  exportFormat?: "zip" | "json";
-}
-
-export interface RouteValidation {
-  hasMinimumPoints?: boolean;
-  hasValidBounds?: boolean;
-  hasElevationData?: boolean;
-  hasTimestamps?: boolean;
-}
-
-export interface DesignValidation {
-  hasValidColors?: boolean;
-  labelCount?: number;
-  allLabelsWithinBounds?: boolean;
-}
-
-export interface QualityChecks {
-  routeValidation?: RouteValidation;
-  designValidation?: DesignValidation;
-}
-
-export interface Metadata {
-  fileInfo?: FileInfo;
-  generationInfo?: GenerationInfo;
-  qualityChecks?: QualityChecks;
+  enabled: boolean;
+  targetUrl?: string; // Required if enabled is true
 }
 
 // Main Export Interface
 export interface PrintExportData {
   schemaVersion: "1.0.0";
-  orderInfo: OrderInfo;
+  printType: PrintType;
   routeData: RouteData;
   designConfig: DesignConfig;
-  manufacturingSpecs: ManufacturingSpecs;
-  metadata?: Metadata;
-}
-
-// Utility Types for Working with Export Data
-export type PartialPrintExportData = Partial<PrintExportData> & {
-  orderInfo: OrderInfo;
-  routeData: Pick<RouteData, "gpxData">;
-};
-
-export interface ExportValidationResult {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];
-}
-
-// Helper type for creating new exports
-export interface CreateExportOptions {
-  gpxData: GPXData;
-  bounds: Bounds;
-  selectedBounds: Bounds;
-  designConfig: DesignConfig;
-  orderInfo?: Partial<OrderInfo>;
-  manufacturingSpecs?: Partial<ManufacturingSpecs>;
-  metadata?: Partial<Metadata>;
+  nfc: NFCConfig;
 }
 
 // Legacy compatibility (current app structure)

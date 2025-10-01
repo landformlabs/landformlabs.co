@@ -2,14 +2,14 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://landformlabs.co/schemas/print-export-v1.json",
   "title": "Landform Labs Print Export Schema",
-  "description": "Complete schema for 3D print export data containing GPS route, design configuration, and manufacturing specifications",
+  "description": "Manufacturing-ready schema for 3D print export containing GPS route, bounding box, design configuration, and print specifications",
   "type": "object",
   "required": [
     "schemaVersion",
-    "orderInfo",
+    "printType",
     "routeData",
     "designConfig",
-    "manufacturingSpecs"
+    "nfc"
   ],
   "additionalProperties": false,
   "properties": {
@@ -18,63 +18,26 @@
       "const": "1.0.0",
       "description": "Version of this schema"
     },
-    "orderInfo": {
-      "type": "object",
-      "description": "Order and customer information",
-      "required": ["orderReference", "timestamp", "printType"],
-      "additionalProperties": false,
-      "properties": {
-        "orderReference": {
-          "type": "string",
-          "pattern": "^LF-[0-9]+$",
-          "description": "Unique order reference number"
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Order creation timestamp in ISO 8601 format"
-        },
-        "printType": {
-          "type": "string",
-          "enum": ["tile", "ornament"],
-          "description": "Type of 3D print product"
-        },
-        "tileSize": {
-          "type": "string",
-          "enum": ["basecamp", "ridgeline", "summit"],
-          "description": "Size category for tile prints (required if printType is 'tile')"
-        },
-        "stravaActivityUrl": {
-          "type": "string",
-          "format": "uri",
-          "description": "URL to the original Strava activity (if available)"
-        },
-        "customerNotes": {
-          "type": "string",
-          "maxLength": 1000,
-          "description": "Optional customer notes or special instructions"
-        }
-      }
+    "printType": {
+      "type": "string",
+      "enum": ["tile", "ornament"],
+      "description": "Type of 3D print product"
     },
     "routeData": {
       "type": "object",
-      "description": "Complete GPS route data and metadata",
-      "required": ["gpxData", "bounds", "selectedBounds", "statistics"],
+      "description": "GPS route data and bounding boxes",
+      "required": ["gpxData", "bounds", "selectedBounds"],
       "additionalProperties": false,
       "properties": {
         "gpxData": {
           "type": "object",
-          "description": "Parsed GPX data structure",
+          "description": "Simplified GPX data optimized for 3D printing",
           "required": ["points", "originalGpxString"],
           "additionalProperties": false,
           "properties": {
             "originalGpxString": {
               "type": "string",
               "description": "Simplified GPX file content as string, optimized for 3D printing manufacturing"
-            },
-            "activityName": {
-              "type": "string",
-              "description": "Name/title of the activity from GPX metadata"
             },
             "points": {
               "type": "array",
@@ -92,7 +55,7 @@
                     "description": "Latitude in decimal degrees"
                   },
                   "lon": {
-                    "type": "number", 
+                    "type": "number",
                     "minimum": -180,
                     "maximum": 180,
                     "description": "Longitude in decimal degrees"
@@ -100,99 +63,7 @@
                   "ele": {
                     "type": "number",
                     "description": "Elevation in meters (optional)"
-                  },
-                  "time": {
-                    "type": "string",
-                    "format": "date-time",
-                    "description": "Timestamp for this point (optional)"
                   }
-                }
-              }
-            },
-            "tracks": {
-              "type": "array",
-              "description": "Track segments from GPX",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "description": "Track name"
-                  },
-                  "segments": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "points": {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/properties/routeData/properties/gpxData/properties/points/items"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "waypoints": {
-              "type": "array",
-              "description": "Waypoints from GPX",
-              "items": {
-                "type": "object",
-                "required": ["lat", "lon"],
-                "properties": {
-                  "lat": {
-                    "type": "number",
-                    "minimum": -90,
-                    "maximum": 90
-                  },
-                  "lon": {
-                    "type": "number",
-                    "minimum": -180,
-                    "maximum": 180
-                  },
-                  "name": {
-                    "type": "string",
-                    "description": "Waypoint name"
-                  },
-                  "ele": {
-                    "type": "number",
-                    "description": "Elevation in meters"
-                  },
-                  "desc": {
-                    "type": "string",
-                    "description": "Waypoint description"
-                  }
-                }
-              }
-            },
-            "simplificationResult": {
-              "type": "object",
-              "description": "Track simplification metadata (if simplification was applied)",
-              "required": ["originalCount", "simplifiedCount", "reductionPercentage", "toleranceUsed"],
-              "properties": {
-                "originalCount": {
-                  "type": "integer",
-                  "minimum": 0,
-                  "description": "Number of points in original track"
-                },
-                "simplifiedCount": {
-                  "type": "integer",
-                  "minimum": 0,
-                  "description": "Number of points after simplification"
-                },
-                "reductionPercentage": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 100,
-                  "description": "Percentage of points removed during simplification"
-                },
-                "toleranceUsed": {
-                  "type": "number",
-                  "minimum": 0,
-                  "description": "Tolerance value used for simplification algorithm"
                 }
               }
             }
@@ -253,80 +124,19 @@
               "maximum": 180
             }
           }
-        },
-        "statistics": {
-          "type": "object",
-          "description": "Route statistics and metadata",
-          "required": ["totalPoints", "totalDistance"],
-          "additionalProperties": false,
-          "properties": {
-            "totalPoints": {
-              "type": "integer",
-              "minimum": 0,
-              "description": "Total number of GPS points"
-            },
-            "totalDistance": {
-              "type": "number",
-              "minimum": 0,
-              "description": "Total distance in meters"
-            },
-            "totalDuration": {
-              "type": "number",
-              "minimum": 0,
-              "description": "Total duration in milliseconds (if available)"
-            },
-            "startTime": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Activity start time (if available)"
-            },
-            "endTime": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Activity end time (if available)"
-            },
-            "elevationGain": {
-              "type": "number",
-              "minimum": 0,
-              "description": "Total elevation gain in meters (if available)"
-            },
-            "elevationLoss": {
-              "type": "number",
-              "minimum": 0,
-              "description": "Total elevation loss in meters (if available)"
-            },
-            "maxElevation": {
-              "type": "number",
-              "description": "Maximum elevation in meters (if available)"
-            },
-            "minElevation": {
-              "type": "number",
-              "description": "Minimum elevation in meters (if available)"
-            }
-          }
         }
       }
     },
     "designConfig": {
       "type": "object",
-      "description": "Visual design configuration",
-      "required": ["routeColor", "printType"],
+      "description": "Design configuration for the print",
+      "required": ["routeColor", "dimensions"],
       "additionalProperties": false,
       "properties": {
         "routeColor": {
           "type": "string",
           "pattern": "^#[0-9A-Fa-f]{6}$",
           "description": "Route color in hex format"
-        },
-        "printType": {
-          "type": "string",
-          "enum": ["tile", "ornament"],
-          "description": "Type of print design"
-        },
-        "tileSize": {
-          "type": "string",
-          "enum": ["basecamp", "ridgeline", "summit"],
-          "description": "Tile size (required if printType is 'tile')"
         },
         "dimensions": {
           "type": "object",
@@ -346,7 +156,7 @@
             },
             "sizeName": {
               "type": "string",
-              "description": "Human-readable size name (e.g., 'ridgeline', 'standard')"
+              "description": "Human-readable size name (e.g., 'ridgeline', 'basecamp', 'summit', 'standard')"
             }
           }
         },
@@ -493,210 +303,20 @@
         }
       }
     },
-    "manufacturingSpecs": {
+    "nfc": {
       "type": "object",
-      "description": "3D printing and manufacturing specifications",
-      "required": ["material", "dimensions", "rendering"],
+      "description": "NFC chip configuration",
+      "required": ["enabled"],
       "additionalProperties": false,
       "properties": {
-        "material": {
-          "type": "object",
-          "required": ["type", "color"],
-          "properties": {
-            "type": {
-              "type": "string",
-              "enum": ["PLA", "PETG", "ABS"],
-              "default": "PLA",
-              "description": "3D printing material"
-            },
-            "color": {
-              "type": "string",
-              "description": "Material color specification"
-            }
-          }
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether NFC chip should be included"
         },
-        "dimensions": {
-          "type": "object",
-          "description": "Physical dimensions and specifications",
-          "required": ["width", "height"],
-          "properties": {
-            "width": {
-              "type": "number",
-              "minimum": 0,
-              "description": "Print width in millimeters"
-            },
-            "height": {
-              "type": "number",
-              "minimum": 0,
-              "description": "Print height in millimeters"
-            },
-            "depth": {
-              "type": "number",
-              "minimum": 0,
-              "description": "Print depth/thickness in millimeters"
-            },
-            "baseThickness": {
-              "type": "number",
-              "minimum": 0,
-              "description": "Base thickness in millimeters"
-            },
-            "routeHeight": {
-              "type": "number",
-              "minimum": 0,
-              "description": "Route extrusion height in millimeters"
-            }
-          }
-        },
-        "rendering": {
-          "type": "object",
-          "description": "Rendering and visual specifications",
-          "required": ["resolution"],
-          "properties": {
-            "resolution": {
-              "type": "object",
-              "required": ["dpi", "canvasSize"],
-              "properties": {
-                "dpi": {
-                  "type": "number",
-                  "minimum": 72,
-                  "description": "Design resolution in DPI"
-                },
-                "canvasSize": {
-                  "type": "number",
-                  "minimum": 100,
-                  "description": "Canvas size in pixels"
-                }
-              }
-            },
-            "hillshade": {
-              "type": "object",
-              "description": "Hillshade rendering settings",
-              "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "default": true
-                },
-                "opacity": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1,
-                  "default": 1
-                },
-                "tileZoom": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "maximum": 18,
-                  "description": "Map tile zoom level used for hillshade"
-                }
-              }
-            },
-            "mapSnapshot": {
-              "type": "string",
-              "description": "Base64 encoded map snapshot image (optional)"
-            }
-          }
-        },
-        "nfc": {
-          "type": "object",
-          "description": "NFC chip configuration (optional)",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false
-            },
-            "targetUrl": {
-              "type": "string",
-              "format": "uri",
-              "description": "URL to be programmed into NFC chip"
-            },
-            "chipType": {
-              "type": "string",
-              "description": "NFC chip model/type"
-            }
-          }
-        }
-      }
-    },
-    "metadata": {
-      "type": "object",
-      "description": "Additional metadata and file information",
-      "additionalProperties": false,
-      "properties": {
-        "fileInfo": {
-          "type": "object",
-          "properties": {
-            "originalFileName": {
-              "type": "string",
-              "description": "Original GPX file name"
-            },
-            "fileSize": {
-              "type": "integer",
-              "minimum": 0,
-              "description": "Original file size in bytes"
-            },
-            "uploadTimestamp": {
-              "type": "string",
-              "format": "date-time",
-              "description": "File upload timestamp"
-            }
-          }
-        },
-        "generationInfo": {
-          "type": "object",
-          "properties": {
-            "appVersion": {
-              "type": "string",
-              "description": "Version of the design app used"
-            },
-            "userAgent": {
-              "type": "string",
-              "description": "Browser user agent string"
-            },
-            "exportFormat": {
-              "type": "string",
-              "enum": ["zip", "json"],
-              "default": "zip",
-              "description": "Export format used"
-            }
-          }
-        },
-        "qualityChecks": {
-          "type": "object",
-          "description": "Data quality and validation results",
-          "properties": {
-            "routeValidation": {
-              "type": "object",
-              "properties": {
-                "hasMinimumPoints": {
-                  "type": "boolean"
-                },
-                "hasValidBounds": {
-                  "type": "boolean"
-                },
-                "hasElevationData": {
-                  "type": "boolean"
-                },
-                "hasTimestamps": {
-                  "type": "boolean"
-                }
-              }
-            },
-            "designValidation": {
-              "type": "object",
-              "properties": {
-                "hasValidColors": {
-                  "type": "boolean"
-                },
-                "labelCount": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "allLabelsWithinBounds": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
+        "targetUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to be programmed into NFC chip (required if enabled is true)"
         }
       }
     }
