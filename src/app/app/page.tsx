@@ -214,7 +214,7 @@ export default function GPXDesignApp() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Step Content */}
             {currentStep === "upload" && (
-              <div className="max-w-2xl mx-auto">
+              <div className="w-full">
                 {stravaAccessToken && !showGpxUploader ? (
                   <>
                     <StravaActivities
@@ -231,7 +231,7 @@ export default function GPXDesignApp() {
                     </div>
                   </>
                 ) : (
-                  <>
+                  <div className="max-w-2xl mx-auto">
                     <GPXUploader onGPXUpload={handleGPXUpload} />
                     {stravaAccessToken && (
                       <div className="mt-8 text-center">
@@ -257,7 +257,7 @@ export default function GPXDesignApp() {
                         </a>
                       </div>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
             )}
