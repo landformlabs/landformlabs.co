@@ -3,11 +3,13 @@
 ## Overview
 The JSON export uses a 2D canvas-based coordinate system with specific conventions for label placement. This document explains how to interpret these coordinates in Blender.
 
+**Important**: All coordinates in the exported JSON are automatically scaled to the canonical `400x400` canvas coordinate space, regardless of the display size on the user's screen. This ensures consistency across all devices.
+
 ## Canvas Coordinate System
 
 ### Canvas Size
-- **Base canvas size**: `400 x 400` pixels (internal rendering)
-- **Export resolution**: `1200 x 1200` pixels (scaled up 3x for export)
+- **Base canvas size**: `400 x 400` pixels (canonical coordinate space)
+- **Export resolution**: `1200 x 1200` pixels (scaled up 3x for PNG export)
 
 ### Origin Point (0,0)
 - **Location**: Top-left corner of the canvas

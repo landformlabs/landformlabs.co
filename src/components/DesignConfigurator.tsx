@@ -64,6 +64,7 @@ export default function DesignConfigurator({
   onRestart,
 }: DesignConfiguratorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
   const hillshadeCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isRenderingHillshade, setIsRenderingHillshade] = useState(false);
   const [hillshadeError, setHillshadeError] = useState<string | null>(null);
@@ -1023,7 +1024,14 @@ export default function DesignConfigurator({
   const exportDesign = async () => {
     const zip = new JSZip();
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = canvasContainerRef.current;
+    if (!canvas || !container) return;
+
+    // Get the actual display size of the container to calculate coordinate scaling
+    const containerRect = container.getBoundingClientRect();
+    const displaySize = containerRect.width;
+    const canvasSize = 400; // Actual canvas coordinate space
+    const coordScale = canvasSize / displaySize; // Scale factor from display to canvas coords
 
     const exportCanvas = document.createElement("canvas");
     const exportCtx = exportCanvas.getContext("2d");
@@ -1051,10 +1059,16 @@ export default function DesignConfigurator({
     // Draw the HTML labels onto the export canvas
     if (designConfig.printType === "tile") {
       designConfig.labels.forEach((label) => {
+        // Scale label coordinates from display size to canvas size
+        const scaledX = label.x * coordScale;
+        const scaledY = label.y * coordScale;
+        const scaledWidth = label.width * coordScale;
+        const scaledHeight = label.height * coordScale;
+
         exportCtx.save();
         exportCtx.translate(
-          label.x * scale + (label.width * scale) / 2,
-          label.y * scale + (label.height * scale) / 2,
+          scaledX * scale + (scaledWidth * scale) / 2,
+          scaledY * scale + (scaledHeight * scale) / 2,
         );
         exportCtx.rotate((label.rotation * Math.PI) / 180);
         exportCtx.fillStyle = label.color || "#1f2937";
@@ -1246,8 +1260,14 @@ export default function DesignConfigurator({
         },
         labels: designConfig.printType === "tile" ? designConfig.labels.map((label) => ({
           text: label.text,
-          position: { x: label.x, y: label.y },
-          size: { width: label.width, height: label.height },
+          position: {
+            x: Math.round(label.x * coordScale),
+            y: Math.round(label.y * coordScale)
+          },
+          size: {
+            width: Math.round(label.width * coordScale),
+            height: Math.round(label.height * coordScale)
+          },
           typography: {
             fontFamily: label.fontFamily,
             fontSize: label.size,
@@ -1975,6 +1995,7 @@ export default function DesignConfigurator({
 
           <div className="flex justify-center px-2 sm:px-0">
             <div
+              ref={canvasContainerRef}
               className="relative w-full max-w-md aspect-square"
               style={{
                 maxWidth: "400px",
