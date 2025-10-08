@@ -1033,6 +1033,19 @@ export default function DesignConfigurator({
     const canvasSize = 400; // Actual canvas coordinate space
     const coordScale = canvasSize / displaySize; // Scale factor from display to canvas coords
 
+    console.log('Export scaling:', {
+      displaySize,
+      canvasSize,
+      coordScale,
+      sampleLabel: designConfig.labels[0] ? {
+        original: { x: designConfig.labels[0].x, y: designConfig.labels[0].y },
+        scaled: {
+          x: Math.round(designConfig.labels[0].x * coordScale),
+          y: Math.round(designConfig.labels[0].y * coordScale)
+        }
+      } : 'no labels'
+    });
+
     const exportCanvas = document.createElement("canvas");
     const exportCtx = exportCanvas.getContext("2d");
     if (!exportCtx) return;
