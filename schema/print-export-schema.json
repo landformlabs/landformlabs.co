@@ -25,20 +25,16 @@
     },
     "routeData": {
       "type": "object",
-      "description": "GPS route data and bounding boxes",
-      "required": ["gpxData", "bounds", "selectedBounds"],
+      "description": "GPS route data and bounding box",
+      "required": ["gpxData", "selectedBounds"],
       "additionalProperties": false,
       "properties": {
         "gpxData": {
           "type": "object",
           "description": "Simplified GPX data optimized for 3D printing",
-          "required": ["points", "originalGpxString"],
+          "required": ["points"],
           "additionalProperties": false,
           "properties": {
-            "originalGpxString": {
-              "type": "string",
-              "description": "Simplified GPX file content as string, optimized for 3D printing manufacturing"
-            },
             "points": {
               "type": "array",
               "description": "Array of simplified GPS track points, optimized for 3D printing manufacturing",
@@ -59,41 +55,9 @@
                     "minimum": -180,
                     "maximum": 180,
                     "description": "Longitude in decimal degrees"
-                  },
-                  "ele": {
-                    "type": "number",
-                    "description": "Elevation in meters (optional)"
                   }
                 }
               }
-            }
-          }
-        },
-        "bounds": {
-          "type": "object",
-          "description": "Bounding box of the complete route",
-          "required": ["minLat", "maxLat", "minLon", "maxLon"],
-          "additionalProperties": false,
-          "properties": {
-            "minLat": {
-              "type": "number",
-              "minimum": -90,
-              "maximum": 90
-            },
-            "maxLat": {
-              "type": "number",
-              "minimum": -90,
-              "maximum": 90
-            },
-            "minLon": {
-              "type": "number",
-              "minimum": -180,
-              "maximum": 180
-            },
-            "maxLon": {
-              "type": "number",
-              "minimum": -180,
-              "maximum": 180
             }
           }
         },

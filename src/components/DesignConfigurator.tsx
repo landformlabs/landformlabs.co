@@ -1029,6 +1029,11 @@ export default function DesignConfigurator({
 
     // Get the actual display size of the container to calculate coordinate scaling
     const containerRect = container.getBoundingClientRect();
+
+    // Get canvas border width (canvas has border via CSS class)
+    const canvasComputedStyle = window.getComputedStyle(canvas);
+    const canvasBorderWidth = parseFloat(canvasComputedStyle.borderLeftWidth || '0');
+
     const displaySize = containerRect.width;
     const canvasSize = 400; // Actual canvas coordinate space
     const coordScale = canvasSize / displaySize; // Scale factor from display to canvas coords
@@ -1037,13 +1042,22 @@ export default function DesignConfigurator({
       displaySize,
       canvasSize,
       coordScale,
-      sampleLabel: designConfig.labels[0] ? {
-        original: { x: designConfig.labels[0].x, y: designConfig.labels[0].y },
+      canvasBorderWidth,
+      allLabels: designConfig.labels.map((label, i) => ({
+        index: i,
+        text: label.text,
+        original: { x: label.x, y: label.y, width: label.width, height: label.height },
+        afterBorderAdjustment: {
+          x: label.x - canvasBorderWidth,
+          y: label.y - canvasBorderWidth
+        },
         scaled: {
-          x: Math.round(designConfig.labels[0].x * coordScale),
-          y: Math.round(designConfig.labels[0].y * coordScale)
+          x: Math.round((label.x - canvasBorderWidth) * coordScale),
+          y: Math.round((label.y - canvasBorderWidth) * coordScale),
+          width: Math.round(label.width * coordScale),
+          height: Math.round(label.height * coordScale)
         }
-      } : 'no labels'
+      }))
     });
 
     const exportCanvas = document.createElement("canvas");
@@ -1072,9 +1086,11 @@ export default function DesignConfigurator({
     // Draw the HTML labels onto the export canvas
     if (designConfig.printType === "tile") {
       designConfig.labels.forEach((label) => {
-        // Scale label coordinates from display size to canvas size
-        const scaledX = label.x * coordScale;
-        const scaledY = label.y * coordScale;
+        // Adjust for border offset, then scale label coordinates from display size to canvas size
+        const adjustedX = label.x - canvasBorderWidth;
+        const adjustedY = label.y - canvasBorderWidth;
+        const scaledX = adjustedX * coordScale;
+        const scaledY = adjustedY * coordScale;
         const scaledWidth = label.width * coordScale;
         const scaledHeight = label.height * coordScale;
 
@@ -1241,18 +1257,10 @@ export default function DesignConfigurator({
       printType: designConfig.printType,
       routeData: {
         gpxData: {
-          originalGpxString: gpxData.gpxString, // Simplified GPX string optimized for manufacturing
           points: gpxData.points.map((p: any) => ({
             lat: p.lat,
             lon: p.lon,
-            ele: p.ele,
           })), // Simplified GPS points optimized for 3D printing
-        },
-        bounds: {
-          minLat: gpxData.bounds.minLat,
-          maxLat: gpxData.bounds.maxLat,
-          minLon: gpxData.bounds.minLon,
-          maxLon: gpxData.bounds.maxLon,
         },
         selectedBounds: {
           minLon: bboxCoords[0],
@@ -1274,8 +1282,8 @@ export default function DesignConfigurator({
         labels: designConfig.printType === "tile" ? designConfig.labels.map((label) => ({
           text: label.text,
           position: {
-            x: Math.round(label.x * coordScale),
-            y: Math.round(label.y * coordScale)
+            x: Math.round((label.x - canvasBorderWidth) * coordScale),
+            y: Math.round((label.y - canvasBorderWidth) * coordScale)
           },
           size: {
             width: Math.round(label.width * coordScale),
@@ -1344,8 +1352,7 @@ export default function DesignConfigurator({
     if (gpxData.activityId) {
       orderSummary += `Strava: https://www.strava.com/activities/${gpxData.activityId}\n`;
     }
-    orderSummary += `Selected Area: ${boundingBox}\n`;
-    orderSummary += `Full Route Bounds: ${orderSpecs.routeData.bounds.minLon.toFixed(5)},${orderSpecs.routeData.bounds.minLat.toFixed(5)},${orderSpecs.routeData.bounds.maxLon.toFixed(5)},${orderSpecs.routeData.bounds.maxLat.toFixed(5)}\n\n`;
+    orderSummary += `Selected Area: ${boundingBox}\n\n`;
 
     orderSummary += `DESIGN ELEMENTS:\n`;
     const totalLabels = (orderSpecs.designConfig.labels?.length || 0) + (orderSpecs.designConfig.ornamentLabels?.length || 0);

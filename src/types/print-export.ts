@@ -15,7 +15,6 @@
 export interface GPSPoint {
   lat: number;
   lon: number;
-  ele?: number;
 }
 
 export interface Bounds {
@@ -26,13 +25,11 @@ export interface Bounds {
 }
 
 export interface GPXData {
-  originalGpxString: string; // Simplified GPX string optimized for manufacturing
   points: GPSPoint[]; // Simplified GPS points optimized for 3D printing
 }
 
 export interface RouteData {
   gpxData: GPXData;
-  bounds: Bounds;
   selectedBounds: Bounds;
 }
 
