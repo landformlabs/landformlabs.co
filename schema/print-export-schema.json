@@ -1,0 +1,288 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://landformlabs.co/schemas/print-export-v1.json",
+  "title": "Landform Labs Print Export Schema",
+  "description": "Manufacturing-ready schema for 3D print export containing GPS route, bounding box, design configuration, and print specifications",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "printType",
+    "routeData",
+    "designConfig",
+    "nfc"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Version of this schema"
+    },
+    "printType": {
+      "type": "string",
+      "enum": ["tile", "ornament"],
+      "description": "Type of 3D print product"
+    },
+    "routeData": {
+      "type": "object",
+      "description": "GPS route data and bounding box",
+      "required": ["gpxData", "selectedBounds"],
+      "additionalProperties": false,
+      "properties": {
+        "gpxData": {
+          "type": "object",
+          "description": "Simplified GPX data optimized for 3D printing",
+          "required": ["points"],
+          "additionalProperties": false,
+          "properties": {
+            "points": {
+              "type": "array",
+              "description": "Array of simplified GPS track points, optimized for 3D printing manufacturing",
+              "minItems": 2,
+              "items": {
+                "type": "object",
+                "required": ["lat", "lon"],
+                "additionalProperties": false,
+                "properties": {
+                  "lat": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90,
+                    "description": "Latitude in decimal degrees"
+                  },
+                  "lon": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180,
+                    "description": "Longitude in decimal degrees"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "selectedBounds": {
+          "type": "object",
+          "description": "User-selected bounding box for the print area",
+          "required": ["minLat", "maxLat", "minLon", "maxLon"],
+          "additionalProperties": false,
+          "properties": {
+            "minLat": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90
+            },
+            "maxLat": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90
+            },
+            "minLon": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "maxLon": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            }
+          }
+        }
+      }
+    },
+    "designConfig": {
+      "type": "object",
+      "description": "Design configuration for the print",
+      "required": ["routeColor", "dimensions"],
+      "additionalProperties": false,
+      "properties": {
+        "routeColor": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "description": "Route color in hex format"
+        },
+        "dimensions": {
+          "type": "object",
+          "description": "Physical dimensions of the print",
+          "required": ["width", "height", "sizeName"],
+          "additionalProperties": false,
+          "properties": {
+            "width": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Print width in millimeters"
+            },
+            "height": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Print height in millimeters"
+            },
+            "sizeName": {
+              "type": "string",
+              "description": "Human-readable size name (e.g., 'ridgeline', 'basecamp', 'summit', 'standard')"
+            }
+          }
+        },
+        "labels": {
+          "type": "array",
+          "description": "Text labels for tile prints",
+          "items": {
+            "type": "object",
+            "required": ["text", "position", "size", "typography"],
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string",
+                "maxLength": 200,
+                "description": "Label text content"
+              },
+              "position": {
+                "type": "object",
+                "required": ["x", "y"],
+                "properties": {
+                  "x": {
+                    "type": "number",
+                    "description": "X coordinate in canvas units"
+                  },
+                  "y": {
+                    "type": "number",
+                    "description": "Y coordinate in canvas units"
+                  }
+                }
+              },
+              "size": {
+                "type": "object",
+                "required": ["width", "height"],
+                "properties": {
+                  "width": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Label width in canvas units"
+                  },
+                  "height": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Label height in canvas units"
+                  }
+                }
+              },
+              "typography": {
+                "type": "object",
+                "required": ["fontFamily", "fontSize"],
+                "properties": {
+                  "fontFamily": {
+                    "type": "string",
+                    "enum": ["Garamond", "Poppins", "Trispace"],
+                    "description": "Font family"
+                  },
+                  "fontSize": {
+                    "type": "number",
+                    "minimum": 1,
+                    "description": "Font size in points"
+                  },
+                  "textAlign": {
+                    "type": "string",
+                    "enum": ["left", "center", "right"],
+                    "default": "center",
+                    "description": "Text alignment"
+                  },
+                  "bold": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Bold text"
+                  },
+                  "italic": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Italic text"
+                  },
+                  "color": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-Fa-f]{6}$",
+                    "default": "#1f2937",
+                    "description": "Text color in hex format"
+                  }
+                }
+              },
+              "rotation": {
+                "type": "number",
+                "minimum": -360,
+                "maximum": 360,
+                "default": 0,
+                "description": "Rotation angle in degrees"
+              }
+            }
+          }
+        },
+        "ornamentLabels": {
+          "type": "array",
+          "description": "Curved labels for ornament prints",
+          "items": {
+            "type": "object",
+            "required": ["text", "angle", "radius", "typography"],
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string",
+                "maxLength": 100,
+                "description": "Label text content"
+              },
+              "angle": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 360,
+                "description": "Position around circle in degrees (0 = top)"
+              },
+              "radius": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Distance from center"
+              },
+              "typography": {
+                "$ref": "#/properties/designConfig/properties/labels/items/properties/typography"
+              }
+            }
+          }
+        },
+        "ornamentCircle": {
+          "type": "object",
+          "description": "Ornament circle configuration",
+          "required": ["x", "y", "radius"],
+          "properties": {
+            "x": {
+              "type": "number",
+              "description": "Center X coordinate"
+            },
+            "y": {
+              "type": "number",
+              "description": "Center Y coordinate"
+            },
+            "radius": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Circle radius"
+            }
+          }
+        }
+      }
+    },
+    "nfc": {
+      "type": "object",
+      "description": "NFC chip configuration",
+      "required": ["enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether NFC chip should be included"
+        },
+        "targetUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to be programmed into NFC chip (required if enabled is true)"
+        }
+      }
+    }
+  }
+}
